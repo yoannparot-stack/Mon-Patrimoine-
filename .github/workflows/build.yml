@@ -1,0 +1,42 @@
+name: Build Mon Patrimoine Android
+
+on:
+workflow_dispatch:
+push:
+paths:
+- 'Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip'
+- '.github/workflows/build.yml'
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
+
+  - name: Extract Android project
+    run: |
+      mkdir android-project
+      unzip Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip -d android-project
+      find android-project -maxdepth 4 -type f | head -80
+
+  - name: Set up Java
+    uses: actions/setup-java@v5
+    with:
+      distribution: temurin
+      java-version: '17'
+
+  - name: Set up Gradle
+    uses: gradle/actions/setup-gradle@v6
+
+  - name: Build debug APK
+    working-directory: android-project
+    run: gradle :app:assembleDebug --stacktrace
+
+  - name: Upload test APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: Mon-Patrimoine-V1.2-TEST-APK
+      path: android-project/app/build/outputs/apk/debug/app-debug.apk
+      if-no-files-found: error
