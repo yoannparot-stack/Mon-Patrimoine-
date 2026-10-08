@@ -1,57 +1,48 @@
 name: Build Mon Patrimoine Android
 
 on:
-workflow_dispatch:
-
-
-push:
-paths:
-- 'Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip'
-- '.github/workflows/build.yml'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip'
+      - '.github/workflows/build.yml'
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      - name: Extract Android project
+        run: |
+          mkdir android-project
+          unzip Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip -d android-project
+          find android-project -name settings.gradle -o -name settings.gradle.kts
 
-build:
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
 
+      - name: Build debug APK
+        run: |
+          ROOT="$(find android-project -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs dirname)"
+          echo "Projet Android : $ROOT"
+          cd "$ROOT"
+          gradle :app:assembleDebug --stacktrace
+          mkdir -p "$GITHUB_WORKSPACE/apk-out"
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/apk-out/app-debug.apk"
 
-
-runs-on: ubuntu-latest
-
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
-
-  - name: Extract Android project
-    run: |
-      mkdir android-project
-      unzip Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip -d android-project
-      find android-project -name settings.gradle -o -name settings.gradle.kts
-
-  - name: Set up Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '17'
-
-  - name: Set up Gradle
-    uses: gradle/actions/setup-gradle@v4
-    with:
-      gradle-version: '8.13'
-
-  - name: Build debug APK
-    run: |
-      ROOT="$(find android-project -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs dirname)"
-      echo "Projet Android : $ROOT"
-      cd "$ROOT"
-      gradle :app:assembleDebug --stacktrace
-      mkdir -p "$GITHUB_WORKSPACE/apk-out"
-      cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/apk-out/app-debug.apk"
-
-  - name: Upload test APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: Mon-Patrimoine-V1.2-TEST-APK
-      path: apk-out/app-debug.apk
-      if-no-files-found: error
+      - name: Upload test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mon-Patrimoine-V1.2-TEST-APK
+          path: apk-out/app-debug.apk
+          if-no-files-found: error
