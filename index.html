@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Mon Patrimoine — V1 commerciale</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e5e7eb;--accent:#2563eb;--accent2:#0f766e;--danger:#dc2626;--shadow:0 4px 18px rgba(16,24,40,.07);--radius:16px}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:#111827;color:white;padding:18px 16px;position:sticky;top:0;z-index:10}header .top{max-width:1200px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}h1{font-size:20px;margin:0}header small{color:#cbd5e1}
+nav{max-width:1200px;margin:0 auto;display:flex;gap:7px;overflow:auto;padding:10px 0 0}nav button{white-space:nowrap;background:#1f2937;color:#dbe4f0;border:0;border-radius:10px;padding:9px 12px;font-weight:600;cursor:pointer}nav button.active{background:white;color:#111827}
+main{max-width:1200px;margin:auto;padding:18px 14px 50px}.page{display:none}.page.active{display:block}.dashboard-filter{min-width:180px;margin:0}.dashboard-filter label{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}.metric{font-size:25px;font-weight:800;margin-top:5px}.label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+h2{font-size:20px;margin:4px 0 14px}h3{font-size:16px;margin:0 0 10px}.muted{color:var(--muted)}.positive{color:var(--accent2);font-weight:800}.negative{color:var(--danger);font-weight:800}.dashboard-pair,.property-finance{border-left:4px solid var(--accent)}.property-finance{background:linear-gradient(135deg,#fff 0%,#f8fbff 100%)}.finance-pair{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#f8fafc}.finance-pair .metric{font-size:22px}.pair-divider{width:1px;height:42px;background:var(--line)}.mini-label{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.04em}.value-positive{color:var(--accent2);font-weight:800}.value-negative{color:var(--danger);font-weight:800}
+button,.btn{font:inherit}.primary{background:var(--accent);color:white;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.secondary{background:white;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}.danger{background:#fee2e2;color:#991b1b;border:0;border-radius:9px;padding:8px 10px;font-weight:700;cursor:pointer}
+.actions{display:flex;flex-wrap:wrap;gap:8px}.empty{padding:30px;text-align:center;color:var(--muted);border:1px dashed #cbd5e1;border-radius:14px;background:#fafbfc}
+form .field{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}label{font-size:13px;font-weight:700}input,select,textarea{width:100%;padding:10px 11px;border:1px solid #d0d5dd;border-radius:9px;background:white;font:inherit;color:var(--text)}textarea{min-height:70px;resize:vertical}.hint{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-size:11px;text-transform:uppercase}
+.tablewrap{overflow:auto}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:11px;font-weight:700}
+.bar{height:9px;border-radius:99px;background:#e5e7eb;overflow:hidden}.bar>span{display:block;height:100%;background:var(--accent)}
+.dashboard-pair{background:linear-gradient(135deg,#ffffff 0%,#f8fbff 100%)}
+.pair-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.pair-values{display:grid;grid-template-columns:1fr 1px 1fr;align-items:center;gap:12px;margin-top:8px}.pair-divider{height:48px;background:var(--line)}.mini-label{font-size:11px;text-transform:uppercase;font-weight:800;color:var(--muted)}
+.small{font-size:12px}.right{text-align:right}.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+canvas{width:100%;height:260px;border:1px solid var(--line);border-radius:12px;background:white}
+/* Palette visuelle des volets */
+.property-card{border-top:4px solid #2563eb;background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%)}
+.property-summary{background:#eef6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px}
+.property-equity{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:12px}
+.property-rent{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:14px;padding:12px}
+.property-valuation{background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:12px}
+.property-finance{border-left:4px solid #0f766e!important;background:linear-gradient(135deg,#ecfdf5 0%,#f0fdfa 100%)!important}
+.finance-pair{background:#ffffff;border-color:#cbd5e1}
+.finance-pair>div:first-child{background:#eff6ff;border-radius:10px;padding:8px}
+.finance-pair>div:nth-child(3){background:#f0fdf4;border-radius:10px;padding:8px}
+.dashboard-pair{border-top:4px solid #2563eb};.dashboard-clickable{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}.dashboard-clickable:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(15,23,42,.08)}.dashboard-clickable:focus{outline:3px solid rgba(37,99,235,.22);outline-offset:2px}.dashboard-clickable:active{transform:translateY(0)}.dashboard-clickable{border-left:4px solid #2563eb}.structure-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.structure-box{padding:10px 12px;border-radius:12px;border:1px solid #bfdbfe;background:#eff6ff}.structure-box.sarl{border-color:#ddd6fe;background:#f5f3ff}.structure-box .metric{font-size:19px}@media(max-width:520px){.structure-grid{gap:6px}.structure-box{padding:8px}.structure-box .metric{font-size:16px}}.dashboard-kpis{margin-bottom:14px}.valuation-kpi{border-top-color:#f59e0b;background:linear-gradient(135deg,#fffaf0 0%,#fff7ed 100%)}.pair-values.compact{margin-top:7px}.consensus-delta{font-size:13px;font-weight:800;margin-top:8px}
+.grid3 .property-stat{border-radius:12px;padding:10px}
+.property-card .section-title{margin-bottom:12px}
+.notice{padding:11px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:11px;color:#1e3a8a;font-size:13px;margin-bottom:12px}
+footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-size:12px}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}header{position:static}.metric{font-size:21px}}
+@media print{
+  body{background:white!important}
+  header,footer,main>.page:not(#banque){display:none!important}
+  #banque{display:block!important;padding:0!important}
+  #banque .no-print{display:none!important}
+  #banque .card{box-shadow:none;border:0;padding:0;margin:0}
+  #banque h2{font-size:22px;margin-bottom:4px}
+  #banque .bank-subtitle{display:block!important}
+  #banque table{font-size:11px}
+  #banque th,#banque td{padding:7px 6px}
+  #banque .bank-total{background:#f3f4f6!important;font-weight:800}
+}
+@media(max-width:520px){.pair-values{gap:8px}.finance-pair{grid-template-columns:1fr 1px 1fr;gap:7px}.pair-values .metric{font-size:18px}main{padding:12px 10px 40px}.grid{grid-template-columns:1fr 1fr}.card{padding:13px}.metric{font-size:19px}nav{padding-top:9px}h2{font-size:18px}}
+
+/* Immobilier compact : même logique visuelle que le Dashboard */
+.property-card{padding:12px;margin-bottom:10px}
+.property-card .section-title{margin-bottom:8px}
+.property-compact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.compact-stat{padding:8px 10px!important;border-radius:11px!important;min-height:54px}
+.compact-stat b{font-size:16px;display:block;margin-top:3px}
+.compact-finance{margin-top:7px!important;padding:8px 10px!important;border-radius:11px!important}
+.compact-finance .finance-pair{padding:6px 8px;margin-top:5px;gap:8px}
+.compact-finance .finance-pair>div:first-child,.compact-finance .finance-pair>div:nth-child(3){padding:5px 7px}
+.compact-finance .finance-pair .metric{font-size:18px;margin-top:2px}
+.compact-finance .pair-divider{height:34px}.finance-triple{grid-template-columns:1fr 1px 1fr 1px 1fr!important}.finance-triple .metric{font-size:17px!important}@media(max-width:520px){.finance-triple{gap:5px!important}.finance-triple .metric{font-size:14px!important}.finance-triple .mini-label{font-size:9px!important}}
+.property-bottom-grid{margin-top:7px}
+.property-bottom-grid .hint{margin-top:2px}
+@media(max-width:520px){.property-compact-grid{gap:5px}.compact-stat{padding:7px 8px!important;min-height:49px}.compact-stat b{font-size:14px}.compact-finance{padding:7px 8px!important}.compact-finance .finance-pair .metric{font-size:16px}.property-card .actions button{padding:6px 8px;font-size:11px}}
+
+.bank-edit{width:100%;box-sizing:border-box;padding:7px 8px;border:1px solid var(--border,#ddd);border-radius:8px;background:var(--surface,#fff);font:inherit}.bank-number{max-width:120px;text-align:right}.bank-edit:focus{outline:2px solid var(--accent,#2563eb);outline-offset:1px}
+@media print{.bank-edit{border:0;background:transparent;padding:0;appearance:none;-webkit-appearance:none}.bank-edit option{color:#000}}
+
+.direction-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.direction-kpi{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}.direction-kpi .metric{font-size:21px}.direction-label{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase}.direction-status{display:inline-block;margin-top:7px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;background:#eef2ff;color:#3730a3}.direction-good{background:#ecfdf3;color:#047857}.direction-warn{background:#fff7ed;color:#c2410c}.direction-bad{background:#fef2f2;color:#b91c1c}.direction-table td,.direction-table th{padding:8px}.direction-progress{height:10px;border-radius:99px;background:#e5e7eb;overflow:hidden;margin-top:6px}.direction-progress span{display:block;height:100%;background:var(--accent)}
+@media(max-width:850px){.direction-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.direction-grid{grid-template-columns:1fr 1fr}.direction-kpi{padding:9px}.direction-kpi .metric{font-size:17px}}
+
+.direction-subgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.direction-subitem{padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}.direction-subitem strong{display:block;font-size:1.15rem;margin:4px 0}.stress-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.stress-item{padding:10px;border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;gap:5px}.stress-item small{color:var(--muted)}.glossary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.glossary-grid>div{padding:12px;border:1px solid var(--border);border-radius:10px}.action-list{display:grid;gap:8px}.action-item{padding:11px 12px;border-radius:10px;background:var(--surface2)}@media(max-width:700px){.direction-subgrid{grid-template-columns:1fr 1fr}.glossary-grid{grid-template-columns:1fr}.stress-grid{grid-template-columns:1fr}}
+
+.bank-document{max-width:1500px;margin:0 auto}.bank-print-title{margin:0 0 4px}.bank-subtitle{display:none;color:#667085;font-size:12px;margin:0 0 12px}.bank-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 12px}.bank-kpi{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:11px}.bank-kpi .metric{font-size:20px}.bank-total td{font-weight:800;border-top:2px solid #cbd5e1;background:#f8fafc}.bank-note{font-size:11px;color:var(--muted);margin-top:10px}.bank-table-card{padding:0}.bank-table-card table{min-width:1050px}.bank-table-card th{white-space:nowrap}.bank-table-card td:nth-child(1){text-align:center}.bank-table-card td:nth-child(n+5){text-align:right}.bank-table-card td:nth-child(2){text-align:left}.bank-table-card td:nth-child(3),.bank-table-card td:nth-child(4){white-space:nowrap}@media(max-width:900px){.bank-kpis{grid-template-columns:1fr 1fr}.bank-kpi:last-child{grid-column:1/-1}}@media print{body{background:#fff}.no-print{display:none!important}.bank-subtitle{display:block}.bank-document{max-width:none}.bank-kpis{grid-template-columns:repeat(3,1fr)}.bank-kpi{padding:7px}.bank-kpi .metric{font-size:16px}.bank-table-card{border:0;box-shadow:none;padding:0}.bank-table-card .tablewrap{overflow:visible}.bank-table-card table{min-width:0;width:100%;font-size:9px}.bank-table-card th,.bank-table-card td{padding:5px 4px}.bank-note{font-size:8px}}
+.market-status{padding:12px;border:1px solid var(--border);border-radius:12px;margin:10px 0;background:var(--surface2)}
+.market-ok{border-left:4px solid #2e7d32}.market-warn{border-left:4px solid #f9a825}.market-error{border-left:4px solid #c62828}
+.market-method{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.market-method div{padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);font-size:13px}
+.market-row{display:grid;grid-template-columns:1.55fr .8fr .75fr .8fr .8fr .85fr .85fr .95fr 1fr;gap:8px;align-items:center;padding:11px 8px;border-bottom:1px solid var(--border);font-size:13px}.market-head{font-weight:700;background:var(--surface2);border-radius:8px}.market-confidence{font-weight:700}.market-total{font-weight:700;background:var(--surface2);border-top:2px solid var(--border);border-bottom:0;padding-top:14px;padding-bottom:14px}.market-refresh-btn{margin-top:6px;padding:6px 8px;font-size:11px}.market-comp{font-size:12px;color:var(--muted)}
+@media(max-width:900px){.market-method{grid-template-columns:1fr 1fr}.market-row{grid-template-columns:1.55fr .8fr .8fr .8fr 1fr;}.market-row .market-extra,.market-row .market-purchase-m2,.market-row .market-market-m2,.market-row .market-gap{display:none}}
+@media(max-width:600px){.market-method{grid-template-columns:1.4fr .8fr .8fr 1fr}.market-row{grid-template-columns:1.45fr .8fr .85fr .9fr 1fr}.market-row .market-extra,.market-row .market-purchase-m2,.market-row .market-market-m2,.market-row .market-gap{display:none}}
+.optimization-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.opt-kpi{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px}.opt-kpi .metric{font-size:21px}.opt-row{display:grid;grid-template-columns:1.7fr .8fr .8fr .8fr .8fr .8fr .9fr;gap:8px;align-items:center}.opt-head,.opt-line{padding:10px 8px;border-bottom:1px solid var(--line)}.opt-head{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase}.opt-input{padding:7px 8px;font-size:13px}.opt-badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:800}.opt-now{background:#dcfce7;color:#166534}.opt-watch{background:#fef3c7;color:#92400e}.opt-neutral{background:#eef2f7;color:#475467}.opt-alert{background:#fee2e2;color:#991b1b}.opt-detail{font-size:11px;color:var(--muted);margin-top:3px}@media(max-width:800px){.optimization-summary{grid-template-columns:repeat(2,1fr)}.opt-row{grid-template-columns:1.5fr .8fr .8fr .8fr}.opt-head{display:none}.opt-line{display:grid;grid-template-columns:1fr 1fr;gap:7px}.opt-line>div:first-child{grid-column:1/-1}.opt-line>div{min-width:0}.opt-mobile-label{display:block;font-size:10px;color:var(--muted);font-weight:700;margin-bottom:2px}}
+.commercial-banner{max-width:1500px;margin:10px auto 0;padding:10px 14px;border:1px solid #dbe4ea;border-radius:12px;background:linear-gradient(90deg,#f8fafc,#eefbf4);display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}.commercial-badge{font-weight:800;padding:5px 9px;border-radius:999px;background:#dcfce7;color:#166534;white-space:nowrap}.commercial-note{border-left:4px solid #0f766e;background:#f0fdfa;padding:12px;border-radius:10px;margin-bottom:12px}.plan-card{display:flex;justify-content:space-between;align-items:center;gap:15px}.plan-card .metric{font-size:18px}@media(max-width:700px){.commercial-banner{align-items:flex-start;flex-direction:column}.commercial-badge{white-space:normal}.plan-card{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions"><button class="secondary" onclick="exportData()">Sauvegarder</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importer</button><input id="importFile" type="file" accept=".json" style="display:none" onchange="importData(event)"></div></div>
+  <nav id="nav"></nav>
+</header>
+<div class="commercial-banner no-print">
+  <div><b>Mon Patrimoine</b> — votre cockpit immobilier personnel</div>
+  <span class="commercial-badge">Version découverte · 1 logement complet gratuit</span>
+</div>
+
+<main>
+<section id="dashboard" class="page active">
+  <div class="section-title"><h2>Vue d’ensemble</h2><div class="field dashboard-filter"><label>Afficher</label><select id="dashboardHolder" onchange="renderDashboard()"><option value="Tous">Tous les biens</option><option value="SARL">SARL</option><option value="Personnel">Personnel</option><option value="Société">Société</option><option value="À définir">À définir</option></select></div></div>
+  <div class="grid">
+    <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Immobilier" onclick="dashboardGo('immobilier')" onkeydown="dashboardKey(event,'immobilier')"><div class="label">Patrimoine brut</div><div class="metric" id="mGross">0 €</div><div class="hint">Immobilier + financier + autres actifs</div></div>
+    <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Financements" onclick="dashboardGo('financement')" onkeydown="dashboardKey(event,'financement')"><div class="label">Dettes</div><div class="metric negative" id="mDebt">0 €</div><div class="hint">Crédits + autres dettes</div></div>
+    <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Immobilier" onclick="dashboardGo('immobilier')" onkeydown="dashboardKey(event,'immobilier')"><div class="label">Patrimoine net</div><div class="metric positive" id="mNet">0 €</div><div class="hint">Valeur après dettes</div></div>
+    <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Immobilier" onclick="dashboardGo('immobilier')" onkeydown="dashboardKey(event,'immobilier')"><div class="label">Loyers mensuels HC</div><div class="metric" id="mRent">0 €</div><div class="hint">Immobilier uniquement</div></div>
+  </div>
+  <div class="grid4 dashboard-kpis">
+    <div class="card dashboard-pair dashboard-clickable" role="button" tabindex="0" title="Ouvrir Immobilier" onclick="dashboardGo('immobilier')" onkeydown="dashboardKey(event,'immobilier')"><div class="pair-head"><div class="label">Cash-flow mensuel</div><span class="pill">Avant fiscalité</span></div><div class="pair-values"><div><div class="mini-label">Brut</div><div class="metric" id="mCash">0 €</div></div><div class="pair-divider"></div><div><div class="mini-label">Net</div><div class="metric" id="mCashNet">0 €</div></div></div><div class="hint">Brut avant crédit · Net après crédit</div></div>
+    <div class="card dashboard-pair dashboard-clickable" role="button" tabindex="0" title="Ouvrir Immobilier" onclick="dashboardGo('immobilier')" onkeydown="dashboardKey(event,'immobilier')"><div class="pair-head"><div class="label">Rendement global</div><span class="pill">Immobilier</span></div><div class="pair-values"><div><div class="mini-label">Brut</div><div class="metric" id="mYield">0 %</div></div><div class="pair-divider"></div><div><div class="mini-label">Net</div><div class="metric" id="mNetYield">0 %</div></div></div><div class="hint">Net après charges</div></div>
+    <div class="card dashboard-pair dashboard-clickable" role="button" tabindex="0" title="Ouvrir Financements" onclick="dashboardGo('financement')" onkeydown="dashboardKey(event,'financement')"><div class="label">Capital remboursé</div><div class="metric" id="mPrincipal">0 €</div><div class="hint">Depuis le début des crédits</div></div>
+    <div class="card dashboard-pair valuation-kpi dashboard-clickable" role="button" tabindex="0" title="Ouvrir Marché immobilier" onclick="dashboardGo('valorisation')" onkeydown="dashboardKey(event,'valorisation')"><div class="label">Consensus immobilier</div><div class="pair-values compact"><div><div class="mini-label">Consensus</div><div class="metric" id="mConsensus">0 €</div></div><div class="pair-divider"></div><div><div class="mini-label">Valeur retenue</div><div class="metric" id="mRetained">0 €</div></div></div><div class="consensus-delta" id="mConsensusDelta">Écart : —</div></div>
+  </div>
+  <div class="card"><div class="section-title"><h3>Évolution du patrimoine net</h3><button class="secondary" onclick="takeSnapshot()">Enregistrer la valeur actuelle</button></div><canvas id="historyChart"></canvas><div id="historyEmpty" class="empty">Aucun historique pour le moment. Enregistrez une valeur mensuelle ou annuelle pour commencer.</div></div>
+  <div class="card structure-card"><h3>Répartition du patrimoine immobilier</h3><div id="structureBreakdown"></div></div>
+</section>
+
+<section id="direction" class="page">
+  <div class="section-title"><h2>🎯 Direction patrimoniale</h2><span class="pill">Pilotage global</span></div>
+  <div class="notice">Cette vue répond à 5 questions : <b>où en sommes-nous ?</b> · <b>sommes-nous solides ?</b> · <b>créons-nous de la richesse ?</b> · <b>quels sont les risques ?</b> · <b>que faut-il faire ?</b></div>
+
+  <div class="card"><h3>① Où en sommes-nous ?</h3><div id="directionKpis" class="direction-grid"></div><div id="directionWealth" class="direction-subgrid"></div></div>
+
+  <div class="grid2">
+    <div class="card"><h3>② Sommes-nous solides ?</h3><div id="directionSolidarity"></div></div>
+    <div class="card"><h3>③ Création de richesse</h3><div id="directionCreation"></div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h3>④ Risques & résistance</h3><div id="directionRisk"></div><div id="directionStress" class="stress-grid"></div></div>
+    <div class="card"><h3>Répartition du patrimoine</h3><div id="directionHolders"></div></div>
+  </div>
+
+  <div class="card"><div class="section-title"><h3>⑤ Plan d'action</h3><span class="pill">Priorités</span></div><div id="directionAlerts"></div></div>
+  <div class="card"><h3>📘 Comprendre les indicateurs</h3><div class="glossary-grid">
+    <div><b>Niveau d’endettement immobilier (LTV)</b><p class="muted small">Dette immobilière ÷ valeur des biens. Plus il est bas, plus le patrimoine est désendetté.</p></div>
+    <div><b>Couverture des crédits (DSCR)</b><p class="muted small">Revenus immobiliers disponibles ÷ mensualités de crédit. Au-dessus de 1, les revenus couvrent les crédits selon cette définition.</p></div>
+    <div><b>Réserve de sécurité</b><p class="muted small">Nombre de mois de mensualités couvertes par les liquidités renseignées.</p></div>
+    <div><b>Patrimoine net</b><p class="muted small">Valeur des actifs moins les dettes. C’est la richesse nette estimée.</p></div>
+  </div></div>
+</section>
+
+<section id="immobilier" class="page">
+  <div class="commercial-note no-print"><b>Découverte gratuite :</b> vous pouvez gérer ici <b>1 logement complet</b> avec ses loyers, charges, financement, valeur et analyse de marché. Les fonctionnalités multi-biens seront réservées à l’offre premium lors de la commercialisation.</div>
+  <div class="section-title"><h2>Immobilier</h2><button class="primary" onclick="openPropertyForm()">+ Ajouter un bien</button></div>
+  <div id="propertyFormWrap"></div>
+  <div id="properties"></div>
+</section>
+
+<section id="financement" class="page">
+  <div class="section-title"><h2>Financements</h2><button class="primary" onclick="openLoanForm()">+ Ajouter un crédit</button></div>
+  <div id="loanFormWrap"></div>
+  <div id="loans"></div>
+</section>
+
+<section id="finances" class="page">
+  <div class="section-title"><h2>Patrimoine financier</h2><button class="primary" onclick="openAssetForm()">+ Ajouter un actif</button></div>
+  <div id="assetFormWrap"></div>
+  <div id="assets"></div>
+  <div class="card"><h3>Autres dettes</h3><div class="grid2"><div class="field"><label>Montant total des autres dettes (€)</label><input id="otherDebt" type="number" min="0" step="100"></div><div class="field"><label>Note</label><input id="otherDebtNote"></div></div><button class="primary" onclick="saveOtherDebt()">Enregistrer</button></div>
+</section>
+
+<section id="historique" class="page">
+  <div class="section-title"><h2>Historique</h2><button class="primary" onclick="takeSnapshot()">+ Enregistrer un point</button></div>
+  <div class="card"><div class="notice">Les snapshots permettent de suivre la progression réelle de votre patrimoine. Ils ne modifient pas les données actuelles.</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Patrimoine brut</th><th>Dettes</th><th>Patrimoine net</th><th>Note</th><th></th></tr></thead><tbody id="historyTable"></tbody></table></div></div>
+</section>
+
+<section id="projection" class="page">
+  <h2>Projection</h2>
+  <div class="card">
+    <div class="notice">Projection indicative : elle ne prédit pas le marché. Modifiez les hypothèses pour tester différents scénarios.</div>
+    <div class="grid3">
+      <div class="field"><label>Hausse annuelle immobilier (%)</label><input id="pProperty" type="number" step="0.1" value="1.5"></div>
+      <div class="field"><label>Rendement annuel financier (%)</label><input id="pFinancial" type="number" step="0.1" value="4"></div>
+      <div class="field"><label>Épargne mensuelle (€)</label><input id="pSavings" type="number" min="0" step="50" value="0"></div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Horizon</label><select id="pYears"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></div>
+      <div class="field"><label>Hausse annuelle des loyers (%)</label><input id="pRent" type="number" step="0.1" value="1.5"></div>
+      <div class="field"><label>Achats futurs / an (€)</label><input id="pFuture" type="number" min="0" step="1000" value="0"></div>
+    </div>
+    <button class="primary" onclick="renderProjection()">Calculer la projection</button>
+  </div>
+  <div class="card"><canvas id="projectionChart"></canvas><div id="projectionTable"></div></div>
+</section>
+
+<section id="valorisation" class="page">
+  <div class="section-title"><h2>📊 Marché immobilier</h2><div class="actions"><button class="primary" onclick="refreshMarket(true)">🔄 Actualiser tous les biens</button></div></div>
+  <div class="card">
+    <div class="notice"><b>🔐 Sécurité des données :</b> le moteur marché fonctionne sans serveur propre à l'application. Pour chaque bien, seuls <b>l'adresse, la surface et le type</b> sont transmis aux services publics de géocodage / DVF nécessaires à l'analyse. <b>Aucun loyer, crédit, dette, valeur patrimoniale, détenteur, structure ou donnée bancaire n'est transmis.</b> Les résultats et l'historique restent dans le stockage local de ce navigateur.</div>
+    <div id="marketStatus" class="market-status"></div>
+    <div class="grid4" id="marketOverview"></div>
+  </div>
+  <div class="card">
+    <h3>Estimation automatique par bien</h3>
+    <p class="muted small">L'estimation privilégie les ventes DVF récentes de logements comparables : même type, surface proche et proximité géographique de l'adresse. Les ventes sont filtrées pour éviter les valeurs aberrantes et les reventes multiples d'une même parcelle.</p>
+    <div id="marketTable"></div>
+  </div>
+  <div class="card">
+    <h3>🧭 Méthode et limites</h3>
+    <div class="market-method"><div>1. Adresse → géolocalisation</div><div>2. Transactions DVF des 5 dernières années</div><div>3. Même type de bien</div><div>4. Surface proche</div><div>5. Priorité aux ventes proches de l'adresse</div><div>6. Exclusion des valeurs aberrantes</div><div>7. Prix achat + estimation actuelle + €/m²</div><div>8. Niveau de confiance selon le nombre de comparables</div></div>
+    <p class="muted small"><b>Nota DPE :</b> le DPE est affiché comme information de contexte, mais n'est pas utilisé pour modifier artificiellement le prix DVF : les transactions DVF ne fournissent pas le DPE du logement vendu. L'estimation est donc une <b>valeur de marché indicative</b>, pas une expertise.</p>
+    <p class="muted small"><b>Important :</b> la « valeur retenue » de ton patrimoine reste indépendante. L'analyse marché ne l'écrase jamais.</p>
+  </div>
+</section>
+
+<section id="optimisation" class="page">
+  <div class="section-title"><h2>🎯 Optimisation du parc</h2><div class="actions"><button class="secondary" onclick="renderOptimization()">↻ Recalculer</button></div></div>
+  <div class="card">
+    <div class="notice"><b>Objectif :</b> repérer les actions simples sur les loyers et les petits travaux qui peuvent améliorer le revenu du parc. Les loyers cibles sont des <b>hypothèses de travail modifiables</b>, pas des loyers garantis.</div>
+    <div id="optimizationSummary" class="optimization-summary"></div>
+  </div>
+  <div class="card">
+    <h3>Audit bien par bien</h3>
+    <p class="muted small">Modifie directement le loyer cible ou le budget de petits travaux. Le gain annuel et le délai de retour sont recalculés automatiquement. La résidence principale est exclue de l'audit locatif.</p>
+    <div id="optimizationTable"></div>
+  </div>
+  <div class="card">
+    <h3>🔎 Comment lire l'audit</h3>
+    <div class="grid3">
+      <div><span class="opt-badge opt-now">À étudier</span><p class="muted small">Écart de loyer intéressant avec un effort de travaux faible ou nul.</p></div>
+      <div><span class="opt-badge opt-watch">À surveiller</span><p class="muted small">Potentiel présent mais nécessitant de vérifier précisément le marché ou le coût des travaux.</p></div>
+      <div><span class="opt-badge opt-neutral">Déjà optimisé</span><p class="muted small">Loyer déjà proche de l'hypothèse cible ou gain limité.</p></div>
+    </div>
+    <p class="muted small"><b>Important :</b> les références de marché utilisées comme contexte sont des annonces, tandis que l'onglet Marché immobilier repose sur les transactions DVF. Une annonce ne prouve donc pas qu'un loyer sera effectivement obtenu.</p>
+  </div>
+</section>
+
+<section id="banque" class="page">
+  <div class="section-title no-print"><h2>🏦 Synthèse bancaire</h2><div class="actions"><button class="secondary" onclick="exportBankCSV()">⬇️ Export CSV</button><button class="primary" onclick="printBankSummary()">🖨️ Imprimer / PDF</button></div></div>
+  <div class="bank-document">
+    <h2 class="bank-print-title">Synthèse du patrimoine locatif</h2>
+    <p class="bank-subtitle">Récapitulatif des biens, loyers et crédits — document destiné à la présentation bancaire</p>
+    <div id="bankKpis" class="bank-kpis"></div>
+    <div class="card bank-table-card"><div class="tablewrap"><table id="bankTable"><thead><tr><th>N°</th><th>Bien</th><th>Détenteur</th><th>Structure</th><th>Loyer HC<br>/ mois</th><th>Charges récup.<br>/ mois</th><th>Loyer CC<br>/ mois</th><th>Crédit<br>/ mois</th><th>Loyer annuel<br>HC</th><th>Loyer annuel<br>CC</th></tr></thead><tbody id="bankTableBody"></tbody></table></div><div class="bank-note">Document de synthèse basé sur les informations saisies dans Mon Patrimoine. « Loyer CC » = loyer HC + charges récupérables lorsque les deux données sont renseignées.</div></div>
+  </div>
+</section>
+
+<section id="parametres" class="page">
+  <h2>Paramètres & sauvegarde</h2>
+  <div class="card"><h3>Nom du tableau</h3><div class="field"><input id="appName"></div><button class="primary" onclick="saveSettings()">Enregistrer</button></div>
+  <div class="card"><h3>Données</h3><p class="muted">Toutes les données sont conservées localement dans le navigateur de cet appareil. Faites régulièrement une sauvegarde JSON si vous voulez éviter toute perte.</p><div class="actions"><button class="primary" onclick="exportData()">Exporter mes données</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importer une sauvegarde</button><button class="danger" onclick="resetAll()">Effacer toutes les données</button></div></div>
+  <div class="card"><h3>Offre</h3><div class="plan-card"><div><div class="label">Version actuelle</div><div class="metric">Découverte gratuite</div><div class="hint">1 logement complet · architecture prête pour une offre premium multi-biens.</div></div><span class="commercial-badge">FREE</span></div></div>
+  <div class="card"><h3>Version</h3><p>Mon Patrimoine — version commerciale V1.</p></div>
+</section>
+</main>
+<footer>Prototype commercial — les données patrimoniales restent locales sur cet appareil. Le moteur marché n'envoie que les informations immobilières strictement nécessaires aux sources publiques.</footer>
+
+<script>
+const KEY='mon_patrimoine_test_visuel_v11';
+const COMMERCIAL_PLAN='free';
+const FREE_PROPERTY_LIMIT=1;
+const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine — TEST'},properties:[{id:'test1',name:'Appartement test',address:'Centre-ville',surface:20,structure:'Nom propre',holder:'Personnel',type:'Appartement',floor:'2',dpe:'D',purchase:70000,notary:5500,works:3000,furniture:1000,otherCost:0,currentValue:82000,retainedValue:82000,rentHC:490,recoverable:40,ownerCharges:25,tax:636,pno:12.5,otherMonthly:0,occupancy:100,autoEstimate:82000,estimateLow:78000,estimateHigh:86000,market12m:2,priceM2:4100,estimateSource:'Données de test',estimateDate:'2026-10-01',sources:[{source:'Comparables de test',value:82000,m2:4100,date:'2026-10-01',note:'Jeu de données temporaire'}],marketAnalysis:{estimate:82000,low:78000,high:86000,priceM2:4100,confidence:'Moyenne',comparables:6,updatedAt:'2026-10-07T10:00:00.000Z',sourceYear:2026,rawComparables:[{price:79500,surface:19,ppm:4184,distanceM:250,date:'2026-03-21',type:'Appartement'},{price:80000,surface:20,ppm:4000,distanceM:350,date:'2026-02-18',type:'Appartement'},{price:82500,surface:20,ppm:4125,distanceM:450,date:'2026-01-15',type:'Appartement'},{price:85000,surface:21,ppm:4048,distanceM:500,date:'2025-12-10',type:'Appartement'},{price:78000,surface:19,ppm:4105,distanceM:600,date:'2025-11-20',type:'Appartement'},{price:81500,surface:20,ppm:4075,distanceM:700,date:'2025-10-05',type:'Appartement'}]}}],loans:[{id:'loan1',propertyId:'test1',bank:'Banque test',initial:77000,years:20,rate:3.3,insuranceRate:0.5,insuranceAmount:0,payment:0,startDate:'2026-10-01',remaining:76000,notes:'Crédit de test'}],assets:[{id:'asset1',name:'Épargne de test',category:'Épargne',institution:'Banque test',value:5000}],snapshots:[],otherDebt:0,otherDebtNote:'',otherDebtOwner:''};
+const empty = structuredClone(EMBEDDED_BACKUP);
+let db;
+
+function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.properties=(x.properties||[]).map(p=>({...p,holder:p.holder||((p.structure==='SARL de famille')?'SARL':'À définir')}));x.loans=x.loans||[];x.assets=x.assets||[];if(!raw&&x.properties.length){localStorage.setItem(KEY,JSON.stringify(x));}return x}catch(e){const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(p=>({...p,holder:p.holder||((p.structure==='SARL de famille')?'SARL':'À définir')}));return x}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll();}
+function euro(n){return (Number(n)||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})}
+function pct(n){return (Number(n)||0).toLocaleString('fr-FR',{maximumFractionDigits:1})+' %'}
+function dateFR(s){if(!s)return '';return new Date(s+'T12:00:00').toLocaleDateString('fr-FR')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+const pages=[['dashboard','Dashboard'],['direction','🎯 Direction'],['immobilier','Immobilier'],['financement','Financement'],['finances','Finances'],['historique','Historique'],['projection','Projection'],['valorisation','📊 Marché immobilier'],['optimisation','🎯 Optimisation'],['banque','🏦 Banque'],['parametres','Paramètres']];
+document.getElementById('nav').innerHTML=pages.map((p,i)=>`<button class="${i===0?'active':''}" data-page="${p[0]}">${p[1]}</button>`).join('');
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+function dashboardGo(pageId){showPage(pageId);const page=document.getElementById(pageId);if(page){window.setTimeout(()=>page.scrollIntoView({behavior:'smooth',block:'start'}),30);}}
+function dashboardKey(event,pageId){if(event.key==='Enter'||event.key===' '){event.preventDefault();dashboardGo(pageId);}}
+function showPage(p){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));if(p==='projection')renderProjection();if(p==='banque')renderBankSummary();if(p==='direction')renderDirection();if(p==='valorisation')renderMarketPage();if(p==='optimisation')renderOptimization();}
+
+
+function liquidAssets(){
+ const cats=['Livret A','Épargne','Compte bancaire'];
+ return db.assets.filter(a=>cats.includes(a.category)).reduce((s,a)=>s+(Number(a.value)||0),0);
+}
+function directionMetrics(){
+ const propValue=db.properties.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
+ const debt=db.loans.reduce((s,l)=>s+(Number(l.remaining)||0),0)+(Number(db.otherDebt)||0);
+ const monthlyDebt=db.loans.reduce((s,l)=>s+monthlyLoanPayment(l),0);
+ const noi=db.properties.reduce((s,p)=>s+(Number(p.rentHC)||0)-(Number(p.ownerCharges)||0)-(Number(p.tax)||0)/12-(Number(p.pno)||0)-(Number(p.otherMonthly)||0),0);
+ const annualNOI=noi*12, annualDebt=monthlyDebt*12;
+ const dscr=annualDebt>0?annualNOI/annualDebt:null;
+ const ltv=propValue>0?debt/propValue*100:null;
+ const liquid=liquidAssets(), runway=monthlyDebt>0?liquid/monthlyDebt:null;
+ const occupancy=db.properties.length?db.properties.reduce((s,p)=>s+(Number(p.occupancy)||0),0)/db.properties.length:null;
+ const dpeBad=db.properties.filter(p=>['F','G'].includes(String(p.dpe||'').toUpperCase().trim())).length;
+ const dpeE=db.properties.filter(p=>String(p.dpe||'').toUpperCase().trim()==='E').length;
+ return {propValue,debt,monthlyDebt,noi,dscr,ltv,liquid,runway,occupancy,dpeBad,dpeE};
+}
+function ratioClass(type,v){
+ if(v===null)return 'direction-status';
+ if(type==='ltv')return v<=50?'direction-status direction-good':v<=70?'direction-status direction-warn':'direction-status direction-bad';
+ if(type==='dscr')return v>=1.3?'direction-status direction-good':v>=1?'direction-status direction-warn':'direction-status direction-bad';
+ if(type==='runway')return v>=6?'direction-status direction-good':v>=3?'direction-status direction-warn':'direction-status direction-bad';
+ if(type==='occupancy')return v>=95?'direction-status direction-good':v>=90?'direction-status direction-warn':'direction-status direction-bad';
+ return 'direction-status';
+}
+function renderDirection(){
+ const el=document.getElementById('directionKpis'); if(!el)return;
+ const m=directionMetrics();
+ const t=totals();
+ const netWorth=t.net;
+ const creation=t.principal;
+ const riskParts=[];
+ if(m.ltv!==null && m.ltv>70)riskParts.push('🔴 Endettement immobilier élevé : niveau d’endettement supérieur à 70 %.'); else if(m.ltv!==null && m.ltv>50)riskParts.push('🟠 Endettement à surveiller : niveau d’endettement supérieur à 50 %.');
+ if(m.dscr!==null && m.dscr<1)riskParts.push('🔴 Les revenus immobiliers disponibles ne couvrent pas entièrement les crédits.'); else if(m.dscr!==null && m.dscr<1.3)riskParts.push('🟠 La couverture des crédits est correcte mais mérite une marge de sécurité.');
+ if(m.runway!==null && m.runway<3)riskParts.push('🔴 Réserve de sécurité inférieure à 3 mois de crédits.'); else if(m.runway!==null && m.runway<6)riskParts.push('🟠 Réserve de sécurité inférieure à 6 mois de crédits.');
+ if(m.occupancy!==null && m.occupancy<90)riskParts.push('🔴 Taux d’occupation inférieur à 90 %.'); else if(m.occupancy!==null && m.occupancy<95)riskParts.push('🟠 Taux d’occupation inférieur à 95 %.');
+ if(m.dpeBad)riskParts.push('🔴 '+m.dpeBad+' bien(s) classé(s) F/G : à traiter en priorité.');
+ if(m.dpeE)riskParts.push('🟠 '+m.dpeE+' bien(s) classé(s) E : anticiper les travaux et la réglementation.');
+ if(!db.assets.length)riskParts.push('🟠 Aucun actif financier renseigné : la diversification financière n’est pas encore mesurable.');
+ const score=Math.min(10,(m.ltv>70?2:m.ltv>50?1:0)+(m.dscr!==null?(m.dscr<1?3:m.dscr<1.3?1:0):0)+(m.runway!==null?(m.runway<3?2:m.runway<6?1:0):0)+(m.occupancy!==null?(m.occupancy<90?2:m.occupancy<95?1:0):0)+Math.min(2,m.dpeBad)+(m.dpeE?1:0));
+ const scoreLabel=score<=2?'Faible':score<=4?'Modéré':score<=6?'À surveiller':'Élevé';
+ const scoreCls=score<=2?'direction-status direction-good':score<=4?'direction-status direction-warn':'direction-status direction-bad';
+ const kpi=(title,value,hint,cls='')=>`<div class="direction-kpi"><div class="direction-label">${title}</div><div class="metric ${cls}">${value}</div><div class="hint">${hint}</div></div>`;
+ el.innerHTML=kpi('Patrimoine net',euro(netWorth),'Valeur des actifs − dettes','positive')+
+   kpi('Valeur des actifs',euro(t.gross),'Immobilier + financier + autres actifs')+
+   kpi('Dette totale',euro(t.debt),'Crédits + autres dettes','negative')+
+   kpi('Cash-flow net / mois',euro(t.cashNet),'Après charges et crédits',t.cashNet>=0?'positive':'negative');
+ document.getElementById('directionWealth').innerHTML=`<div class="direction-subitem"><b>Capital déjà remboursé</b><strong>${euro(creation)}</strong><span class="hint">Depuis le début des crédits</span></div><div class="direction-subitem"><b>Loyers HC / mois</b><strong>${euro(t.rent)}</strong><span class="hint">Revenus locatifs hors charges</span></div><div class="direction-subitem"><b>Rendement brut</b><strong>${pct(t.grossYield)}</strong><span class="hint">Sur coût total renseigné</span></div><div class="direction-subitem"><b>Rendement net</b><strong>${pct(t.netYield)}</strong><span class="hint">Après charges propriétaires</span></div>`;
+ document.getElementById('directionSolidarity').innerHTML=`<div class="direction-grid"><div class="direction-kpi"><div class="direction-label">Niveau d’endettement immobilier (LTV)</div><div class="metric">${m.ltv===null?'À renseigner':m.ltv.toFixed(1).replace('.',',')+' %'}</div><span class="${ratioClass('ltv',m.ltv)}">${m.ltv===null?'Données manquantes':m.ltv<=50?'Très confortable':m.ltv<=70?'À surveiller':'Élevé'}</span><div class="hint">Dette ÷ valeur immobilière</div></div><div class="direction-kpi"><div class="direction-label">Couverture des crédits (DSCR)</div><div class="metric">${m.dscr===null?'À renseigner':m.dscr.toFixed(2).replace('.',',')}</div><span class="${ratioClass('dscr',m.dscr)}">${m.dscr===null?'Données manquantes':m.dscr>=1.3?'Solide':m.dscr>=1?'Correct':'Insuffisant'}</span><div class="hint">Revenus disponibles ÷ crédits</div></div><div class="direction-kpi"><div class="direction-label">Taux d’occupation</div><div class="metric">${m.occupancy===null?'À renseigner':m.occupancy.toFixed(1).replace('.',',')+' %'}</div><span class="${ratioClass('occupancy',m.occupancy)}">${m.occupancy===null?'Données manquantes':m.occupancy>=95?'Excellent':m.occupancy>=90?'Correct':'À améliorer'}</span></div><div class="direction-kpi"><div class="direction-label">Réserve de sécurité</div><div class="metric">${m.runway===null?'À renseigner':m.runway.toFixed(1).replace('.',',')+' mois'}</div><span class="${ratioClass('runway',m.runway)}">${m.runway===null?'Données manquantes':m.runway>=6?'Confortable':m.runway>=3?'À renforcer':'Faible'}</span><div class="hint">Liquidités ÷ mensualités</div></div></div>`;
+ document.getElementById('directionCreation').innerHTML=`<div class="direction-grid"><div class="direction-kpi"><div class="direction-label">Capital remboursé</div><div class="metric positive">${euro(creation)}</div><div class="hint">Richesse créée par désendettement</div></div><div class="direction-kpi"><div class="direction-label">Cash-flow net annuel</div><div class="metric ${t.cashNet>=0?'positive':'negative'}">${euro(t.cashNet*12)}</div><div class="hint">Avant fiscalité personnelle</div></div></div><p class="muted small">La création de richesse complète le cash-flow : une partie de l’enrichissement vient du capital remboursé par les loyers, pas uniquement de l’argent restant chaque mois.</p>`;
+ document.getElementById('directionRisk').innerHTML=`<div class="metric">${score}/10</div><span class="${scoreCls}">Risque ${scoreLabel.toLowerCase()}</span><p class="muted small">Score indicatif combinant endettement, couverture des crédits, liquidité, occupation et DPE. Il ne remplace pas une analyse bancaire.</p>`;
+ const stressBase=m.monthlyDebt, liquid=m.liquid;
+ const scenarios=[['Situation actuelle',0],['1 mois de mensualités imprévu',1],['3 mois de mensualités imprévus',3],['6 mois de mensualités imprévus',6]];
+ document.getElementById('directionStress').innerHTML=stressBase>0?scenarios.map(([label,months])=>{const remaining=liquid-stressBase*months;return `<div class="stress-item"><b>${label}</b><span class="${remaining>=0?'direction-status direction-good':'direction-status direction-bad'}">${remaining>=0?'Réserve suffisante':'Réserve insuffisante'}</span><small>${euro(Math.max(0,remaining))} restante${remaining>1?'s':''}</small></div>`}).join(''):'<div class="empty">Ajoutez des crédits pour activer le test de résistance.</div>';
+ const holders={}; db.properties.forEach(p=>{const h=p.holder||((p.structure==='SARL de famille')?'SARL':'À définir');holders[h]=(holders[h]||0)+(Number(p.retainedValue)||Number(p.currentValue)||0)}); const total=Object.values(holders).reduce((a,b)=>a+b,0);
+ document.getElementById('directionHolders').innerHTML=total?Object.entries(holders).map(([h,v])=>`<div style="margin-bottom:10px"><div class="section-title"><b>${esc(h)}</b><span>${euro(v)} · ${(v/total*100).toFixed(1).replace('.',',')} %</span></div><div class="direction-progress"><span style="width:${Math.min(100,v/total*100)}%"></span></div></div>`).join(''):'<div class="empty">Aucun bien enregistré.</div>';
+ document.getElementById('directionAlerts').innerHTML=riskParts.length?'<div class="action-list">'+riskParts.map(x=>'<div class="action-item">'+esc(x)+'</div>').join('')+'</div>':'<div class="positive">✓ Aucun point d’alerte majeur détecté avec les données renseignées.</div>';
+}
+
+function propertyCost(p){return (Number(p.purchase)||0)+(Number(p.notary)||0)+(Number(p.works)||0)+(Number(p.furniture)||0)+(Number(p.otherCost)||0)}
+function monthlyLoanPayment(l){
+  const entered=Number(l.payment)||0;
+  if(entered>0)return entered;
+  const amount=Number(l.initial)||0, r=(Number(l.rate)||0)/100/12, n=(Number(l.years)||0)*12;
+  if(!amount||!n)return 0;
+  const base=r?amount*r/(1-Math.pow(1+r,-n)):amount/n;
+  const insurance=Number(l.insuranceAmount)|| (amount*(Number(l.insuranceRate)||0)/100/12);
+  return base+insurance;
+}
+function principalRepaid(l){return Math.max(0,(Number(l.initial)||0)-(Number(l.remaining)||0))}
+function totals(){
+  const propValue=db.properties.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
+  const propCost=db.properties.reduce((s,p)=>s+propertyCost(p),0);
+  const debt=db.loans.reduce((s,l)=>s+(Number(l.remaining)||0),0)+(Number(db.otherDebt)||0);
+  const assets=db.assets.reduce((s,a)=>s+(Number(a.value)||0),0);
+  const rent=db.properties.reduce((s,p)=>s+(Number(p.rentHC)||0),0);
+  const annualOwner=db.properties.reduce((s,p)=>s+(Number(p.ownerCharges)||0)+(Number(p.tax)||0)/12+(Number(p.pno)||0)+(Number(p.otherMonthly)||0),0);
+  const payments=db.loans.reduce((s,l)=>s+monthlyLoanPayment(l),0);
+  const cashGross=rent+db.properties.reduce((s,p)=>s+(Number(p.recoverable)||0),0)-annualOwner;
+  const cashNet=cashGross-payments;
+  const grossYield=propCost?rent*12/propCost*100:0;
+  const netYield=propCost?cashGross*12/propCost*100:0;
+  return {propValue,propCost,debt,assets,gross:propValue+assets,net:propValue+assets-debt,rent,cash:cashGross,cashNet,grossYield,netYield,principal:db.loans.reduce((s,l)=>s+principalRepaid(l),0)};
+}
+const OPT_DEFAULT_TARGETS={};
+function optTargetRent(p){
+  if(p.optimizationTargetRent!==undefined && p.optimizationTargetRent!==null && Number(p.optimizationTargetRent)>0) return Number(p.optimizationTargetRent);
+  return Number(OPT_DEFAULT_TARGETS[p.name])||Number(p.rentHC)||0;
+}
+function optWorks(p){return Math.max(0,Number(p.optimizationWorks)||0)}
+function saveOptField(propertyId,field,value){
+  const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
+  if(field==='optimizationTargetRent')p.optimizationTargetRent=Math.max(0,Number(value)||0);
+  if(field==='optimizationWorks')p.optimizationWorks=Math.max(0,Number(value)||0);
+  save();
+}
+function optimizationRows(){
+  return db.properties.filter(p=>Number(p.rentHC)>0 && true).map(p=>{
+    const current=Number(p.rentHC)||0,target=optTargetRent(p),gain=Math.max(0,target-current),annual=gain*12,works=optWorks(p),payback=annual>0?works/annual:null;
+    let status='Déjà optimisé',cls='opt-neutral';
+    if(gain>=40 && (works===0 || payback<=3)){status='À étudier';cls='opt-now'}
+    else if(gain>=20 || (works>0 && payback<=5)){status='À surveiller';cls='opt-watch'}
+    return {p,current,target,gain,annual,works,payback,status,cls};
+  });
+}
+function renderOptimization(){
+  const rows=optimizationRows();
+  const totalGain=rows.reduce((s,r)=>s+r.gain,0),annual=totalGain*12,totalWorks=rows.reduce((s,r)=>s+r.works,0);
+  const actionable=rows.filter(r=>r.gain>=20).length;
+  const best=rows.slice().sort((a,b)=>b.annual-a.annual)[0];
+  document.getElementById('optimizationSummary').innerHTML=`<div class="opt-kpi"><div class="label">Potentiel mensuel</div><div class="metric positive">+${euro(totalGain)}</div><div class="hint">si les loyers cibles sont atteints</div></div><div class="opt-kpi"><div class="label">Potentiel annuel</div><div class="metric positive">+${euro(annual)}</div><div class="hint">avant fiscalité</div></div><div class="opt-kpi"><div class="label">Biens à examiner</div><div class="metric">${actionable}</div><div class="hint">écart cible ≥ 20 € / mois</div></div><div class="opt-kpi"><div class="label">Plus gros levier</div><div class="metric">${best?esc(best.p.name):'—'}</div><div class="hint">+${best?euro(best.gain):'0 €'} / mois</div></div>`;
+  if(!rows.length){document.getElementById('optimizationTable').innerHTML='<div class="empty">Aucun bien locatif renseigné.</div>';return;}
+  let html='<div class="tablewrap"><div class="opt-row opt-head"><div>Bien</div><div>Loyer actuel</div><div>Loyer cible</div><div>Gain / mois</div><div>Gain / an</div><div>Travaux</div><div>Retour</div></div>';
+  html+=rows.map(r=>`<div class="opt-row opt-line"><div><b>${esc(r.p.name)}</b><div class="opt-detail">${esc(r.p.address||'')} · ${Number(r.p.surface)||0} m²</div><div style="margin-top:5px"><span class="opt-badge ${r.cls}">${r.status}</span></div></div><div><span class="opt-mobile-label">Loyer actuel</span>${euro(r.current)}</div><div><span class="opt-mobile-label">Loyer cible</span><input class="opt-input" type="number" min="0" step="5" value="${r.target}" onchange="saveOptField('${r.p.id}','optimizationTargetRent',this.value)"></div><div class="${r.gain>0?'positive':''}"><span class="opt-mobile-label">Gain / mois</span>${r.gain>0?'+'+euro(r.gain):'—'}</div><div class="${r.annual>0?'positive':''}"><span class="opt-mobile-label">Gain / an</span>${r.annual>0?'+'+euro(r.annual):'—'}</div><div><span class="opt-mobile-label">Petits travaux</span><input class="opt-input" type="number" min="0" step="100" value="${r.works}" onchange="saveOptField('${r.p.id}','optimizationWorks',this.value)"></div><div><span class="opt-mobile-label">Retour</span>${r.annual>0&&r.works>0?r.payback.toFixed(1).replace('.',',')+' ans':r.annual>0?'Immédiat':'—'}</div></div>`).join('')+'</div>';
+  document.getElementById('optimizationTable').innerHTML=html;
+}
+
+function renderAll(){renderDashboard();renderProperties();renderLoans();renderAssets();renderHistory();renderValuation();renderBankSummary();renderDirection();renderOptimization();document.getElementById('appName').value=db.settings.name||'Mon Patrimoine';document.getElementById('otherDebt').value=db.otherDebt||0;document.getElementById('otherDebtNote').value=db.otherDebtNote||'';document.title=db.settings.name||'Mon Patrimoine';}
+
+function dashboardProperties(){
+ const f=document.getElementById('dashboardHolder')?.value||'Tous';
+ return f==='Tous'?db.properties:db.properties.filter(p=>(p.holder||((p.structure==='SARL de famille')?'SARL':'À définir'))===f);
+}
+function renderDashboard(){
+ const props=dashboardProperties();
+ const t=totalsFor(props);
+ const consensus=props.reduce((s,p)=>s+consensusValue(p),0);
+ const retained=props.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
+ const delta=consensus>0?(retained/consensus-1)*100:0;
+ const dashboardValues=[['mGross',euro(t.gross)],['mDebt',euro(t.debt)],['mNet',euro(t.net)],['mRent',euro(t.rent)],['mCash',euro(t.cash)],['mCashNet',euro(t.cashNet)],['mYield',pct(t.grossYield)],['mNetYield',pct(t.netYield)],['mPrincipal',euro(t.principal)],['mConsensus',euro(consensus)],['mRetained',euro(retained)]];
+ dashboardValues.forEach(([idv,val])=>document.getElementById(idv).textContent=val);
+ const deltaEl=document.getElementById('mConsensusDelta');
+ if(consensus>0){ deltaEl.textContent='Écart : '+(delta>=0?'+':'')+delta.toFixed(1).replace('.',',')+' % | '+(retained-consensus>=0?'+':'')+euro(retained-consensus); deltaEl.className='consensus-delta '+(delta>=0?'positive':'negative'); } else { deltaEl.textContent='Écart : —'; deltaEl.className='consensus-delta muted'; }
+ document.getElementById('mCash').className='metric '+(t.cash>=0?'positive':'negative');
+ document.getElementById('mCashNet').className='metric '+(t.cashNet>=0?'positive':'negative');
+ document.getElementById('mYield').className='metric '+(t.grossYield>=0?'positive':'negative');
+ document.getElementById('mNetYield').className='metric '+(t.netYield>=0?'positive':'negative');
+ const by={};props.forEach(p=>{let k=p.structure||'Nom propre';by[k]=(by[k]||0)+(Number(p.retainedValue)||Number(p.currentValue)||0)}); const nom=by['Nom propre']||0, sarl=by['SARL de famille']||0, totalImm=nom+sarl; const nomPct=totalImm?nom/totalImm*100:0, sarlPct=totalImm?sarl/totalImm*100:0; document.getElementById('structureBreakdown').innerHTML=totalImm?`<div class="structure-grid"><div class="structure-box"><div class="mini-label">👤👤 Nom propre</div><div class="metric">${euro(nom)}</div><div class="hint">${nomPct.toFixed(1).replace('.',',')} % de l'immobilier</div></div><div class="structure-box sarl"><div class="mini-label">🏢 SARL de famille</div><div class="metric">${euro(sarl)}</div><div class="hint">${sarlPct.toFixed(1).replace('.',',')} % de l'immobilier</div></div></div>`:'<div class="empty">Aucun bien pour ce filtre.</div>';
+ drawHistory();
+}
+function totalsFor(properties){
+ const propValue=properties.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
+ const propCost=properties.reduce((s,p)=>s+propertyCost(p),0);
+ const ids=new Set(properties.map(p=>p.id));
+ const loans=db.loans.filter(l=>ids.has(l.propertyId));
+ const debt=loans.reduce((s,l)=>s+(Number(l.remaining)||0),0);
+ const assets=0;
+ const rent=properties.reduce((s,p)=>s+(Number(p.rentHC)||0),0);
+ const annualOwner=properties.reduce((s,p)=>s+(Number(p.ownerCharges)||0)+(Number(p.tax)||0)/12+(Number(p.pno)||0)+(Number(p.otherMonthly)||0),0);
+ const payments=loans.reduce((s,l)=>s+monthlyLoanPayment(l),0);
+ const cashGross=rent+properties.reduce((s,p)=>s+(Number(p.recoverable)||0),0)-annualOwner;
+ const cashNet=cashGross-payments;
+ const grossYield=propCost?rent*12/propCost*100:0;
+ const netYield=propCost?cashGross*12/propCost*100:0;
+ return {propValue,propCost,debt,assets,gross:propValue+assets,net:propValue+assets-debt,rent,cash:cashGross,cashNet,grossYield,netYield,principal:loans.reduce((s,l)=>s+principalRepaid(l),0)};
+}
+
+function showUpgradePrompt(){
+ const wrap=document.getElementById('propertyFormWrap');
+ wrap.innerHTML=`<div class="card plan-card"><div><div class="label">Limite de la version découverte</div><div class="metric">1 logement complet</div><div class="hint">Votre premier logement reste entièrement exploitable : rentabilité, crédit, valorisation, optimisation et synthèse.</div></div><button class="primary" onclick="closeForm('propertyFormWrap')">Compris</button></div>`;
+}
+
+function openPropertyForm(editId=null){
+ if(!editId && COMMERCIAL_PLAN==='free' && db.properties.length>=FREE_PROPERTY_LIMIT){ showUpgradePrompt(); return; }
+ const p=editId?db.properties.find(x=>x.id===editId):{id:'',name:'',address:'',structure:'Nom propre',holder:'À définir',type:'Appartement',surface:'',floor:'',dpe:'',acquisitionDate:'',purchase:'',notary:'',works:'',furniture:'',otherCost:'',currentValue:'',retainedValue:'',rentHC:'',recoverable:'',ownerCharges:'',tax:'',pno:'',otherMonthly:'',occupancy:'100',autoEstimate:'',estimateLow:'',estimateHigh:'',estimateSource:'',estimateDate:'',market12m:'',priceM2:'',sources:[],notes:''};
+ const wrap=document.getElementById('propertyFormWrap');
+ wrap.innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier le bien':'Nouveau bien'}</h3><button class="secondary" onclick="closeForm('propertyFormWrap')">Fermer</button></div>
+ <form onsubmit="saveProperty(event,'${p.id}')">
+ <div class="grid3">
+ <div class="field"><label>Nom du bien *</label><input name="name" required value="${esc(p.name)}"></div>
+ <div class="field"><label>Structure</label><select name="structure">${['Nom propre','SARL de famille','SCI','Société','Autre'].map(x=>`<option ${x===p.structure?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Détenteur</label><select name="holder">${['Personnel','Société','À définir'].map(x=>`<option ${x===p.holder?'selected':''}>${x}</option>`).join('')}</select></div>
+ <div class="field"><label>Type</label><select name="type">${['Appartement','Maison','Immeuble','Parking / Box','Local','Terrain','Autre'].map(x=>`<option ${x===p.type?'selected':''}>${x}</option>`).join('')}</select></div>
+ </div>
+ <div class="grid3"><div class="field"><label>Adresse</label><input name="address" value="${esc(p.address)}"></div><div class="field"><label>Surface (m²)</label><input name="surface" type="number" step=".1" value="${p.surface}"></div><div class="field"><label>Étage</label><input name="floor" value="${esc(p.floor)}"></div></div>
+ <div class="grid3"><div class="field"><label>DPE</label><input name="dpe" maxlength="3" value="${esc(p.dpe)}"></div><div class="field"><label>Date d'acquisition</label><input name="acquisitionDate" type="date" value="${p.acquisitionDate}"></div><div class="field"><label>Occupation (%)</label><input name="occupancy" type="number" min="0" max="100" value="${p.occupancy||100}"></div></div>
+ <h3>Coût du projet</h3><div class="grid3">${[['purchase','Prix d’achat'],['notary','Frais de notaire'],['works','Travaux'],['furniture','Mobilier'],['otherCost','Autres coûts']].map(a=>`<div class="field"><label>${a[1]} (€)</label><input name="${a[0]}" type="number" min="0" step="100" value="${p[a[0]]||''}"></div>`).join('')}</div>
+ <h3>Valeur actuelle</h3><div class="grid3"><div class="field"><label>Valeur de marché actuelle</label><input name="currentValue" type="number" min="0" step="500" value="${p.currentValue||''}"></div><div class="field"><label>Valeur retenue au patrimoine *</label><input name="retainedValue" type="number" min="0" step="500" value="${p.retainedValue||''}"><span class="hint">Vous gardez toujours la main sur cette valeur.</span></div><div class="field"><label>Note</label><input name="notes" value="${esc(p.notes)}"></div></div>
+ <h3>Location & charges</h3><div class="grid3">${[['rentHC','Loyer HC / mois'],['recoverable','Charges récupérables / mois'],['ownerCharges','Charges propriétaire / mois'],['tax','Taxe foncière / an'],['pno','PNO / mois'],['otherMonthly','Autres dépenses / mois']].map(a=>`<div class="field"><label>${a[1]} (€)</label><input name="${a[0]}" type="number" min="0" step="1" value="${p[a[0]]||''}"></div>`).join('')}</div>
+ <h3>Estimation & marché</h3><div class="grid3">${[['autoEstimate','Estimation principale'],['estimateLow','Fourchette basse'],['estimateHigh','Fourchette haute'],['priceM2','Prix local €/m²'],['market12m','Variation 12 mois (%)']].map(a=>`<div class="field"><label>${a[1]}</label><input name="${a[0]}" type="number" step=".1" value="${p[a[0]]||''}"></div>`).join('')}<div class="field"><label>Source principale</label><input name="estimateSource" value="${esc(p.estimateSource)}"></div><div class="field"><label>Date estimation</label><input name="estimateDate" type="date" value="${p.estimateDate}"></div></div>
+ <div class="field"><label>Autres bases comparées</label><textarea name="valuationSources" placeholder="Une ligne par source : Source | Prix estimé (€) | Prix/m² (€) | Date | Note">${esc(valuationSourcesText(p))}</textarea><span class="hint">Ex. DVF | 185000 | 9250 | 2026-09-01 | ventes comparables · puis autres sources si vous en avez. Le consensus est calculé sur les valeurs renseignées.</span></div>
+ <div class="actions"><button class="primary">${editId?'Enregistrer les modifications':'Ajouter le bien'}</button></div>
+ </form></div>`;
+}
+function closeForm(id){document.getElementById(id).innerHTML=''}
+function saveProperty(e,editId){e.preventDefault();if(!editId && COMMERCIAL_PLAN==='free' && db.properties.length>=FREE_PROPERTY_LIMIT){showUpgradePrompt();return;}const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.holder=o.holder||((o.structure==='SARL de famille')?'SARL':'À définir');['surface','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;db.properties[i]=o}else db.properties.push(o);closeForm('propertyFormWrap');save()}
+
+function propertyLoans(p){return db.loans.filter(l=>l.propertyId===p.id)}
+function cashflowGross(p){return (Number(p.rentHC)||0)+(Number(p.recoverable)||0)-(Number(p.ownerCharges)||0)-(Number(p.tax)||0)/12-(Number(p.pno)||0)-(Number(p.otherMonthly)||0)}
+function cashflowNet(p){return cashflowGross(p)-propertyLoans(p).reduce((s,l)=>s+monthlyLoanPayment(l),0)}
+function trendHtml(v){const n=Number(v);if(!Number.isFinite(n)||v===0)return '—';return `<span class="${n>0?'positive':'negative'}">${n>0?'+':''}${n.toFixed(2)}%</span>`}
+function parseValuationSources(text){return String(text||'').split('\n').map(x=>x.trim()).filter(Boolean).map(line=>{const a=line.split('|').map(x=>x.trim());return {source:a[0]||'Source',value:Number(String(a[1]||'').replace(/[^0-9,.-]/g,'').replace(',','.'))||0,m2:Number(String(a[2]||'').replace(/[^0-9,.-]/g,'').replace(',','.'))||0,date:a[3]||'',note:a.slice(4).join(' | ')||''};}).filter(x=>x.value>0)}
+function valuationSourcesText(p){return (p.sources||[]).map(x=>[x.source,x.value||'',x.m2||'',x.date||'',x.note||''].join(' | ')).join('\n')}
+function consensusValue(p){if(p.marketAnalysis&&Number(p.marketAnalysis.estimate)>0)return Number(p.marketAnalysis.estimate);const vals=(p.sources||[]).map(x=>Number(x.value)||0).filter(v=>v>0);if(vals.length)return vals.reduce((a,b)=>a+b,0)/vals.length;return Number(p.autoEstimate)||0}
+function renderProperties(){
+ const wrap=document.getElementById('properties');if(!db.properties.length){wrap.innerHTML='<div class="empty">Aucun bien. Commencez par ajouter votre premier appartement ou immeuble.</div>';return}
+ wrap.innerHTML=db.properties.map(p=>{const cost=propertyCost(p),val=Number(p.retainedValue)||Number(p.currentValue)||0,y=cost?Number(p.rentHC)*12/cost*100:0,loan=propertyLoans(p).reduce((s,l)=>s+(Number(l.remaining)||0),0),gross=cashflowGross(p),net=cashflowNet(p),cons=consensusValue(p);return `<div class="card property-card"><div class="section-title"><div><h3>${esc(p.name)}</h3><span class="pill">${esc(p.structure)}</span> <span class="pill">${esc(p.holder||((p.structure==='SARL de famille')?'SARL':'À définir'))}</span> ${p.dpe?`<span class="pill">DPE ${esc(p.dpe)}</span>`:''}</div><div class="actions"><button class="secondary" onclick="openPropertyForm('${p.id}')">Modifier</button><button class="danger" onclick="deleteProperty('${p.id}')">Supprimer</button></div></div>
+ <div class="property-compact-grid"><div class="property-summary compact-stat"><div class="label">Valeur retenue</div><b>${euro(val)}</b></div><div class="property-summary compact-stat"><div class="label">Coût total</div><b>${euro(cost)}</b></div><div class="property-equity compact-stat"><div class="label">Équité</div><b>${euro(val-loan)}</b></div></div>
+ <div class="property-finance compact-finance"><div class="label">Cash-flow mensuel · avant fiscalité</div><div class="finance-pair finance-triple"><div><div class="mini-label">💰 Brut</div><div class="metric ${gross>=0?'positive':'negative'}">${euro(gross)}</div></div><div class="pair-divider"></div><div><div class="mini-label">🏦 Crédit</div><div class="metric">${euro(propertyLoans(p).reduce((s,l)=>s+monthlyLoanPayment(l),0))}</div></div><div class="pair-divider"></div><div><div class="mini-label">💰 Net</div><div class="metric ${net>=0?'positive':'negative'}">${euro(net)}</div></div></div></div>
+ <div class="property-compact-grid property-bottom-grid"><div class="property-rent compact-stat"><div class="label">Loyer HC</div><b>${euro(p.rentHC)}/mois</b></div><div class="property-rent compact-stat"><div class="label">Rendement</div><b><span class="${y>=0?'positive':'negative'}">${pct(y)}</span> <span class="muted">|</span> <span class="${(cost?net*12/cost*100:0)>=0?'positive':'negative'}">${pct(cost?net*12/cost*100:0)}</span></b><div class="hint">Brut | Net</div></div><div class="property-valuation compact-stat"><div class="label">Consensus</div><b>${cons?euro(cons):'—'}</b></div></div>
+ <div class="hint" style="margin-top:10px">${esc(p.address||'Adresse non renseignée')} ${p.surface?'· '+p.surface+' m²':''} ${cons?'· consensus '+euro(cons):''} ${p.market12m?'· marché 12 mois '+trendHtml(p.market12m):''}</div></div>`}).join('');
+}
+function deleteProperty(i){if(confirm('Supprimer ce bien ?')){db.properties=db.properties.filter(x=>x.id!==i);db.loans.forEach(l=>{if(l.propertyId===i)l.propertyId=''});save()}}
+
+function openLoanForm(editId=null){
+ const l=editId?db.loans.find(x=>x.id===editId):{id:'',propertyId:'',bank:'',initial:'',years:20,rate:3.3,insuranceRate:.5,insuranceAmount:'',payment:'',startDate:'',remaining:'',notes:''};
+ document.getElementById('loanFormWrap').innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier le crédit':'Nouveau crédit'}</h3><button class="secondary" onclick="closeForm('loanFormWrap')">Fermer</button></div><form onsubmit="saveLoan(event,'${l.id}')">
+ <div class="grid3"><div class="field"><label>Bien lié</label><select name="propertyId"><option value="">Crédit non lié</option>${db.properties.map(p=>`<option value="${p.id}" ${p.id===l.propertyId?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div class="field"><label>Banque</label><input name="bank" value="${esc(l.bank)}"></div><div class="field"><label>Montant initial (€)</label><input name="initial" type="number" step="100" value="${l.initial||''}"></div></div>
+ <div class="grid3"><div class="field"><label>Durée (années)</label><input name="years" type="number" value="${l.years||20}"></div><div class="field"><label>Taux crédit (%)</label><input name="rate" type="number" step=".01" value="${l.rate||''}"></div><div class="field"><label>Assurance (%)</label><input name="insuranceRate" type="number" step=".01" value="${l.insuranceRate||''}"></div></div>
+ <div class="grid3"><div class="field"><label>Assurance mensuelle (€) si fixe</label><input name="insuranceAmount" type="number" step=".01" value="${l.insuranceAmount||''}"></div><div class="field"><label>Mensualité totale (€) si connue</label><input name="payment" type="number" step=".01" value="${l.payment||''}"></div><div class="field"><label>Date de début</label><input name="startDate" type="date" value="${l.startDate||''}"></div></div>
+ <div class="grid3"><div class="field"><label>Capital restant dû (€) *</label><input name="remaining" type="number" step="100" value="${l.remaining||''}"></div><div class="field"><label>Capital déjà remboursé</label><input value="${euro(principalRepaid(l))}" disabled></div><div class="field"><label>Note</label><input name="notes" value="${esc(l.notes)}"></div></div>
+ <div class="actions"><button class="primary">${editId?'Enregistrer les modifications':'Ajouter le crédit'}</button></div></form></div>`;
+}
+function saveLoan(e,editId){e.preventDefault();const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'].forEach(k=>o[k]=Number(o[k])||0);if(editId)db.loans[db.loans.findIndex(x=>x.id===editId)]=o;else db.loans.push(o);closeForm('loanFormWrap');save()}
+function renderLoans(){const wrap=document.getElementById('loans');if(!db.loans.length){wrap.innerHTML='<div class="empty">Aucun crédit enregistré.</div>';return}wrap.innerHTML=`<div class="card"><div class="tablewrap"><table><thead><tr><th>Bien / banque</th><th>Initial</th><th>CRD</th><th>Taux</th><th>Mensualité estimée</th><th>Remboursé</th><th></th></tr></thead><tbody>${db.loans.map(l=>`<tr><td><b>${esc(db.properties.find(p=>p.id===l.propertyId)?.name||'Crédit non lié')}</b><br><span class="muted">${esc(l.bank)}</span></td><td>${euro(l.initial)}</td><td>${euro(l.remaining)}</td><td>${pct(l.rate)}</td><td>${euro(monthlyLoanPayment(l))}</td><td>${euro(principalRepaid(l))}</td><td><button class="secondary" onclick="openLoanForm('${l.id}')">Modifier</button> <button class="danger" onclick="deleteLoan('${l.id}')">Suppr.</button></td></tr>`).join('')}</tbody></table></div></div>`}
+function deleteLoan(i){if(confirm('Supprimer ce crédit ?')){db.loans=db.loans.filter(x=>x.id!==i);save()}}
+
+function openAssetForm(editId=null){
+ const a=editId?db.assets.find(x=>x.id===editId):{id:'',name:'',category:'Épargne',value:'',institution:'',notes:''};
+ document.getElementById('assetFormWrap').innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier l’actif':'Nouvel actif'}</h3><button class="secondary" onclick="closeForm('assetFormWrap')">Fermer</button></div><form onsubmit="saveAsset(event,'${a.id}')"><div class="grid3"><div class="field"><label>Nom *</label><input name="name" required value="${esc(a.name)}"></div><div class="field"><label>Catégorie</label><select name="category">${['Livret A','Épargne','Assurance-vie','PEA / Actions','ETF / Fonds','Crypto','Compte bancaire','Autre'].map(x=>`<option ${x===a.category?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Valeur actuelle (€) *</label><input name="value" required type="number" step="100" value="${a.value||''}"></div></div><div class="grid2"><div class="field"><label>Établissement</label><input name="institution" value="${esc(a.institution)}"></div><div class="field"><label>Note</label><input name="notes" value="${esc(a.notes)}"></div></div><button class="primary">Enregistrer</button></form></div>`;
+}
+function saveAsset(e,editId){e.preventDefault();const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.value=Number(o.value)||0;if(editId)db.assets[db.assets.findIndex(x=>x.id===editId)]=o;else db.assets.push(o);closeForm('assetFormWrap');save()}
+function renderAssets(){const wrap=document.getElementById('assets');if(!db.assets.length){wrap.innerHTML='<div class="empty">Aucun actif financier.</div>';return}wrap.innerHTML=`<div class="card"><div class="tablewrap"><table><thead><tr><th>Actif</th><th>Catégorie</th><th>Établissement</th><th>Valeur</th><th></th></tr></thead><tbody>${db.assets.map(a=>`<tr><td><b>${esc(a.name)}</b></td><td>${esc(a.category)}</td><td>${esc(a.institution)}</td><td>${euro(a.value)}</td><td><button class="secondary" onclick="openAssetForm('${a.id}')">Modifier</button> <button class="danger" onclick="deleteAsset('${a.id}')">Suppr.</button></td></tr>`).join('')}</tbody></table></div></div>`}
+function deleteAsset(i){if(confirm('Supprimer cet actif ?')){db.assets=db.assets.filter(x=>x.id!==i);save()}}
+function saveOtherDebt(){db.otherDebt=Number(document.getElementById('otherDebt').value)||0;db.otherDebtNote=document.getElementById('otherDebtNote').value;save()}
+function saveSettings(){db.settings.name=document.getElementById('appName').value||'Mon Patrimoine';save()}
+
+function takeSnapshot(){const t=totals(),note=prompt('Note pour ce point (facultatif) :','');db.snapshots.push({id:id(),date:new Date().toISOString().slice(0,10),gross:t.gross,debt:t.debt,net:t.net,note:note||''});db.snapshots.sort((a,b)=>a.date.localeCompare(b.date));save()}
+function renderHistory(){const tb=document.getElementById('historyTable');tb.innerHTML=db.snapshots.length?db.snapshots.map(s=>`<tr><td>${dateFR(s.date)}</td><td>${euro(s.gross)}</td><td>${euro(s.debt)}</td><td><b>${euro(s.net)}</b></td><td>${esc(s.note)}</td><td><button class="danger" onclick="deleteSnapshot('${s.id}')">Suppr.</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted">Aucun point historique.</td></tr>'}
+function deleteSnapshot(i){db.snapshots=db.snapshots.filter(x=>x.id!==i);save()}
+
+function drawHistory(){
+ const c=document.getElementById('historyChart'),ctx=c.getContext('2d'),d=db.snapshots;
+ c.width=c.clientWidth*devicePixelRatio;c.height=260*devicePixelRatio;ctx.scale(devicePixelRatio,devicePixelRatio);const w=c.clientWidth,h=260;
+ ctx.clearRect(0,0,w,h);document.getElementById('historyEmpty').style.display=d.length?'none':'block';if(!d.length)return;
+ const vals=d.map(x=>x.net),min=Math.min(...vals),max=Math.max(...vals),pad=35;
+ ctx.font='12px system-ui';ctx.fillStyle='#667085';ctx.strokeStyle='#e5e7eb';
+ for(let i=0;i<4;i++){let y=pad+i*(h-pad*2)/3;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke();ctx.fillText(euro(max-(max-min)*i/3),3,y+4)}
+ ctx.strokeStyle='#2563eb';ctx.lineWidth=3;ctx.beginPath();d.forEach((x,i)=>{let px=pad+(w-pad*2)*(d.length===1?0:i/(d.length-1));let py=h-pad-(max===min?.5:(x.net-min)/(max-min))*(h-pad*2);i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.stroke();
+}
+// ===================== MOTEUR MARCHÉ V20 — RECONSTRUIT =====================
+const MARKET_KEY='mon_patrimoine_market_test_visuel_v11';
+const MARKET_MAX_AGE_DAYS=7;
+const MARKET_YEARS=5;
+const MARKET_RADIUS_M=700;
+const MARKET_MIN_SURFACE_RATIO=0.75;
+const MARKET_MAX_SURFACE_RATIO=1.25;
+const MARKET_MIN_COMPS=5;
+const MARKET_DVF='https://dvf-api.data.gouv.fr/mutations';
+const MARKET_CADASTRE='https://cadastre.data.gouv.fr/bundler/cadastre-etalab/communes';
+const MARKET_GEOCODER='https://data.geopf.fr/geocodage/search';
+const marketGeoCache={};
+const marketSectionCache={};
+const marketMutationCache={};
+function marketLoad(){try{return JSON.parse(localStorage.getItem(MARKET_KEY)||'{}')}catch(e){return {}}}
+function marketSave(x){localStorage.setItem(MARKET_KEY,JSON.stringify(x))}
+function marketAgeDays(){const x=marketLoad();return x.checkedAt?(Date.now()-new Date(x.checkedAt).getTime())/86400000:Infinity}
+function marketSourceLabel(){return 'DVF+ / DVF — transactions publiques, données Etat/Cerema'}
+function marketMedian(a){if(!a.length)return 0;const b=[...a].sort((x,y)=>x-y),m=Math.floor(b.length/2);return b.length%2?b[m]:(b[m-1]+b[m])/2}
+function marketPercentile(a,p){if(!a.length)return 0;const b=[...a].sort((x,y)=>x-y),i=(b.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);return lo===hi?b[lo]:b[lo]+(b[hi]-b[lo])*(i-lo)}
+function marketDistanceM(lat1,lon1,lat2,lon2){const R=6371000,toRad=x=>x*Math.PI/180;const dLat=toRad(lat2-lat1),dLon=toRad(lon2-lon1);const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(a))}
+async function marketFetchJson(url,attempts=3){let last='';for(let i=0;i<attempts;i++){try{const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),15000);const r=await fetch(url,{cache:'no-store',headers:{Accept:'application/json'},signal:ctl.signal});clearTimeout(timer);if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}catch(e){last=e?.message||String(e);if(i<attempts-1)await new Promise(r=>setTimeout(r,600*(i+1)));}}throw new Error(last||'Service public indisponible')}
+function marketNormalizeAddress(a){return String(a||'').trim().replace(/\s+/g,' ')}
+async function marketGeocode(address){const key=marketNormalizeAddress(address).toLowerCase();if(!key)throw new Error('Adresse absente');if(marketGeoCache[key])return marketGeoCache[key];const u=MARKET_GEOCODER+'?'+new URLSearchParams({q:address,limit:'1',autocomplete:'false'});const j=await marketFetchJson(u);const f=j.features?.[0];if(!f)throw new Error('Adresse non trouvée par le service de géocodage');const c=f.geometry?.coordinates||[];const pr=f.properties||{};if(!Number.isFinite(Number(c[0]))||!Number.isFinite(Number(c[1])))throw new Error('Coordonnées de l’adresse invalides');if(!pr.citycode)throw new Error('Code INSEE introuvable pour cette adresse');const out={lon:Number(c[0]),lat:Number(c[1]),label:pr.label||address,citycode:String(pr.citycode),postcode:pr.postcode||'',score:Number(pr.score)||0};marketGeoCache[key]=out;return out}
+function marketTargetType(p){return String(p.type||'Appartement').toLowerCase().includes('maison')?'Maison':'Appartement'}
+function marketSectionCode(feature){const pr=feature?.properties||{};const raw=String(feature?.id||'');if(pr.prefixe!==undefined&&pr.code!==undefined)return String(pr.prefixe).padStart(3,'0')+String(pr.code).padStart(2,'0');return raw.length>=10?raw.slice(5,10):''}
+function marketSectionBbox(feature){const g=feature?.geometry;if(!g)return null;const pts=[];function walk(x){if(Array.isArray(x)&&typeof x[0]==='number')pts.push(x);else if(Array.isArray(x))x.forEach(walk)}walk(g.coordinates);if(!pts.length)return null;let minLon=Infinity,minLat=Infinity,maxLon=-Infinity,maxLat=-Infinity;pts.forEach(([lon,lat])=>{minLon=Math.min(minLon,lon);maxLon=Math.max(maxLon,lon);minLat=Math.min(minLat,lat);maxLat=Math.max(maxLat,lat)});return {minLon,minLat,maxLon,maxLat}}
+function marketBboxCouldTouch(b,lat,lon,r){if(!b)return true;const dLat=r/111320,dLon=r/(111320*Math.max(.2,Math.cos(lat*Math.PI/180)));return !(b.maxLon<lon-dLon||b.minLon>lon+dLon||b.maxLat<lat-dLat||b.minLat>lat+dLat)}
+async function marketGetSections(insee){if(marketSectionCache[insee])return marketSectionCache[insee];const u=MARKET_CADASTRE+'/'+encodeURIComponent(insee)+'/geojson/sections';const j=await marketFetchJson(u);const features=Array.isArray(j.features)?j.features:[];const sections=features.map(f=>({code:marketSectionCode(f),bbox:marketSectionBbox(f)})).filter(x=>x.code);if(!sections.length)throw new Error('Aucune section cadastrale disponible pour la commune '+insee);marketSectionCache[insee]=sections;return sections}
+async function marketGetMutations(insee,section){const key=insee+'|'+section;if(marketMutationCache[key])return marketMutationCache[key];const u=MARKET_DVF+'/'+encodeURIComponent(insee)+'/'+encodeURIComponent(section);const j=await marketFetchJson(u);const rows=Array.isArray(j?.data)?j.data:[];marketMutationCache[key]=rows;return rows}
+function marketNormalizeMutation(r){const price=Number(r.valeur_fonciere);const surface=Number(r.surface_reelle_bati);const lat=Number(r.latitude),lon=Number(r.longitude);const date=String(r.date_mutation||'').slice(0,10);return {price,surface,lat,lon,date,type:String(r.type_local||''),nature:String(r.nature_mutation||''),parcel:String(r.id_parcelle||''),number:r.adresse_numero||'',street:r.adresse_nom_voie||'',city:r.nom_commune||''}}
+function marketCandidateFilter(r,p,geo){if(!r||r.nature!=='Vente'||r.type.toLowerCase()!==marketTargetType(p).toLowerCase())return false;const cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-MARKET_YEARS);if(!r.date||new Date(r.date)<cutoff)return false;if(!(r.price>0&&r.surface>0))return false;if(r.surface<9||r.surface>1000)return false;const ppm=r.price/r.surface;if(ppm<1000||ppm>20000)return false;const surf=Number(p.surface)||0;if(surf&& (r.surface<surf*MARKET_MIN_SURFACE_RATIO||r.surface>surf*MARKET_MAX_SURFACE_RATIO))return false;if(Number.isFinite(r.lat)&&Number.isFinite(r.lon)){r.distance=marketDistanceM(geo.lat,geo.lon,r.lat,r.lon);if(r.distance>MARKET_RADIUS_M)return false;}else r.distance=Infinity;return true}
+async function marketLoadComparables(geo,p){const sections=await marketGetSections(geo.citycode);const near=sections.filter(s=>marketBboxCouldTouch(s.bbox,geo.lat,geo.lon,MARKET_RADIUS_M));const targets=near.length?near:sections;let rows=[];for(let i=0;i<targets.length;i++){try{const rs=await marketGetMutations(geo.citycode,targets[i].code);rows.push(...rs.map(m=>marketNormalizeMutation(m)));}catch(e){/* une section indisponible ne bloque pas toute l'analyse */}if(rows.length>1200&&i>8)break;await new Promise(r=>setTimeout(r,40));}let candidates=rows.filter(r=>marketCandidateFilter(r,p,geo));const allCandidates=candidates.length;const byParcel={};candidates.sort((a,b)=>((a.distance||999999)-(b.distance||999999))||String(b.date).localeCompare(String(a.date)));const limited=[];for(const r of candidates){const k=r.parcel||('no:'+r.number+'|'+r.street+'|'+r.date);byParcel[k]=(byParcel[k]||0);if(byParcel[k]>=4)continue;byParcel[k]++;limited.push(r)}if(limited.length<MARKET_MIN_COMPS){const wider=[];for(let i=0;i<sections.length;i++){if(near.includes(sections[i]))continue;try{const rs=await marketGetMutations(geo.citycode,sections[i].code);wider.push(...rs.map(m=>marketNormalizeMutation(m)));}catch(e){}if(wider.length>1500)break;await new Promise(r=>setTimeout(r,30));}const more=wider.filter(r=>marketCandidateFilter(r,{...p},geo));candidates=limited.concat(more).sort((a,b)=>((a.distance||999999)-(b.distance||999999))||String(b.date).localeCompare(String(a.date)));const seen={};limited.forEach(r=>seen[r.parcel||r.date+'|'+r.street]=1);for(const r of candidates){const k=r.parcel||('x:'+r.date+'|'+r.street);if(seen[k]>=4)continue;if(!limited.includes(r)){seen[k]=(seen[k]||0)+1;limited.push(r)}if(limited.length>=30)break}}
+return {rows:limited,rawRows:rows.length,sections:targets.length,allCandidates};}
+function marketEstimate(rows,p){if(!rows.length)throw new Error('Aucun comparable DVF suffisamment proche et de surface comparable');const vals=rows.map(r=>r.price/r.surface).filter(v=>v>=1000&&v<=20000);if(!vals.length)throw new Error('Prix au m² non exploitable dans les comparables');const med=marketMedian(vals);const q1=marketPercentile(vals,.25),q3=marketPercentile(vals,.75);const clean=vals.filter(v=>v>=q1*.75&&v<=q3*1.25);const use=clean.length>=4?clean:vals;const ppm=marketMedian(use);const surface=Number(p.surface)||0;const estimate=Math.round(ppm*surface);const low=Math.round(marketPercentile(use,.25)*surface);const high=Math.round(marketPercentile(use,.75)*surface);const n=use.length;const confidence=n>=20?'Élevée':n>=10?'Bonne':n>=5?'Moyenne':'Faible';const dpeNote=p.dpe?`DPE ${p.dpe} — pris en compte uniquement comme note de contexte, pas dans le calcul DVF.`:'DPE non renseigné — non intégré au calcul.';return {estimate,low:Math.min(low,estimate),high:Math.max(high,estimate),priceM2:Math.round(ppm),p25M2:Math.round(q1),p75M2:Math.round(q3),comparables:n,confidence,dpeNote,method:'Médiane €/m² sur ventes DVF filtrées par type, surface et proximité',source:marketSourceLabel()}}
+function marketFreshLabel(iso){if(!iso)return '<span class="muted">Jamais analysé</span>';const d=(Date.now()-new Date(iso).getTime())/86400000;return d<=MARKET_MAX_AGE_DAYS?'<span class="positive">🟢 À jour</span>':'<span class="negative">🟠 À actualiser</span>'}
+function marketStatus(text,kind='warn'){const el=document.getElementById('marketStatus');if(el){el.innerHTML='<b>'+esc(text)+'</b>';el.className='market-status market-'+kind}}
+async function refreshMarketProperty(id){const p=db.properties.find(x=>x.id===id);if(!p)return;const btn=document.querySelector('[data-market-refresh="'+id+'"]');if(btn)btn.disabled=true;marketStatus('Analyse de « '+(p.name||'ce bien')+' » en cours…','warn');try{const geo=await marketGeocode(p.address||'');const loaded=await marketLoadComparables(geo,p);const a=marketEstimate(loaded.rows,p);const now=new Date().toISOString();p.marketAnalysis={...a,geoLabel:geo.label,citycode:geo.citycode,updatedAt:now,rawComparables:loaded.rows.map(r=>({price:r.price,surface:r.surface,ppm:Math.round(r.price/r.surface),distanceM:Math.round(r.distance||0),date:r.date,type:r.type})),sourceYear:new Date().getFullYear()};p.autoEstimate=a.estimate;p.estimateLow=a.low;p.estimateHigh=a.high;p.priceM2=a.priceM2;p.estimateSource=a.source;p.estimateDate=now.slice(0,10);const st=marketLoad();st.results=st.results||{};st.results[p.id]=p.marketAnalysis;st.checkedAt=now;st.source=marketSourceLabel();st.security='address,surface,type only';marketSave(st);localStorage.setItem(KEY,JSON.stringify(db));renderMarketPage();renderDashboard();renderProperties();marketStatus('✓ « '+(p.name||'Ce bien')+' » actualisé — '+a.comparables+' comparables.','ok');return a}catch(e){const msg=e?.message||String(e);p.marketAnalysis={...(p.marketAnalysis||{}),error:msg,updatedAt:new Date().toISOString()};localStorage.setItem(KEY,JSON.stringify(db));renderMarketPage();marketStatus('⚠ '+msg,'error');throw e}finally{const b=document.querySelector('[data-market-refresh="'+id+'"]');if(b)b.disabled=false}}
+async function refreshMarket(force=false){if(!db.properties.length){marketStatus('Aucun bien à analyser.','warn');return}const main=document.querySelector('#valorisation .primary');if(main)main.disabled=true;marketSectionCacheClear();let ok=0,errors=0;for(let i=0;i<db.properties.length;i++){const p=db.properties[i];marketStatus('Analyse '+(i+1)+' / '+db.properties.length+' — '+(p.name||'bien'),'warn');try{await refreshMarketProperty(p.id);ok++}catch(e){errors++}}const st=marketLoad();st.checkedAt=new Date().toISOString();st.ok=ok;st.fail=errors;st.source=marketSourceLabel();st.security='address,surface,type only';marketSave(st);renderMarketPage();if(main)main.disabled=false;marketStatus(errors?('Analyse terminée : '+ok+' bien(s) analysé(s), '+errors+' erreur(s).'):'Analyse terminée : '+ok+' bien(s) analysé(s).','ok')}
+function marketSectionCacheClear(){Object.keys(marketGeoCache).forEach(k=>delete marketGeoCache[k]);Object.keys(marketSectionCache).forEach(k=>delete marketSectionCache[k]);Object.keys(marketMutationCache).forEach(k=>delete marketMutationCache[k])}
+function renderMarketPage(){const st=marketLoad(),results=st.results||{},analyzed=db.properties.filter(p=>p.marketAnalysis&&Number(p.marketAnalysis.estimate)>0),total=analyzed.reduce((s,p)=>s+Number(p.marketAnalysis.estimate),0),avg=analyzed.length?total/analyzed.length:0;const ov=document.getElementById('marketOverview');if(ov)ov.innerHTML=`<div class="card"><div class="label">Biens analysés</div><div class="metric">${analyzed.length} / ${db.properties.length}</div></div><div class="card"><div class="label">Valeur marché estimée</div><div class="metric">${euro(total)}</div></div><div class="card"><div class="label">Moyenne / bien</div><div class="metric">${euro(avg)}</div></div><div class="card"><div class="label">Dernier contrôle</div><div class="metric" style="font-size:16px">${st.checkedAt?dateFR(st.checkedAt.slice(0,10)):'—'}</div><div class="hint">${st.checkedAt?marketFreshLabel(st.checkedAt):'Aucune analyse'}</div></div>`;const table=document.getElementById('marketTable');if(!table)return;table.innerHTML=`<div class="market-row market-head"><div>Bien</div><div>Prix achat</div><div class="market-purchase-m2">Achat €/m²</div><div>Estimation actuelle</div><div>Marché €/m²</div><div class="market-gap">Écart</div><div>Fourchette</div><div class="market-extra">Comparables</div><div>Actualisation</div></div>`+db.properties.map(p=>{const m=p.marketAnalysis||results[p.id]||{};const err=m.error;const dpe=p.dpe?` · DPE ${esc(p.dpe)}`:'';const purchase=Number(p.purchase)||0;const purchaseM2=purchase&&Number(p.surface)>0?Math.round(purchase/Number(p.surface)):0;const estimate=Number(m.estimate)||0;const gap=estimate&&purchase?estimate-purchase:0;const gapHtml=estimate&&purchase?`<b class="${gap>=0?'positive':'negative'}">${gap>=0?'+':''}${euro(gap)}</b><div class="market-comp">${purchase?Math.round((gap/purchase)*100):0}%</div>`:'—';const m2Info=(purchaseM2||m.priceM2)?`<div class="market-comp">${purchaseM2?'Achat '+euro(purchaseM2)+'/m²':''}${purchaseM2&&m.priceM2?' · ':''}${m.priceM2?'Marché '+euro(m.priceM2)+'/m²':''}</div>`:'';return `<div class="market-row"><div><b>${esc(p.name||'Bien')}</b><div class="market-comp">${esc(p.address||'Adresse non renseignée')} · ${p.surface||0} m²${dpe}</div>${m2Info}</div><div class="market-purchase"><b>${purchase?euro(purchase):'—'}</b></div><div class="market-purchase-m2">${purchaseM2?euro(purchaseM2):'—'}</div><div>${estimate?'<b>'+euro(estimate)+'</b>':'—'}${m.confidence?`<div class="market-comp">Confiance ${esc(m.confidence)}</div>`:''}</div><div class="market-market-m2">${m.priceM2?'<b>'+euro(m.priceM2)+'</b>':'—'}<div class="market-comp">prix au m²</div></div><div class="market-gap">${gapHtml}</div><div>${m.low&&m.high?euro(m.low)+' → '+euro(m.high):'—'}</div><div class="market-extra">${m.comparables||0}</div><div>${err?'<span class="negative">⚠ '+esc(err)+'</span>':m.estimate?marketFreshLabel(m.updatedAt):'<span class="muted">Non analysé</span>'}<br><button class="secondary market-refresh-btn" data-market-refresh="${p.id}" onclick="refreshMarketProperty('${p.id}')">🔄 Actualiser ce bien</button></div></div>`}).join('');
+const totals=db.properties.reduce((a,p)=>{const m=p.marketAnalysis||results[p.id]||{};const purchase=Number(p.purchase)||0;const estimate=Number(m.estimate)||0;const low=Number(m.low)||0;const high=Number(m.high)||0;const s=Number(p.surface)||0; a.purchase+=purchase;a.estimate+=estimate;a.low+=low;a.high+=high;a.surface+=s;return a},{purchase:0,estimate:0,low:0,high:0,surface:0});
+const foot=`<div class="market-row market-total"><div><b>TOTAL PATRIMOINE</b><div class="market-comp">${analyzed.length} bien(s) valorisé(s) · ${Math.round(totals.surface)} m²</div></div><div class="market-purchase"><b>${euro(totals.purchase)}</b></div><div class="market-purchase-m2">${totals.surface?euro(Math.round(totals.purchase/totals.surface)):'—'}</div><div><b>${totals.estimate?euro(totals.estimate):'—'}</b></div><div class="market-market-m2">${totals.surface&&totals.estimate?euro(Math.round(totals.estimate/totals.surface)):'—'}<div class="market-comp">moyenne pondérée</div></div><div class="market-gap">${totals.estimate&&totals.purchase?`<b class="${totals.estimate-totals.purchase>=0?'positive':'negative'}">${totals.estimate-totals.purchase>=0?'+':''}${euro(totals.estimate-totals.purchase)}</b><div class="market-comp">${Math.round((totals.estimate/totals.purchase-1)*100)}%</div>`:'—'}</div><div><b>${totals.low&&totals.high?euro(totals.low)+' → '+euro(totals.high):'—'}</b></div><div class="market-extra">${analyzed.length}</div><div></div></div>`;
+table.innerHTML+=foot;if(!st.checkedAt)marketStatus('Aucune analyse. Actualise un bien ou tous les biens.','warn')}
+function renderValuation(){renderMarketPage()}
+async function initMarketAuto(){if(marketAgeDays()>MARKET_MAX_AGE_DAYS){marketStatus('Vérification du marché à l’ouverture…','warn');try{await refreshMarket(false)}catch(e){marketStatus('Actualisation automatique interrompue : '+(e?.message||e),'error')}}else renderMarketPage()}
+function bankValueHC(p){const v=Number(p.rentHC)||0;return v>0?v:null}
+function bankCharges(p){const v=Number(p.recoverable)||0;return v>0?v:null}
+function bankCC(p){const hc=bankValueHC(p),ch=bankCharges(p);return hc===null?null:hc+(ch||0)}
+function bankMoney(v){return v===null||v===undefined?'À renseigner':euro(v)}
+function propertyLoanPayment(p){return db.loans.filter(l=>l.propertyId===p.id).reduce((s,l)=>s+monthlyLoanPayment(l),0)}
+function bankSetProperty(propertyId,field,value){
+ const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
+ if(field==='name'||field==='address'||field==='holder'||field==='structure')p[field]=String(value||'');
+ else if(field==='rentHC')p.rentHC=Math.max(0,Number(value)||0);
+ else if(field==='recoverable')p.recoverable=Math.max(0,Number(value)||0);
+ save();
+}
+function updateBankCredit(propertyId,value){
+ const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
+ const amount=Math.max(0,Number(value)||0);
+ let loan=db.loans.find(l=>l.propertyId===propertyId);
+ if(!loan){loan={id:id(),propertyId,initial:0,remaining:0,years:20,rate:0,insuranceRate:0,insuranceAmount:0,payment:amount,start:'',bank:''};db.loans.push(loan)}
+ loan.payment=amount;save();
+}
+function updateBankCC(propertyId,value){
+ const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
+ const cc=Math.max(0,Number(value)||0),hc=Math.max(0,Number(p.rentHC)||0);
+ p.recoverable=Math.max(0,cc-hc);save();
+}
+function updateBankAnnualHC(propertyId,value){
+ const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
+ p.rentHC=Math.max(0,(Number(value)||0)/12);save();
+}
+function updateBankAnnualCC(propertyId,value){
+ const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
+ const cc=Math.max(0,(Number(value)||0)/12),hc=Math.max(0,Number(p.rentHC)||0);
+ p.recoverable=Math.max(0,cc-hc);save();
+}
+function bankTextInput(propertyId,field,value){return `<input type="text" value="${esc(value??'')}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:150px;box-sizing:border-box;font-weight:600">`}
+function bankNumberInput(propertyId,field,value){return `<input type="number" min="0" step="1" value="${Number(value)||0}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:105px;box-sizing:border-box;font-weight:700">`}
+function renderBankSummary(){
+ const body=document.getElementById('bankTableBody'),kpis=document.getElementById('bankKpis');if(!body)return;
+ if(!db.properties.length){body.innerHTML='<tr><td colspan="10" class="muted">Aucun bien enregistré.</td></tr>';if(kpis)kpis.innerHTML='';return}
+ const rows=db.properties.map((p,i)=>{const hc=bankValueHC(p),ch=bankCharges(p),cc=bankCC(p),credit=propertyLoanPayment(p);return{p,i,hc,ch,cc,credit,annualHC:hc===null?null:hc*12,annualCC:cc===null?null:cc*12}});
+ const totalHC=rows.reduce((s,r)=>s+(r.hc||0),0),totalCh=rows.reduce((s,r)=>s+(r.ch||0),0),totalCC=rows.reduce((s,r)=>s+(r.cc||0),0),totalCredit=rows.reduce((s,r)=>s+r.credit,0),annualHC=totalHC*12,annualCC=totalCC*12;
+ body.innerHTML=rows.map(r=>{
+   const p=r.p,holder=p.holder||((p.structure==='SARL de famille')?'SARL':'À définir');
+   return `<tr><td>${r.i+1}</td>
+   <td>${bankTextInput(p.id,'name',p.name||'Bien')}${p.address?'<br>':''}${bankTextInput(p.id,'address',p.address||'')}</td>
+   <td>${bankTextInput(p.id,'holder',holder)}</td>
+   <td>${bankTextInput(p.id,'structure',p.structure||'Nom propre')}</td>
+   <td>${bankNumberInput(p.id,'rentHC',r.hc||0)}</td>
+   <td>${bankNumberInput(p.id,'recoverable',r.ch||0)}</td>
+   <td><input type="number" min="0" step="1" value="${Number(r.cc)||0}" onchange="updateBankCC('${p.id}',this.value)" style="width:105px;box-sizing:border-box;font-weight:700"></td>
+   <td><input type="number" min="0" step="1" value="${Number(r.credit)||0}" onchange="updateBankCredit('${p.id}',this.value)" style="width:105px;box-sizing:border-box;font-weight:700"></td>
+   <td><input type="number" min="0" step="1" value="${Number(r.annualHC)||0}" onchange="updateBankAnnualHC('${p.id}',this.value)" style="width:105px;box-sizing:border-box;font-weight:700"></td>
+   <td><input type="number" min="0" step="1" value="${Number(r.annualCC)||0}" onchange="updateBankAnnualCC('${p.id}',this.value)" style="width:105px;box-sizing:border-box;font-weight:700"></td></tr>`
+ }).join('')+`<tr class="bank-total"><td colspan="4">TOTAL</td><td>${euro(totalHC)}</td><td>${euro(totalCh)}</td><td>${euro(totalCC)}</td><td>${euro(totalCredit)}</td><td>${euro(annualHC)}</td><td>${euro(annualCC)}</td></tr>`;
+ if(kpis)kpis.innerHTML=`<div class="bank-kpi"><div class="label">Nombre de biens</div><div class="metric">${db.properties.length}</div></div><div class="bank-kpi"><div class="label">Loyers mensuels HC</div><div class="metric">${euro(totalHC)}</div></div><div class="bank-kpi"><div class="label">Charges récupérables / mois</div><div class="metric">${euro(totalCh)}</div></div><div class="bank-kpi"><div class="label">Loyers mensuels CC</div><div class="metric">${euro(totalCC)}</div></div><div class="bank-kpi"><div class="label">Crédits mensuels</div><div class="metric">${euro(totalCredit)}</div></div><div class="bank-kpi"><div class="label">Loyer annuel CC</div><div class="metric">${euro(annualCC)}</div></div>`;
+}
+function exportBankCSV(){
+ const headers=['N°','Bien','Adresse','Détenteur','Structure','Loyer HC / mois (€)','Charges récupérables / mois (€)','Loyer CC / mois (€)','Crédit / mois (€)','Loyer annuel HC (€)','Loyer annuel CC (€)'];const lines=[headers];
+ db.properties.forEach((p,i)=>{const hc=bankValueHC(p),ch=bankCharges(p),cc=bankCC(p),credit=propertyLoanPayment(p),holder=p.holder||((p.structure==='SARL de famille')?'SARL':'À définir');lines.push([i+1,p.name||'Bien',p.address||'',holder,p.structure||'Nom propre',hc??'',ch??'',cc??'',credit,hc===null?'':hc*12,cc===null?'':cc*12])});
+ const totalHC=db.properties.reduce((s,p)=>s+(bankValueHC(p)||0),0),totalCh=db.properties.reduce((s,p)=>s+(bankCharges(p)||0),0),totalCC=db.properties.reduce((s,p)=>s+(bankCC(p)||0),0),totalCredit=db.properties.reduce((s,p)=>s+propertyLoanPayment(p),0);lines.push(['','','','TOTAL','',totalHC,totalCh,totalCC,totalCredit,totalHC*12,totalCC*12]);
+ const csv='\ufeff'+lines.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='synthese_bancaire_mon_patrimoine.csv';a.click();URL.revokeObjectURL(a.href);
+}
+function printBankSummary(){showPage('banque');setTimeout(()=>window.print(),100)}
+
+function renderProjection(){
+ const t=totals(),years=Number(document.getElementById('pYears').value||10),pa=Number(document.getElementById('pProperty').value||0)/100,fa=Number(document.getElementById('pFinancial').value||0)/100,saveM=Number(document.getElementById('pSavings').value||0),rentA=Number(document.getElementById('pRent').value||0)/100,future=Number(document.getElementById('pFuture').value||0);
+ let prop=t.propValue,fin=t.assets,debt=t.debt,rent=t.rent,rows=[];
+ for(let y=0;y<=years;y++){if(y>0){prop*=1+pa;fin=fin*(1+fa)+saveM*12;rent*=1+rentA;let principal=db.loans.reduce((s,l)=>{const pay=monthlyLoanPayment(l),r=(Number(l.rate)||0)/100/12,n=12;let bal=Number(l.remaining)||0;for(let m=0;m<n;m++){let interest=bal*r;let pr=Math.max(0,Math.min(bal,pay-interest));bal-=pr;if(bal<=0)break}s+=Number(l.remaining||0)-bal;return s},0);debt=Math.max(0,debt-principal)+future;prop+=future;}rows.push({y,net:prop+fin-debt,prop,fin,debt,rent})}
+ document.getElementById('projectionTable').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Année</th><th>Immobilier</th><th>Financier</th><th>Dettes</th><th>Patrimoine net</th><th>Loyers HC/mois</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.y}</td><td>${euro(r.prop)}</td><td>${euro(r.fin)}</td><td>${euro(r.debt)}</td><td><b>${euro(r.net)}</b></td><td>${euro(r.rent)}</td></tr>`).join('')}</tbody></table></div>`;
+ drawProjection(rows);
+}
+function drawProjection(rows){
+ const c=document.getElementById('projectionChart'),ctx=c.getContext('2d');c.width=c.clientWidth*devicePixelRatio;c.height=260*devicePixelRatio;ctx.scale(devicePixelRatio,devicePixelRatio);const w=c.clientWidth,h=260,pad=35;ctx.clearRect(0,0,w,h);const vals=rows.map(r=>r.net),min=Math.min(...vals),max=Math.max(...vals);ctx.font='12px system-ui';ctx.fillStyle='#667085';ctx.strokeStyle='#e5e7eb';for(let i=0;i<4;i++){let y=pad+i*(h-pad*2)/3;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke();ctx.fillText(euro(max-(max-min)*i/3),3,y+4)}ctx.strokeStyle='#0f766e';ctx.lineWidth=3;ctx.beginPath();rows.forEach((r,i)=>{let x=pad+(w-pad*2)*(i/(rows.length-1||1)),y=h-pad-(max===min?.5:(r.net-min)/(max-min))*(h-pad*2);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke()
+}
+
+function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mon_patrimoine_sauvegarde.json';a.click();URL.revokeObjectURL(a.href)}
+function importData(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.properties||!x.loans||!x.assets)throw Error();db={...empty,...x};save();alert('Sauvegarde importée avec succès.')}catch(err){alert('Fichier de sauvegarde invalide.')}};r.readAsText(file);e.target.value=''}
+function resetAll(){if(confirm('ATTENTION : toutes les données locales seront effacées. Continuer ?')){localStorage.removeItem(KEY);db=structuredClone(empty);renderAll()}}
+
+window.addEventListener('resize',()=>{drawHistory();if(document.getElementById('projection').classList.contains('active'))renderProjection()});
+db=load();
+renderAll();
+setTimeout(initMarketAuto,250);
+</script>
+</body>
+</html>
