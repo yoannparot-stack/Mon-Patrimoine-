@@ -2,13 +2,21 @@ name: Build Mon Patrimoine Android
 
 on:
 workflow_dispatch:
+
+
 push:
 paths:
 - 'Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip'
 - '.github/workflows/build.yml'
 
 jobs:
+
+
 build:
+
+
+
+
 runs-on: ubuntu-latest
 
 steps:
