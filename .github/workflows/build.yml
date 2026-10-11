@@ -1,10 +1,10 @@
-name: Build Mon Patrimoine Android
+name: Build Mon Patrimoine Android V1.3.2
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip'
+      - 'Mon_Patrimoine_V1.3.2_ANDROID_PREVIEW_GITHUB.zip'
       - '.github/workflows/build.yml'
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
       - name: Extract Android project
         run: |
           mkdir android-project
-          unzip Mon_Patrimoine_V1.2_ANDROID_TEST_GITHUB.zip -d android-project
+          unzip Mon_Patrimoine_V1.3.2_ANDROID_PREVIEW_GITHUB.zip -d android-project
           find android-project -name settings.gradle -o -name settings.gradle.kts
 
       - name: Set up Java
@@ -31,18 +31,23 @@ jobs:
         with:
           gradle-version: '8.13'
 
-      - name: Build debug APK
+      - name: Run JavaScript QA checks
         run: |
           ROOT="$(find android-project -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs dirname)"
           echo "Projet Android : $ROOT"
+          node "$ROOT/tests/qa_v13.js"
+
+      - name: Build debug APK
+        run: |
+          ROOT="$(find android-project -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs dirname)"
           cd "$ROOT"
           gradle :app:assembleDebug --stacktrace
           mkdir -p "$GITHUB_WORKSPACE/apk-out"
-          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/apk-out/app-debug.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/apk-out/Mon-Patrimoine-V1.3.2-debug.apk"
 
       - name: Upload test APK
         uses: actions/upload-artifact@v4
         with:
-          name: Mon-Patrimoine-V1.2-TEST-APK
-          path: apk-out/app-debug.apk
+          name: Mon-Patrimoine-V1.3.2-TEST-APK
+          path: apk-out/Mon-Patrimoine-V1.3.2-debug.apk
           if-no-files-found: error
