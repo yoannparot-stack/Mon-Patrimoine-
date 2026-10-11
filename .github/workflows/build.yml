@@ -25,7 +25,7 @@ jobs:
           JAVA_FILE="$(find android-project -path '*/app/src/main/java/com/monpatrimoine/app/MainActivity.java' -print -quit)"
           test -n "$JAVA_FILE"
           sed -i 's/shouldInterceptRequest(url)/shouldInterceptRequest(android.net.Uri.parse(url))/' "$JAVA_FILE"
-          grep -n 'shouldInterceptRequest(android.net.Uri.parse(url))' "$JAVA_FILE"
+          grep -nE 'shouldInterceptRequest\(((android\.net\.)?Uri\.parse\(url\))\)' "$JAVA_FILE"
 
       - name: Set up Java
         uses: actions/setup-java@v4
