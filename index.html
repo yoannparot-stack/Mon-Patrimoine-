@@ -144,7 +144,7 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
 
 <section id="immobilier" class="page">
   <div class="commercial-note no-print"><b>Découverte gratuite :</b> vous pouvez gérer ici <b>1 logement complet</b> avec ses loyers, charges, financement, valeur et analyse de marché. Les fonctionnalités multi-biens seront réservées à l’offre premium lors de la commercialisation.</div>
-  <div class="section-title"><h2>Immobilier</h2><button class="primary" onclick="openPropertyForm()">+ Ajouter un bien</button></div>
+  <div class="section-title"><h2>Immobilier</h2><button id="addPropertyButton" class="primary" type="button">+ Ajouter un bien</button></div>
   <div id="propertyFormWrap"></div>
   <div id="properties"></div>
 </section>
@@ -638,6 +638,19 @@ function resetAll(){if(confirm('ATTENTION : toutes les données locales seront e
 
 window.addEventListener('resize',()=>{drawHistory();if(document.getElementById('projection').classList.contains('active'))renderProjection()});
 db=load();
+const addPropertyButton=document.getElementById('addPropertyButton');
+if(addPropertyButton){
+ addPropertyButton.addEventListener('click',()=>{
+  try{
+   openPropertyForm();
+   const formWrap=document.getElementById('propertyFormWrap');
+   if(formWrap&&formWrap.innerHTML.trim()) formWrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+   else alert("L’ouverture du formulaire n’a pas abouti. Fermez puis rouvrez l’onglet Immobilier et réessayez.");
+  }catch(err){
+   alert("Impossible d’ouvrir le formulaire d’ajout : "+(err&&err.message?err.message:"erreur JavaScript"));
+  }
+ });
+}
 renderAll();
 setTimeout(initMarketAuto,250);
 </script>
