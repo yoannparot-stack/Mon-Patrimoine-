@@ -20,6 +20,13 @@ jobs:
           unzip Mon_Patrimoine_V1.3.2_ANDROID_PREVIEW_GITHUB.zip -d android-project
           find android-project -name settings.gradle -o -name settings.gradle.kts
 
+      - name: Give this test APK a separate Android package ID
+        run: |
+          GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
+          test -n "$GRADLE_FILE"
+          sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.monpatrimoine.app.test132'/" "$GRADLE_FILE"
+          grep -n "applicationId" "$GRADLE_FILE"
+
       - name: Fix WebView URL overload
         run: |
           JAVA_FILE="$(find android-project -path '*/app/src/main/java/com/monpatrimoine/app/MainActivity.java' -print -quit)"
