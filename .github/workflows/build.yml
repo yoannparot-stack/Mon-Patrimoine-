@@ -22,10 +22,15 @@ jobs:
 
       - name: Use the corrected HTML from the test branch
         run: |
-          ASSET_FILE="$(find android-project -path '*/app/src/main/assets/index.html' -print -quit)"
-          test -n "$ASSET_FILE"
+          ROOT="$(find android-project -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs dirname)"
+          test -n "$ROOT"
+          ASSET_FILE="$ROOT/app/src/main/assets/index.html"
+          mkdir -p "$(dirname "$ASSET_FILE")"
+          test -f index.html
           cp index.html "$ASSET_FILE"
+          test -s "$ASSET_FILE"
           echo "HTML Android mis à jour : $ASSET_FILE"
+          wc -c "$ASSET_FILE"
 
       - name: Give this test APK a separate Android package ID
         run: |
