@@ -100,7 +100,7 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
 
 <main>
 <section id="dashboard" class="page active">
-  <div class="section-title"><h2>Vue d’ensemble</h2><div class="field dashboard-filter"><label>Afficher</label><select id="dashboardHolder" onchange="renderDashboard()"><option value="Tous">Tous les biens</option><option value="SARL">SARL de famille</option><option value="Yoann">Yoann</option><option value="Chloé">Chloé</option><option value="À attribuer">À attribuer</option></select></div></div>
+  <div class="section-title"><h2>Vue d’ensemble</h2><div class="field dashboard-filter"><label>Afficher</label><select id="dashboardHolder" onchange="renderDashboard()"><option value="Tous">Tous les biens</option></select></div></div>
   <div class="grid">
     <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Immobilier" onclick="dashboardGo('immobilier')" onkeydown="dashboardKey(event,'immobilier')"><div class="label">Patrimoine brut</div><div class="metric" id="mGross">0 €</div><div class="hint">Immobilier + financier + autres actifs</div></div>
     <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Financements" onclick="dashboardGo('financement')" onkeydown="dashboardKey(event,'financement')"><div class="label">Dettes</div><div class="metric negative" id="mDebt">0 €</div><div class="hint">Crédits + autres dettes</div></div>
@@ -241,6 +241,7 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
 <section id="parametres" class="page">
   <h2>Paramètres & sauvegarde</h2>
   <div class="card"><h3>Nom du tableau</h3><div class="field"><input id="appName"></div><button class="primary" onclick="saveSettings()">Enregistrer</button></div>
+  <div class="card"><h3>Détenteurs des biens</h3><p class="muted">Personnalisez la liste des personnes, sociétés ou structures qui peuvent détenir vos biens. Inscrivez un détenteur par ligne. Cette liste sert au formulaire immobilier, aux filtres et à la synthèse bancaire.</p><div class="field"><label for="holderList">Liste des détenteurs (un par ligne)</label><textarea id="holderList" rows="5" placeholder="Ex. : Personne, société, SCI…"></textarea></div><div class="actions"><button class="primary" onclick="saveHolders()">Enregistrer les détenteurs</button></div><div class="hint">Les détenteurs déjà affectés à un bien restent visibles même si vous modifiez cette liste, pour éviter de perdre leur identification.</div></div>
   <div class="card"><h3>Données</h3><p class="muted">Toutes les données sont conservées localement dans le navigateur de cet appareil. Faites régulièrement une sauvegarde JSON si vous voulez éviter toute perte.</p><div class="actions"><button class="primary" onclick="exportData()">Exporter mes données</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importer une sauvegarde</button><button class="danger" onclick="resetAll()">Effacer toutes les données</button></div></div>
   <div class="card"><h3>Offre</h3><div class="plan-card"><div><div class="label">Version actuelle</div><div class="metric">Découverte gratuite</div><div class="hint">1 logement complet · architecture prête pour une offre premium multi-biens.</div></div><span class="commercial-badge">FREE</span></div></div>
   <div class="card"><h3>Version</h3><p>Mon Patrimoine — version commerciale V1.</p></div>
@@ -252,12 +253,16 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
 const KEY='mon_patrimoine_v13_1_clean';
 const COMMERCIAL_PLAN='free';
 const FREE_PROPERTY_LIMIT=1;
-const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine'},properties:[],loans:[],assets:[],snapshots:[],otherDebt:0,otherDebtNote:'',otherDebtOwner:''};
+const DEFAULT_HOLDERS=['Yoann','Chloé','SARL de famille'];
+const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine',holders:[...DEFAULT_HOLDERS]},properties:[],loans:[],assets:[],snapshots:[],otherDebt:0,otherDebtNote:'',otherDebtOwner:''};
 const empty = structuredClone(EMBEDDED_BACKUP);
 let db;
 
-function normalizeHolder(p){let h=p.holder||'';if(h==='Personnel'||h==='Société'||h==='À définir'||h==='À attribuer')h='';if(!h)h=p.structure==='SARL de famille'?'SARL':'À attribuer';return {...p,holder:h}}
-function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
+function normalizeHolder(p){let h=String(p.holder||'').trim();if(['Personnel','Société','À définir','À attribuer','SARL'].includes(h))h='';if(!h)h=p.structure==='SARL de famille'?'SARL de famille':'À attribuer';return {...p,holder:h}}
+function holderNames(){const configured=Array.isArray(db?.settings?.holders)?db.settings.holders:DEFAULT_HOLDERS;const assigned=(db?.properties||[]).map(p=>String(p.holder||'').trim()).filter(h=>h&&h!=='À attribuer');return [...new Set([...configured.map(h=>String(h).trim()).filter(Boolean),...assigned])].filter(Boolean)}
+function renderHolderControls(){const list=holderNames();const filter=document.getElementById('dashboardHolder');if(filter){const old=filter.value||'Tous';filter.innerHTML='<option value="Tous">Tous les biens</option>'+list.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('')+'<option value="À attribuer">À attribuer</option>';filter.value=[...list,'Tous','À attribuer'].includes(old)?old:'Tous'}const textarea=document.getElementById('holderList');if(textarea)textarea.value=(Array.isArray(db.settings.holders)?db.settings.holders:DEFAULT_HOLDERS).join('\\n')}
+function saveHolders(){const raw=document.getElementById('holderList').value;const names=[...new Set(raw.split('\\n').map(x=>x.trim()).filter(Boolean))];if(!names.length){alert('Veuillez conserver au moins un détenteur dans la liste.');return}db.settings.holders=names;save();renderHolderControls();alert('Liste des détenteurs enregistrée.');}
+function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.settings={...empty.settings,...(base.settings||{})};x.settings.holders=Array.isArray(x.settings.holders)&&x.settings.holders.length?x.settings.holders:[...DEFAULT_HOLDERS];x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll();}
 function euro(n){return (Number(n)||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})}
 function pct(n){return (Number(n)||0).toLocaleString('fr-FR',{maximumFractionDigits:1})+' %'}
@@ -391,12 +396,9 @@ function renderOptimization(){
   document.getElementById('optimizationTable').innerHTML=html;
 }
 
-function renderAll(){renderDashboard();renderProperties();renderLoans();renderAssets();renderHistory();renderValuation();renderBankSummary();renderDirection();renderOptimization();document.getElementById('appName').value=db.settings.name||'Mon Patrimoine';document.getElementById('otherDebt').value=db.otherDebt||0;document.getElementById('otherDebtNote').value=db.otherDebtNote||'';document.title=db.settings.name||'Mon Patrimoine';}
+function renderAll(){renderHolderControls();renderDashboard();renderProperties();renderLoans();renderAssets();renderHistory();renderValuation();renderBankSummary();renderDirection();renderOptimization();document.getElementById('appName').value=db.settings.name||'Mon Patrimoine';document.getElementById('otherDebt').value=db.otherDebt||0;document.getElementById('otherDebtNote').value=db.otherDebtNote||'';document.title=db.settings.name||'Mon Patrimoine';}
 
-function dashboardProperties(){
- const f=document.getElementById('dashboardHolder')?.value||'Tous';
- return f==='Tous'?db.properties:db.properties.filter(p=>(p.holder||((p.structure==='SARL de famille')?'SARL':'À attribuer'))===f);
-}
+function dashboardProperties(){const f=document.getElementById('dashboardHolder')?.value||'Tous';return f==='Tous'?db.properties:db.properties.filter(p=>(p.holder||((p.structure==='SARL de famille')?'SARL de famille':'À attribuer'))===f);}
 function renderDashboard(){
  const props=dashboardProperties();
  const t=totalsFor(props);
@@ -444,7 +446,7 @@ function openPropertyForm(editId=null){
  <form onsubmit="saveProperty(event,'${p.id}')">
  <div class="grid3">
  <div class="field"><label>Nom du bien *</label><input name="name" required value="${esc(p.name)}"></div>
- <div class="field"><label>Structure</label><select name="structure">${['Nom propre','SARL de famille','SCI','Société','Autre'].map(x=>`<option ${x===p.structure?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Détenteur du bien *</label><select name="holder" required><option value="" disabled ${!['SARL','Yoann','Chloé'].includes(p.holder)?'selected':''}>— Choisir un détenteur —</option>${[['SARL','SARL de famille'],['Yoann','Yoann'],['Chloé','Chloé']].map(([v,label])=>`<option value="${v}" ${v===p.holder?'selected':''}>${label}</option>`).join('')}</select><div class="hint">Choisissez la personne ou la société qui détient réellement ce bien.</div></div>
+ <div class="field"><label>Structure</label><select name="structure">${['Nom propre','SARL de famille','SCI','Société','Autre'].map(x=>`<option ${x===p.structure?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Détenteur du bien *</label><select name="holder" required><option value="" disabled ${!holderNames().includes(p.holder)?'selected':''}>— Choisir un détenteur —</option>${holderNames().map(h=>`<option value="${esc(h)}" ${h===p.holder?'selected':''}>${esc(h)}</option>`).join('')}${p.holder&&!holderNames().includes(p.holder)?`<option value="${esc(p.holder)}" selected>${esc(p.holder)}</option>`:''}</select><div class="hint">Choisissez la personne ou la société qui détient réellement ce bien.</div></div>
  <div class="field"><label>Type</label><select name="type">${['Appartement','Maison','Immeuble','Parking / Box','Local','Terrain','Autre'].map(x=>`<option ${x===p.type?'selected':''}>${x}</option>`).join('')}</select></div>
  </div>
  <div class="grid3"><div class="field"><label>Adresse</label><input name="address" value="${esc(p.address)}"></div><div class="field"><label>Surface (m²)</label><input name="surface" type="number" step=".1" value="${p.surface}"></div><div class="field"><label>Étage</label><input name="floor" value="${esc(p.floor)}"></div></div>
@@ -458,7 +460,7 @@ function openPropertyForm(editId=null){
  </form></div>`;
 }
 function closeForm(id){document.getElementById(id).innerHTML=''}
-function saveProperty(e,editId){e.preventDefault();if(!editId && COMMERCIAL_PLAN==='free' && db.properties.length>=FREE_PROPERTY_LIMIT){showUpgradePrompt();return;}const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();if(!['SARL','Yoann','Chloé'].includes(o.holder)){alert('Veuillez choisir le détenteur du bien : SARL de famille, Yoann ou Chloé.');return;}['surface','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;db.properties[i]=o}else db.properties.push(o);closeForm('propertyFormWrap');save()}
+function saveProperty(e,editId){e.preventDefault();if(!editId && COMMERCIAL_PLAN==='free' && db.properties.length>=FREE_PROPERTY_LIMIT){showUpgradePrompt();return;}const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();if(!o.holder||!o.holder.trim()){alert('Veuillez choisir un détenteur dans le formulaire du bien.');return;}['surface','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;db.properties[i]=o}else db.properties.push(o);closeForm('propertyFormWrap');save()}
 
 function propertyLoans(p){return db.loans.filter(l=>l.propertyId===p.id)}
 function cashflowGross(p){return (Number(p.rentHC)||0)+(Number(p.recoverable)||0)-(Number(p.ownerCharges)||0)-(Number(p.tax)||0)/12-(Number(p.pno)||0)-(Number(p.otherMonthly)||0)}
