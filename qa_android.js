@@ -6,9 +6,12 @@ const script=(html.match(/<script>([\s\S]*?)<\/script>/)||[])[1];assert(script,'
 new vm.Script(script);console.log('PASS 1/12 JavaScript syntax');
 assert(html.includes("const KEY='mon_patrimoine_v13_1_clean'"));
 assert(html.includes("const MARKET_KEY='mon_patrimoine_market_v13_1_clean'"));
-assert(html.includes("const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine'},properties:[],loans:[],assets:[]"));
+assert(html.includes("const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine',holders:[...DEFAULT_HOLDERS]},properties:[],loans:[],assets:[]"));
+assert(html.includes('id="holderList"') && script.includes('function holderNames()') && script.includes('function saveHolders()'));
+assert(script.includes('holderNames().map(h=>') && script.includes('Veuillez choisir un détenteur'));
+assert(!script.includes("!['SARL','Yoann','Chloé'].includes"));
 assert(!/Appartement test|Banque test|Données de test|Comparables de test/.test(html));
-console.log('PASS 2/12 clean first launch, correct storage keys, no demo records');
+console.log('PASS 2/12 clean first launch, configurable holders, correct storage keys, no demo records');
 assert(html.includes('id="addPropertyButton"'));
 assert(script.includes("document.getElementById('addPropertyButton')"));
 assert(script.includes("addPropertyButton.addEventListener('click'"));
