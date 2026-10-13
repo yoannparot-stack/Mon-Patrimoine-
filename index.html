@@ -249,10 +249,10 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
 <footer>Prototype commercial — les données patrimoniales restent locales sur cet appareil. Le moteur marché n'envoie que les informations immobilières strictement nécessaires aux sources publiques.</footer>
 
 <script>
-const KEY='mon_patrimoine_test_visuel_v11';
+const KEY='mon_patrimoine_v13_1_clean';
 const COMMERCIAL_PLAN='free';
 const FREE_PROPERTY_LIMIT=1;
-const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine — TEST'},properties:[{id:'test1',name:'Appartement test',address:'Centre-ville',surface:20,structure:'Nom propre',holder:'Personnel',type:'Appartement',floor:'2',dpe:'D',purchase:70000,notary:5500,works:3000,furniture:1000,otherCost:0,currentValue:82000,retainedValue:82000,rentHC:490,recoverable:40,ownerCharges:25,tax:636,pno:12.5,otherMonthly:0,occupancy:100,autoEstimate:82000,estimateLow:78000,estimateHigh:86000,market12m:2,priceM2:4100,estimateSource:'Données de test',estimateDate:'2026-10-01',sources:[{source:'Comparables de test',value:82000,m2:4100,date:'2026-10-01',note:'Jeu de données temporaire'}],marketAnalysis:{estimate:82000,low:78000,high:86000,priceM2:4100,confidence:'Moyenne',comparables:6,updatedAt:'2026-10-07T10:00:00.000Z',sourceYear:2026,rawComparables:[{price:79500,surface:19,ppm:4184,distanceM:250,date:'2026-03-21',type:'Appartement'},{price:80000,surface:20,ppm:4000,distanceM:350,date:'2026-02-18',type:'Appartement'},{price:82500,surface:20,ppm:4125,distanceM:450,date:'2026-01-15',type:'Appartement'},{price:85000,surface:21,ppm:4048,distanceM:500,date:'2025-12-10',type:'Appartement'},{price:78000,surface:19,ppm:4105,distanceM:600,date:'2025-11-20',type:'Appartement'},{price:81500,surface:20,ppm:4075,distanceM:700,date:'2025-10-05',type:'Appartement'}]}}],loans:[{id:'loan1',propertyId:'test1',bank:'Banque test',initial:77000,years:20,rate:3.3,insuranceRate:0.5,insuranceAmount:0,payment:0,startDate:'2026-10-01',remaining:76000,notes:'Crédit de test'}],assets:[{id:'asset1',name:'Épargne de test',category:'Épargne',institution:'Banque test',value:5000}],snapshots:[],otherDebt:0,otherDebtNote:'',otherDebtOwner:''};
+const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine'},properties:[],loans:[],assets:[],snapshots:[],otherDebt:0,otherDebtNote:'',otherDebtOwner:''};
 const empty = structuredClone(EMBEDDED_BACKUP);
 let db;
 
@@ -513,7 +513,7 @@ function drawHistory(){
  ctx.strokeStyle='#2563eb';ctx.lineWidth=3;ctx.beginPath();d.forEach((x,i)=>{let px=pad+(w-pad*2)*(d.length===1?0:i/(d.length-1));let py=h-pad-(max===min?.5:(x.net-min)/(max-min))*(h-pad*2);i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.stroke();
 }
 // ===================== MOTEUR MARCHÉ V20 — RECONSTRUIT =====================
-const MARKET_KEY='mon_patrimoine_market_test_visuel_v11';
+const MARKET_KEY='mon_patrimoine_market_v13_1_clean';
 const MARKET_MAX_AGE_DAYS=7;
 const MARKET_YEARS=5;
 const MARKET_RADIUS_M=700;
