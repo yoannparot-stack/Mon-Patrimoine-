@@ -40,7 +40,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.monpatrimoine.app.test132'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 5/" "$GRADLE_FILE"
+          sed -i "s/versionCode 5 or prior/versionCode 6/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
 
       - name: Fix WebView URL overload
