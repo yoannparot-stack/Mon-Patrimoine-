@@ -619,7 +619,7 @@ function exportBankCSV(){
  const totalHC=db.properties.reduce((s,p)=>s+(bankValueHC(p)||0),0),totalCh=db.properties.reduce((s,p)=>s+(bankCharges(p)||0),0),totalCC=db.properties.reduce((s,p)=>s+(bankCC(p)||0),0),totalCredit=db.properties.reduce((s,p)=>s+propertyLoanPayment(p),0);lines.push(['','','','TOTAL','',totalHC,totalCh,totalCC,totalCredit,totalHC*12,totalCC*12]);
  const csv='\ufeff'+lines.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='synthese_bancaire_mon_patrimoine.csv';a.click();URL.revokeObjectURL(a.href);
 }
-function printBankSummary(){showPage('banque');setTimeout(()=>window.print(),100)}
+function printBankSummary(){showPage('banque');setTimeout(()=>{if(window.AndroidBridge&&typeof window.AndroidBridge.printBankSummary==='function'){window.AndroidBridge.printBankSummary()}else{window.print()}},150)}
 
 function renderProjection(){
  const t=totals(),years=Number(document.getElementById('pYears').value||10),pa=Number(document.getElementById('pProperty').value||0)/100,fa=Number(document.getElementById('pFinancial').value||0)/100,saveM=Number(document.getElementById('pSavings').value||0),rentA=Number(document.getElementById('pRent').value||0)/100,future=Number(document.getElementById('pFuture').value||0);
