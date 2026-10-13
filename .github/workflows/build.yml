@@ -6,6 +6,7 @@ on:
     paths:
       - 'Mon_Patrimoine_V1.3.2_ANDROID_PREVIEW_GITHUB.zip'
       - '.github/workflows/build.yml'
+      - 'index.html'
 
 jobs:
   build:
