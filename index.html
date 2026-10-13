@@ -256,7 +256,8 @@ const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine'},properties:[],loans:[]
 const empty = structuredClone(EMBEDDED_BACKUP);
 let db;
 
-function normalizeHolder(p){let h=p.holder||'';if(h==='Personnel'||h==='Société'||h==='À définir'||h==='À attribuer')h='';if(!h)h=p.structure==='SARL de famille'?'SARL':'À attribuer';return {...p,holder:h}}\nfunction load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
+function normalizeHolder(p){let h=p.holder||'';if(h==='Personnel'||h==='Société'||h==='À définir'||h==='À attribuer')h='';if(!h)h=p.structure==='SARL de famille'?'SARL':'À attribuer';return {...p,holder:h}}
+function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll();}
 function euro(n){return (Number(n)||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})}
 function pct(n){return (Number(n)||0).toLocaleString('fr-FR',{maximumFractionDigits:1})+' %'}
