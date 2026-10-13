@@ -8,6 +8,7 @@ on:
       - '.github/workflows/build.yml'
       - 'index.html'
       - 'qa_android.js'
+      - 'android-print-patch.py'
 
 jobs:
   build:
@@ -47,6 +48,11 @@ jobs:
           test -n "$JAVA_FILE"
           sed -i 's/shouldInterceptRequest(url)/shouldInterceptRequest(android.net.Uri.parse(url))/' "$JAVA_FILE"
           grep -nE 'shouldInterceptRequest\(((android\.net\.)?Uri\.parse\(url\))\)' "$JAVA_FILE"
+
+      - name: Enable native Android PDF printing
+        run: |
+          ROOT="$(find android-project -type f \\( -name settings.gradle -o -name settings.gradle.kts \\) -print -quit | xargs dirname)"
+          python3 android-print-patch.py "$ROOT"
 
       - name: Set up Java
         uses: actions/setup-java@v4
