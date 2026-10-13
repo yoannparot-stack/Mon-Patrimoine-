@@ -253,16 +253,16 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
 const KEY='mon_patrimoine_v13_1_clean';
 const COMMERCIAL_PLAN='free';
 const FREE_PROPERTY_LIMIT=1;
-const DEFAULT_HOLDERS=['Yoann','Chloé','SARL de famille'];
+const DEFAULT_HOLDERS=[];
 const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine',holders:[...DEFAULT_HOLDERS]},properties:[],loans:[],assets:[],snapshots:[],otherDebt:0,otherDebtNote:'',otherDebtOwner:''};
 const empty = structuredClone(EMBEDDED_BACKUP);
 let db;
 
-function normalizeHolder(p){let h=String(p.holder||'').trim();if(['Personnel','Société','À définir','À attribuer'].includes(h))h='';if(h==='SARL')h='SARL de famille';if(!h)h=p.structure==='SARL de famille'?'SARL de famille':'À attribuer';return {...p,holder:h}}
+function normalizeHolder(p){let h=String(p.holder||'').trim();if(['Personnel','Société','À définir','À attribuer'].includes(h))h='';if(h==='SARL')h='SARL de famille';if(!h)h='À attribuer';return {...p,holder:h}}
 function holderNames(){const configured=Array.isArray(db?.settings?.holders)?db.settings.holders:DEFAULT_HOLDERS;const assigned=(db?.properties||[]).map(p=>String(p.holder||'').trim()).filter(h=>h&&h!=='À attribuer');return [...new Set([...configured.map(h=>String(h).trim()).filter(Boolean),...assigned])].filter(Boolean)}
 function renderHolderControls(){const list=holderNames();const filter=document.getElementById('dashboardHolder');if(filter){const old=filter.value||'Tous';filter.innerHTML='<option value="Tous">Tous les biens</option>'+list.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('')+'<option value="À attribuer">À attribuer</option>';filter.value=[...list,'Tous','À attribuer'].includes(old)?old:'Tous'}const textarea=document.getElementById('holderList');if(textarea)textarea.value=(Array.isArray(db.settings.holders)?db.settings.holders:DEFAULT_HOLDERS).join('\n')}
-function saveHolders(){const raw=document.getElementById('holderList').value;const names=[...new Set(raw.split('\n').map(x=>x.trim()).filter(Boolean))];if(!names.length){alert('Veuillez conserver au moins un détenteur dans la liste.');return}db.settings.holders=names;save();renderHolderControls();alert('Liste des détenteurs enregistrée.');}
-function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.settings={...empty.settings,...(base.settings||{})};x.settings.holders=Array.isArray(x.settings.holders)&&x.settings.holders.length?x.settings.holders:[...DEFAULT_HOLDERS];x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
+function saveHolders(){const raw=document.getElementById('holderList').value;const names=[...new Set(raw.split('\n').map(x=>x.trim()).filter(Boolean))];db.settings.holders=names;save();renderHolderControls();alert(names.length?'Liste des détenteurs enregistrée.':'Liste des détenteurs vidée. Vous pourrez en ajouter quand vous le souhaitez.');}
+function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.settings={...empty.settings,...(base.settings||{})};x.settings.holders=Array.isArray(x.settings.holders)?x.settings.holders:[...DEFAULT_HOLDERS];if(JSON.stringify(x.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))x.settings.holders=[];x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll();}
 function euro(n){return (Number(n)||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})}
 function pct(n){return (Number(n)||0).toLocaleString('fr-FR',{maximumFractionDigits:1})+' %'}
@@ -440,7 +440,7 @@ function showUpgradePrompt(){
 
 function openPropertyForm(editId=null){
  if(!editId && COMMERCIAL_PLAN==='free' && db.properties.length>=FREE_PROPERTY_LIMIT){ showUpgradePrompt(); return; }
- const p=editId?db.properties.find(x=>x.id===editId):{id:'',name:'',address:'',structure:'Nom propre',holder:'À définir',type:'Appartement',surface:'',floor:'',dpe:'',acquisitionDate:'',purchase:'',notary:'',works:'',furniture:'',otherCost:'',currentValue:'',retainedValue:'',rentHC:'',recoverable:'',ownerCharges:'',tax:'',pno:'',otherMonthly:'',occupancy:'100',autoEstimate:'',estimateLow:'',estimateHigh:'',estimateSource:'',estimateDate:'',market12m:'',priceM2:'',sources:[],notes:''};
+ const p=editId?db.properties.find(x=>x.id===editId):{id:'',name:'',address:'',structure:'Nom propre',holder:'À attribuer',type:'Appartement',surface:'',floor:'',dpe:'',acquisitionDate:'',purchase:'',notary:'',works:'',furniture:'',otherCost:'',currentValue:'',retainedValue:'',rentHC:'',recoverable:'',ownerCharges:'',tax:'',pno:'',otherMonthly:'',occupancy:'100',autoEstimate:'',estimateLow:'',estimateHigh:'',estimateSource:'',estimateDate:'',market12m:'',priceM2:'',sources:[],notes:''};
  const wrap=document.getElementById('propertyFormWrap');
  wrap.innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier le bien':'Nouveau bien'}</h3><button class="secondary" onclick="closeForm('propertyFormWrap')">Fermer</button></div>
  <form onsubmit="saveProperty(event,'${p.id}')">
