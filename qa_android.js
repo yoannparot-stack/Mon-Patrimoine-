@@ -44,7 +44,10 @@ const manifest=fs.readFileSync(path.join(root,'app/src/main/AndroidManifest.xml'
 const gradle=fs.readFileSync(path.join(root,'app/build.gradle'),'utf8');
 assert(java.includes('WebViewAssetLoader'));
 assert(java.includes('onShowFileChooser'));
-assert(java.includes('Intent.ACTION_CREATE_DOCUMENT'));\nassert(java.includes('public void printBankSummary()'));\nassert(java.includes('PrintManager'));\nassert(java.includes('createPrintDocumentAdapter'));
+assert(java.includes('Intent.ACTION_CREATE_DOCUMENT'));
+assert(java.includes('public void printBankSummary()'));
+assert(java.includes('PrintManager'));
+assert(java.includes('createPrintDocumentAdapter'));
 console.log('PASS 11/12 Android WebView, native file handling, and PDF print adapter');
 assert(manifest.includes('android.permission.INTERNET'));
 assert(gradle.includes("implementation 'androidx.webkit:webkit:1.12.1'"));
