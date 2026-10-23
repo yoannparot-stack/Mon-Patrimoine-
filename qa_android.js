@@ -71,4 +71,9 @@ assert(script.includes('if(db.properties.length||db.loans.length||db.assets.leng
 assert(script.includes('db.properties=db.properties.filter(x=>!demo(x))'));
 assert(html.includes('Charger le patrimoine fictif')&&html.includes('Supprimer les données fictives'));
 console.log('PASS DEMO optional fictional dataset, empty-only import, selective removal');
+const loanRender=script.slice(script.indexOf('function renderLoans(){'),script.indexOf('function deleteLoan('));
+assert(loanRender.includes('<th>Actions</th><th>Bien / banque</th>'));
+assert(loanRender.includes('class="loan-open" onclick="openLoanForm('));
+assert(loanRender.includes('onclick="deleteLoan('));
+console.log('PASS FINANCEMENT actions first and loan name clickable');
 console.log('RESULT: all 12 automated QA checks passed. Device behavior still requires installation testing.');
