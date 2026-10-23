@@ -31,7 +31,9 @@ for(const id of nav)assert(html.includes('id="'+id+'"'),'navigation section exis
 console.log('PASS 5/12 navigation targets exist ('+nav.length+')');
 assert(/function load\(\)/.test(script)&&/function save\(\)/.test(script));
 assert(script.includes('localStorage.getItem(KEY)')&&script.includes('localStorage.setItem(KEY'));
-console.log('PASS 6/12 persistent local storage load/save functions');
+assert(script.includes("KEY+'_recovery_'+Date.now()"),'unreadable local data is copied before fallback');
+assert(script.includes('localStorage.setItem(recoveryKey,raw)'),'recovery snapshot is stored');
+console.log('PASS 6/12 persistent local storage load/save functions and recovery snapshot');
 assert(/function initMarketAuto\(\)/.test(script));
 assert(script.includes('refreshMarket(false)'));
 console.log('PASS 7/12 market auto-refresh function present');
