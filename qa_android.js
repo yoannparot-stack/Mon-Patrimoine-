@@ -82,3 +82,10 @@ assert(html.includes('@page{size:A4 landscape;margin:7mm}'));
 assert(html.includes('class="bank-print-value"'));
 console.log('PASS BANK PDF layout and monetary input precision');
 console.log('RESULT: all 12 automated QA checks passed. Device behavior still requires installation testing.');
+
+// Ownership display and owner creation regression checks
+assert(script.includes("Object.entries(by).filter("),'ownership groups must come from existing properties');
+assert(!script.includes("const nom=by['Nom propre']||0, sarl=by['SARL de famille']||0"),'no hardcoded empty SARL card');
+assert(script.includes('function addHolderFromPropertyForm()'),'owner creation available from property form');
+assert(html.includes('+ Ajouter un détenteur'),'owner creation button visible');
+console.log('PASS OWNER dynamic structure cards and owner creation');
