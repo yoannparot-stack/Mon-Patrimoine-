@@ -281,6 +281,21 @@ let db;
 function normalizeHolder(p){let h=String(p.holder||'').trim();if(['Personnel','Société','À définir','À attribuer'].includes(h))h='';if(h==='SARL')h='SARL de famille';if(!h)h='À attribuer';return {...p,holder:h}}
 function holderNames(){const configured=Array.isArray(db?.settings?.holders)?db.settings.holders:DEFAULT_HOLDERS;const assigned=(db?.properties||[]).map(p=>String(p.holder||'').trim()).filter(h=>h&&h!=='À attribuer');return [...new Set([...configured.map(h=>String(h).trim()).filter(Boolean),...assigned])].filter(Boolean)}
 function renderHolderControls(){const list=holderNames();const filter=document.getElementById('dashboardHolder');if(filter){const old=filter.value||'Tous';filter.innerHTML='<option value="Tous">Tous les biens</option>'+list.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('')+'<option value="À attribuer">À attribuer</option>';filter.value=[...list,'Tous','À attribuer'].includes(old)?old:'Tous'}const textarea=document.getElementById('holderList');if(textarea)textarea.value=(Array.isArray(db.settings.holders)?db.settings.holders:DEFAULT_HOLDERS).join('\n')}
+function addHolderFromPropertyForm(){
+ const raw=prompt('Nom du nouveau détenteur (personne, SCI, SARL, société…) :');
+ if(raw===null)return;
+ const name=raw.trim();
+ if(!name){alert('Veuillez saisir un nom de détenteur.');return;}
+ if(name.length>100){alert('Le nom doit comporter au maximum 100 caractères.');return;}
+ const select=document.querySelector('#propertyFormWrap select[name="holder"]');
+ if(!select)return;
+ const exists=[...select.options].some(o=>o.value===name);
+ if(!exists){const option=document.createElement('option');option.value=name;option.textContent=name;select.add(option);}
+ select.value=name;
+ if(!Array.isArray(db.settings.holders))db.settings.holders=[];
+ if(!db.settings.holders.includes(name))db.settings.holders.push(name);
+ try{localStorage.setItem(KEY,JSON.stringify(db));renderHolderControls()}catch(e){alert('Impossible d’enregistrer le détenteur. Vérifiez le stockage disponible.');}
+}
 function saveHolders(){const raw=document.getElementById('holderList').value;const names=[...new Set(raw.split('\n').map(x=>x.trim()).filter(Boolean))];db.settings.holders=names;save();renderHolderControls();alert(names.length?'Liste des détenteurs enregistrée.':'Liste des détenteurs vidée. Vous pourrez en ajouter quand vous le souhaitez.');}
 function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.settings={...empty.settings,...(base.settings||{})};x.settings.holders=Array.isArray(x.settings.holders)?x.settings.holders:[...DEFAULT_HOLDERS];if(JSON.stringify(x.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))x.settings.holders=[];x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const raw=localStorage.getItem(KEY);if(raw){try{const recoveryKey=KEY+'_recovery_'+Date.now();localStorage.setItem(recoveryKey,raw);alert('Les données locales ne peuvent pas être chargées. Une copie de récupération a été conservée sous '+recoveryKey+'. Restaurez une sauvegarde valide avant de saisir de nouvelles données.')}catch(backupError){alert('Les données locales ne peuvent pas être chargées. Ne modifiez pas votre patrimoine avant d’avoir récupéré votre sauvegarde.')}}const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll();}
@@ -433,7 +448,10 @@ function renderDashboard(){
  document.getElementById('mCashNet').className='metric '+(t.cashNet>=0?'positive':'negative');
  document.getElementById('mYield').className='metric '+(t.grossYield>=0?'positive':'negative');
  document.getElementById('mNetYield').className='metric '+(t.netYield>=0?'positive':'negative');
- const by={};props.forEach(p=>{let k=p.structure||'Nom propre';by[k]=(by[k]||0)+(Number(p.retainedValue)||Number(p.currentValue)||0)}); const nom=by['Nom propre']||0, sarl=by['SARL de famille']||0, totalImm=nom+sarl; const nomPct=totalImm?nom/totalImm*100:0, sarlPct=totalImm?sarl/totalImm*100:0; document.getElementById('structureBreakdown').innerHTML=totalImm?`<div class="structure-grid"><div class="structure-box"><div class="mini-label">👤👤 Nom propre</div><div class="metric">${euro(nom)}</div><div class="hint">${nomPct.toFixed(1).replace('.',',')} % de l'immobilier</div></div><div class="structure-box sarl"><div class="mini-label">🏢 SARL de famille</div><div class="metric">${euro(sarl)}</div><div class="hint">${sarlPct.toFixed(1).replace('.',',')} % de l'immobilier</div></div></div>`:'<div class="empty">Aucun bien pour ce filtre.</div>';
+ const by={};props.forEach(p=>{const k=String(p.structure||'Non renseignée').trim()||'Non renseignée';by[k]=(by[k]||0)+(Number(p.retainedValue)||Number(p.currentValue)||0)});
+ const groups=Object.entries(by).filter(([k,v])=>props.some(p=>(String(p.structure||'Non renseignée').trim()||'Non renseignée')===k));
+ const totalImm=groups.reduce((sum,[,v])=>sum+v,0);
+ document.getElementById('structureBreakdown').innerHTML=groups.length?`<div class="structure-grid">${groups.map(([name,value])=>`<div class="structure-box"><div class="mini-label">🏠 ${esc(name)}</div><div class="metric">${euro(value)}</div><div class="hint">${totalImm?(value/totalImm*100).toFixed(1).replace('.',','):'0,0'} % de l'immobilier</div></div>`).join('')}</div>`:'<div class="empty">Aucun bien pour ce filtre.</div>';
  drawHistory();
 }
 function totalsFor(properties){
@@ -466,7 +484,7 @@ function openPropertyForm(editId=null){
  <form onsubmit="saveProperty(event,'${p.id}')">
  <div class="grid3">
  <div class="field"><label>Nom du bien *</label><input name="name" required value="${esc(p.name)}"></div>
- <div class="field"><label>Structure</label><select name="structure">${['Nom propre','SARL de famille','SCI','Société','Autre'].map(x=>`<option ${x===p.structure?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Détenteur du bien *</label><select name="holder" required><option value="" disabled ${!holderNames().includes(p.holder)?'selected':''}>— Choisir un détenteur —</option>${holderNames().map(h=>`<option value="${esc(h)}" ${h===p.holder?'selected':''}>${esc(h)}</option>`).join('')}${p.holder&&!holderNames().includes(p.holder)?`<option value="${esc(p.holder)}" selected>${esc(p.holder)}</option>`:''}</select><div class="hint">Choisissez la personne ou la société qui détient réellement ce bien.</div></div>
+ <div class="field"><label>Structure</label><select name="structure">${['Nom propre','SARL de famille','SCI','Société','Autre'].map(x=>`<option ${x===p.structure?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Détenteur du bien *</label><select name="holder" required><option value="" disabled ${!holderNames().includes(p.holder)?'selected':''}>— Choisir un détenteur —</option>${holderNames().map(h=>`<option value="${esc(h)}" ${h===p.holder?'selected':''}>${esc(h)}</option>`).join('')}${p.holder&&!holderNames().includes(p.holder)?`<option value="${esc(p.holder)}" selected>${esc(p.holder)}</option>`:''}</select><div class="hint">Choisissez la personne ou la société qui détient réellement ce bien.</div><button type="button" class="secondary" style="margin-top:8px" onclick="addHolderFromPropertyForm()">+ Ajouter un détenteur</button></div>
  <div class="field"><label>Type</label><select name="type">${['Appartement','Maison','Immeuble','Parking / Box','Local','Terrain','Autre'].map(x=>`<option ${x===p.type?'selected':''}>${x}</option>`).join('')}</select></div>
  </div>
  <div class="grid3"><div class="field"><label>Adresse</label><input name="address" value="${esc(p.address)}"></div><div class="field"><label>Surface (m²)</label><input name="surface" type="number" step=".1" value="${p.surface}"></div><div class="field"><label>Étage</label><input name="floor" value="${esc(p.floor)}"></div></div>
