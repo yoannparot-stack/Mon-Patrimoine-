@@ -104,6 +104,31 @@ methods='''    private static final int IMMOPTIMA_DRIVE_AUTH_REQUEST = 7413;
             }finally{if(conn!=null)conn.disconnect();}
         }).start();
     }
+    private void downloadDriveBackup(String token,String fileId) {
+        new Thread(() -> {
+            HttpURLConnection conn=null;
+            try{
+                conn=(HttpURLConnection)new URL("https://www.googleapis.com/drive/v3/files/"+
+                    java.net.URLEncoder.encode(fileId,"UTF-8")+"?alt=media").openConnection();
+                conn.setRequestProperty("Authorization","Bearer "+token);
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(30000);
+                if(conn.getResponseCode()!=200)throw new java.io.IOException("Download failed");
+                byte[] bytes;
+                try(InputStream in=conn.getInputStream()){bytes=readDrive(in,10*1024*1024);}
+                JSONObject data=new JSONObject(new String(bytes,java.nio.charset.StandardCharsets.UTF_8));
+                if(!(data.opt("properties") instanceof org.json.JSONArray) ||
+                   !(data.opt("loans") instanceof org.json.JSONArray) ||
+                   !(data.opt("assets") instanceof org.json.JSONArray))
+                    throw new java.io.IOException("Invalid backup");
+                final String encoded=android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP);
+                runOnUiThread(() -> webView.evaluateJavascript("immoptimaRestoreFromDriveBase64("+
+                    JSONObject.quote(encoded)+")",null));
+            }catch(Exception ex){
+                runOnUiThread(() -> Toast.makeText(this,"Restauration impossible : données conservées",Toast.LENGTH_LONG).show());
+            }finally{if(conn!=null)conn.disconnect();}
+        }).start();
+    }
     private void beginDriveBackup(String json) {
         if (json == null || json.length() > 10 * 1024 * 1024) {
             Toast.makeText(this, "Sauvegarde trop volumineuse", Toast.LENGTH_LONG).show();
