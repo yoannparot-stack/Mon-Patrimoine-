@@ -28,4 +28,17 @@ check('CI requires persistent signing secrets', () => {
 check('no fake Google connected or Drive saved success states', () => {
   assert.doesNotMatch(html,/Google Drive (?:connecté|sauvegardé) avec succès/i);
 });
+check('native Google Drive action requires user confirmation and preserves manual exports', () => {
+  assert.match(html,/function backupDirectDrive\(/);
+  assert.match(html,/confirm\('Enregistrer une copie/);
+  assert.match(html,/backupToGoogleDrive\(JSON\.stringify\(db\)\)/);
+  assert.match(html,/Attendez la confirmation Android/);
+});
+const drivePatch = fs.readFileSync('android-drive-patch.py','utf8');
+check('native Google Drive access is least privilege', () => {
+  assert.match(drivePatch,/drive\.appdata/);
+  assert.match(drivePatch,/appDataFolder/);
+  assert.match(drivePatch,/getAccessToken/);
+  assert.doesNotMatch(drivePatch,/JavascriptInterface public void .*Token/);
+});
 console.log('ImmOptima backup migration regression checks completed.');
