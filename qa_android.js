@@ -1,4 +1,3 @@
-assert(!html.includes('>♻️ Restaurer depuis Google</button>') && !html.includes('>↩️ Annuler la dernière restauration</button>'),'restore actions are not exposed in the customer menu');
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
 const root=process.argv[2];
 assert(root,'Android project root argument is required');
@@ -109,6 +108,7 @@ assert(html.includes('onclick="openBackupOptions()">Sauvegarder</button>'), 'hea
 assert(html.includes('flex-wrap:nowrap!important'), 'header buttons must remain side by side');
 assert(html.indexOf('<div class="card structure-card"><h3>Répartition du patrimoine immobilier')<html.indexOf('<h3>Évolution du patrimoine net'), 'property breakdown must precede history');
 console.log('PASS UI header backup buttons and dashboard ordering');
+assert(!html.includes('>♻️ Restaurer depuis Google</button>') && !html.includes('>↩️ Annuler la dernière restauration</button>'),'restore actions are not exposed in the customer menu');
 
 assert(html.includes('id="backupChoices"') && html.includes("exportData('local')") && html.includes("exportData('email')") && html.includes('onclick="backupDirectDrive()"'),'three simple backup destinations are visible');
 assert(script.includes('function closeBackupOptions()') && script.includes('function openBackupOptions()'),'backup dialog can open and close');
