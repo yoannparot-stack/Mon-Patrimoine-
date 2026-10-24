@@ -120,7 +120,7 @@ header .top{align-items:center!important}
   <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions header-backup-actions"><button type="button" class="secondary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div></div>
   <nav id="nav"></nav>
 </header>
-<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button><button type="button" class="secondary" onclick="backupDirectDrive()">🔒 Sauvegarder dans Google Drive (test)</button><button type="button" class="secondary" onclick="listPrivateDriveBackups()">♻️ Restaurer depuis Google</button><button type="button" class="secondary" onclick="toggleImmoptimaAutoBackup()">⏱️ Activer / désactiver la sauvegarde automatique Google</button><button type="button" class="secondary" onclick="exportVisibleDrive()">📁 Exporter une copie visible dans Drive</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
+<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button><button type="button" class="secondary" onclick="backupDirectDrive()">🔒 Sauvegarder dans Google Drive (test)</button><button type="button" class="secondary" onclick="listPrivateDriveBackups()">♻️ Restaurer depuis Google</button><button type="button" class="secondary" onclick="immoptimaRecoverBeforeRestore()">↩️ Annuler la dernière restauration</button><button type="button" class="secondary" onclick="toggleImmoptimaAutoBackup()">⏱️ Activer / désactiver la sauvegarde automatique Google</button><button type="button" class="secondary" onclick="exportVisibleDrive()">📁 Exporter une copie visible dans Drive</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
 <div class="commercial-banner no-print">
   <div><b>Mon Patrimoine</b> — votre cockpit immobilier personnel</div>
   <span class="commercial-badge">Version découverte · 1 logement complet gratuit</span>
@@ -717,6 +717,28 @@ function showImmoptimaWelcome(){
    backupDirectDrive();
   }else alert('La sauvegarde Google est disponible dans la version Android ImmOptima. Vous pouvez continuer sans compte.');
  };
+}
+function immoptimaRecoverBeforeRestore(){
+ const raw=localStorage.getItem('immoptima_pre_restore_v1');
+ if(!raw){alert('Aucune copie de secours antérieure à une restauration n’est disponible.');return;}
+ try{
+  const data=JSON.parse(raw);
+  if(!data||!['properties','loans','assets'].every(k=>Array.isArray(data[k])))throw Error('format');
+  if(!confirm('Rétablir le patrimoine enregistré juste avant la dernière restauration Google ? Le patrimoine actuel sera remplacé.'))return;
+  const current=JSON.stringify(db);
+  const candidate={...structuredClone(empty),...data};
+  candidate.settings={...structuredClone(empty.settings),...(data.settings&&typeof data.settings==='object'?data.settings:{})};
+  candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders:[...DEFAULT_HOLDERS];
+  candidate.properties=candidate.properties.map(normalizeHolder);
+  try{
+   localStorage.setItem('immoptima_pre_restore_v1',current);
+   db=candidate;localStorage.setItem(KEY,JSON.stringify(db));renderAll();
+   alert('Copie de secours restaurée.');
+  }catch(err){
+   localStorage.setItem('immoptima_pre_restore_v1',raw);
+   localStorage.setItem(KEY,current);db=JSON.parse(current);renderAll();throw err;
+  }
+ }catch(e){alert('Impossible de restaurer la copie de secours. Vos données actuelles sont conservées.');}
 }
 function immoptimaRestoreFromDriveBase64(encoded){
  try{
