@@ -707,14 +707,14 @@ function showImmoptimaWelcome(){
  overlay.setAttribute('aria-modal','true');
  overlay.setAttribute('aria-label','Bienvenue sur ImmOptima');
  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.75);display:flex;align-items:center;justify-content:center;padding:20px';
- overlay.innerHTML='<div style="background:white;border-radius:18px;padding:26px;max-width:420px;width:100%;box-shadow:0 18px 55px #0004;text-align:center"><h2 style="margin:0 0 12px">Bienvenue sur ImmOptima</h2><p>Un seul outil pour tout votre patrimoine.</p><p style="font-size:14px;color:#475569">Vous pouvez protéger vos données avec une sauvegarde privée sur Google Drive, ou utiliser ImmOptima sans compte Google.</p><button id="welcomeGoogle" style="width:100%;margin:8px 0;padding:13px">Configurer Google Drive</button><button id="welcomeOffline" class="secondary" style="width:100%;margin:8px 0;padding:13px">Continuer sans compte Google</button><small style="display:block;color:#64748b;margin-top:12px">La connexion est facultative. Aucune donnée n’est envoyée sans votre confirmation.</small></div>';
+ overlay.innerHTML='<div style="background:#f4f4f4;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 18px 55px #0004;text-align:center"><h2 style="margin:0 0 10px;color:#151515">Bienvenue sur ImmOptima</h2><p style="color:#666;margin:0 0 20px">Un seul outil pour tout votre patrimoine.</p><button id="welcomeGoogle" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">↪ &nbsp; Continuer avec Google</button><div style="color:#777;margin-bottom:18px">ou</div><button id="welcomeOffline" style="display:block;width:100%;border:2px solid #d1d1d1;border-radius:999px;background:transparent;color:#5c5c5c;padding:15px 10px;font-size:17px;font-weight:600">Continuer sans compte</button><small style="display:block;color:#777;margin-top:18px">Connexion facultative. Vos données restent sur cet appareil sans sauvegarde autorisée.</small></div>';
  document.body.appendChild(overlay);
  const dismiss=()=>{localStorage.setItem('immoptima_welcome_v1','seen');overlay.remove()};
  document.getElementById('welcomeOffline').onclick=dismiss;
  document.getElementById('welcomeGoogle').onclick=()=>{
   dismiss();
   if(window.AndroidBridge&&typeof window.AndroidBridge.backupToGoogleDrive==='function'){
-   if(confirm('Autoriser une première sauvegarde privée sur Google Drive maintenant ?'))backupDirectDrive();
+   if(confirm('Souhaitez-vous autoriser la sauvegarde de votre patrimoine dans votre espace privé Google ?'))backupDirectDrive();
   }else alert('Google Drive est disponible dans la version Android ImmOptima. Vous pouvez continuer sans compte.');
  };
 }
