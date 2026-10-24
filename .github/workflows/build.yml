@@ -80,6 +80,16 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/apk-out"
           cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/apk-out/Mon-Patrimoine-V1.3.2-debug.apk"
 
+      - name: Inspect APK signing certificate
+        run: |
+          ROOT="$(find android-project -type f \\( -name settings.gradle -o -name settings.gradle.kts \\) -print -quit | xargs dirname)"
+          APK="$ROOT/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --print-certs "$APK" | grep -E 'Signer #1 certificate (SHA-1|SHA-256) digest:'
+          echo "IMPORTANT: This is a temporary debug signature, not a stable OAuth production identity."
+
       - name: Upload test APK
         uses: actions/upload-artifact@v4
         with:
