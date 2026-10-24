@@ -62,3 +62,10 @@ check('automatic backup requires opt-in and does not trigger during restoration'
  assert.match(html,/function save\(\)\{localStorage\.setItem\(KEY,JSON\.stringify\(db\)\); renderAll\(\); immoptimaMaybeAutoBackup\(\);\}/);
  assert.match(html,/immoptima_pre_restore_v1/);
 });
+
+check('local pre-restore recovery is accessible and guarded', () => {
+ assert.match(html,/function immoptimaRecoverBeforeRestore\(/);
+ assert.match(html,/Annuler la dernière restauration/);
+ assert.match(html,/immoptima_pre_restore_v1/);
+ assert.match(html,/Rétablir le patrimoine enregistré juste avant la dernière restauration Google/);
+});
