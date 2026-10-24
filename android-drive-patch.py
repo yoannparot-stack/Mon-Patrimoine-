@@ -30,6 +30,36 @@ s=s.replace('            @JavascriptInterface public void listPrivateDriveBackup
 methods='''    private static final int IMMOPTIMA_DRIVE_AUTH_REQUEST = 7413;
     private String pendingDriveBackup;
     private boolean pendingDriveRestore;
+    private void beginDriveRestore() {
+        pendingDriveRestore = true;
+        AuthorizationRequest request = AuthorizationRequest.builder()
+            .setRequestedScopes(Collections.singletonList(new Scope("https://www.googleapis.com/auth/drive.appdata"))).build();
+        Identity.getAuthorizationClient(this).authorize(request)
+            .addOnSuccessListener(result -> {
+                if (result.hasResolution()) {
+                    try {
+                        startIntentSenderForResult(result.getPendingIntent().getIntentSender(),
+                            IMMOPTIMA_DRIVE_AUTH_REQUEST, null, 0, 0, 0);
+                    } catch(Exception ex) {
+                        pendingDriveRestore = false;
+                        Toast.makeText(this, "Autorisation Google impossible", Toast.LENGTH_LONG).show();
+                    }
+                } else listDriveBackups(result);
+            }).addOnFailureListener(ex -> {
+                pendingDriveRestore = false;
+                Toast.makeText(this, "Google indisponible", Toast.LENGTH_LONG).show();
+            });
+    }
+    private static byte[] readDrive(InputStream input, int max) throws java.io.IOException {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int n;
+        while((n = input.read(buffer)) != -1) {
+            if(out.size() + n > max) throw new java.io.IOException("Too large");
+            out.write(buffer, 0, n);
+        }
+        return out.toByteArray();
+    }
     private void beginDriveBackup(String json) {
         if (json == null || json.length() > 10 * 1024 * 1024) {
             Toast.makeText(this, "Sauvegarde trop volumineuse", Toast.LENGTH_LONG).show();
