@@ -1,3 +1,4 @@
+assert(!html.includes('>♻️ Restaurer depuis Google</button>') && !html.includes('>↩️ Annuler la dernière restauration</button>'),'restore actions are not exposed in the customer menu');
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
 const root=process.argv[2];
 assert(root,'Android project root argument is required');
