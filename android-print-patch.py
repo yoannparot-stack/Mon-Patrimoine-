@@ -122,7 +122,9 @@ if 'androidx.core.content.FileProvider' not in manifest:
 
 paths_file = root / "app/src/main/res/xml/backup_file_paths.xml"
 paths_file.parent.mkdir(parents=True, exist_ok=True)
-paths_file.write_text('<?xml version="1.0" encoding="utf-8"?>\\n<paths xmlns:android="http://schemas.android.com/apk/res/android"><cache-path name="shared_backups" path="shared_backups/" /></paths>\\n'.replace('\\\\n','\\n'), encoding="utf-8")
+paths_file.write_text('<?xml version="1.0" encoding="utf-8"?>' + chr(10) + '<paths xmlns:android="http://schemas.android.com/apk/res/android"><cache-path name="shared_backups" path="shared_backups/" /></paths>' + chr(10), encoding="utf-8")
+import xml.etree.ElementTree as ET
+ET.parse(paths_file)
 
 if "public void shareFile(" not in source or "FileProvider.getUriForFile" not in source:
     raise SystemExit("ERROR: Android JSON attachment sharing not installed")
