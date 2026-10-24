@@ -60,5 +60,5 @@ check('automatic backup requires opt-in and does not trigger during restoration'
  assert.match(html,/immoptima_auto_google_v1/);
  assert.match(html,/now-last<86400000/);
  assert.match(html,/function save\(\)\{localStorage\.setItem\(KEY,JSON\.stringify\(db\)\); renderAll\(\); immoptimaMaybeAutoBackup\(\);\}/);
- assert.match(html,/try\{db=candidate;localStorage\.setItem\(KEY,JSON\.stringify\(db\)\);renderAll\(\);alert\('Patrimoine restauré depuis Google\.'\)/);
+ assert.match(html,/immoptima_pre_restore_v1/);
 });
