@@ -120,7 +120,7 @@ header .top{align-items:center!important}
   <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions header-backup-actions"><button type="button" class="secondary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div></div>
   <nav id="nav"></nav>
 </header>
-<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button><button type="button" class="secondary" onclick="backupDirectDrive()">🔒 Sauvegarder dans Google Drive (test)</button><button type="button" class="secondary" onclick="exportVisibleDrive()">📁 Exporter une copie visible dans Drive</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
+<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button><button type="button" class="secondary" onclick="backupDirectDrive()">🔒 Sauvegarder dans Google Drive (test)</button><button type="button" class="secondary" onclick="listPrivateDriveBackups()">♻️ Restaurer depuis Google</button><button type="button" class="secondary" onclick="exportVisibleDrive()">📁 Exporter une copie visible dans Drive</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
 <div class="commercial-banner no-print">
   <div><b>Mon Patrimoine</b> — votre cockpit immobilier personnel</div>
   <span class="commercial-badge">Version découverte · 1 logement complet gratuit</span>
@@ -717,6 +717,29 @@ function showImmoptimaWelcome(){
    if(confirm('Souhaitez-vous autoriser la sauvegarde de votre patrimoine dans votre espace privé Google ?'))backupDirectDrive();
   }else alert('Google Drive est disponible dans la version Android ImmOptima. Vous pouvez continuer sans compte.');
  };
+}
+function immoptimaRestoreFromDriveBase64(encoded){
+ try{
+  const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+  const json=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+  if(json.length>10*1024*1024)throw Error('size');
+  const x=JSON.parse(json);
+  if(!x||typeof x!=='object'||Array.isArray(x)||!['properties','loans','assets'].every(k=>Array.isArray(x[k])&&x[k].every(v=>v&&typeof v==='object'&&!Array.isArray(v))))throw Error('format');
+  if(!confirm('Dernière confirmation : remplacer votre patrimoine actuel par cette sauvegarde Google ? Cette opération est irréversible sans copie préalable.'))return;
+  const candidate={...structuredClone(empty),...x};
+  candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};
+  candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];
+  candidate.properties=candidate.properties.map(normalizeHolder);
+  candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];
+  candidate.otherDebt=Number(candidate.otherDebt)||0;
+  const previous=db;
+  try{db=candidate;save();alert('Patrimoine restauré depuis Google.');}
+  catch(e){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw e;}
+ }catch(e){alert('Sauvegarde Google invalide ou incompatible : patrimoine conservé.');}
+}
+function listPrivateDriveBackups(){
+ if(!window.AndroidBridge||typeof window.AndroidBridge.listPrivateDriveBackups!=='function'){alert('La restauration privée nécessite une version Android plus récente.');return;}
+ window.AndroidBridge.listPrivateDriveBackups();
 }
 function backupDirectDrive(){
  if(!window.AndroidBridge||typeof window.AndroidBridge.backupToGoogleDrive!=='function'){
