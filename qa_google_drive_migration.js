@@ -65,7 +65,7 @@ check('automatic backup requires opt-in and does not trigger during restoration'
 
 check('local pre-restore recovery is accessible and guarded', () => {
  assert.match(html,/function immoptimaRecoverBeforeRestore\(/);
- assert.match(html,/Annuler la dernière restauration/);
+ assert.doesNotMatch(html,/>↩️ Annuler la dernière restauration<\/button>/);
  assert.match(html,/immoptima_pre_restore_v1/);
  assert.match(html,/Rétablir le patrimoine enregistré juste avant la dernière restauration Google/);
 });
