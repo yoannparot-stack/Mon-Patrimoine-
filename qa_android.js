@@ -94,6 +94,7 @@ assert(script.includes("const shown=bankPrintNumber(value)"),'bank editable valu
 console.log('PASS BANK displayed credit precision');
 
 assert(script.includes("window.AndroidBridge.saveFile(json,filename,'application/json')"),'Android backup must use native Save As dialog');
+assert(script.includes("window.AndroidBridge.shareFile(json,filename,'application/json')"),'Android email backup must use native attachment sharing');
 assert(script.includes("setTimeout(()=>URL.revokeObjectURL(url),60000)"),'browser fallback must retain blob URL until download begins');
 assert(java.includes('public void saveFile(String content, String filename, String mimeType)'),'native saveFile bridge must exist');
 console.log('PASS BACKUP Android native JSON Save As integration');
@@ -103,6 +104,15 @@ assert(html.includes('id="backupStatus"'), 'backup status feedback required');
 console.log('PASS BACKUP buttons adjacent in Settings with user feedback');
 
 assert(html.includes('class="actions header-backup-actions"'), 'save/import restored in header');
+assert(html.includes('onclick="openBackupOptions()">Sauvegarder</button>'), 'header opens backup choice dialog');
 assert(html.includes('flex-wrap:nowrap!important'), 'header buttons must remain side by side');
 assert(html.indexOf('<div class="card structure-card"><h3>Répartition du patrimoine immobilier')<html.indexOf('<h3>Évolution du patrimoine net'), 'property breakdown must precede history');
 console.log('PASS UI header backup buttons and dashboard ordering');
+
+assert(html.includes('id="backupChoices"') && html.includes("exportData('local')") && html.includes("exportData('email')") && html.includes("exportData('cloud')"),'three backup destinations are visible');
+assert(script.includes('function closeBackupOptions()') && script.includes('function openBackupOptions()'),'backup dialog can open and close');
+assert(java.includes('FileProvider.getUriForFile'),'email JSON attachment uses secure content URI');
+assert(java.includes('Intent.ACTION_SEND'),'native share sheet used');
+assert(manifest.includes('androidx.core.content.FileProvider'),'Android manifest declares secure provider');
+assert(fs.existsSync(path.join(root,'app/src/main/res/xml/backup_file_paths.xml')),'file sharing paths configured');
+console.log('PASS BACKUP three modes, native secure email attachment and cloud picker');
