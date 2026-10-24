@@ -101,3 +101,8 @@ console.log('PASS BACKUP Android native JSON Save As integration');
 assert(html.includes('Sauvegarder JSON</button><button type="button" class="secondary" onclick="document.getElementById(\\'importFile\\').click()">Importer JSON'), 'backup and import must be side by side in Settings');
 assert(html.includes('id="backupStatus"'), 'backup status feedback required');
 console.log('PASS BACKUP buttons adjacent in Settings with user feedback');
+
+assert(html.includes('class="actions header-backup-actions"'), 'save/import restored in header');
+assert(html.includes('flex-wrap:nowrap!important'), 'header buttons must remain side by side');
+assert(html.indexOf('<div class="card structure-card"><h3>Répartition du patrimoine immobilier')<html.indexOf('<h3>Évolution du patrimoine net'), 'property breakdown must precede history');
+console.log('PASS UI header backup buttons and dashboard ordering');
