@@ -89,3 +89,6 @@ assert(!script.includes("const nom=by['Nom propre']||0, sarl=by['SARL de famille
 assert(script.includes('function addHolderFromPropertyForm()'),'owner creation available from property form');
 assert(html.includes('+ Ajouter un détenteur'),'owner creation button visible');
 console.log('PASS OWNER dynamic structure cards and owner creation');
+
+assert(script.includes("const shown=bankPrintNumber(value)"),'bank editable values must display at most two decimal places');
+console.log('PASS BANK displayed credit precision');
