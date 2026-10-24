@@ -635,7 +635,7 @@ function updateBankAnnualCC(propertyId,value){
 function bankPrintNumber(value){const n=Number(value)||0;return n.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:2})}
 function bankTextInput(propertyId,field,value){return `<input type="text" value="${esc(value??'')}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:150px;box-sizing:border-box;font-weight:600"><span class="bank-print-value">${esc(value??'')}</span>`}
 function bankNumberInput(propertyId,field,value){return `<input type="number" min="0" step="0.01" value="${Number(value)||0}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${bankPrintNumber(value)}</span>`}
-function bankEditableNumber(value,onchange){return `<input type="number" min="0" step="0.01" value="${Number(value)||0}" onchange="${onchange}" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${bankPrintNumber(value)}</span>`}
+function bankEditableNumber(value,onchange){const shown=bankPrintNumber(value);return `<input type="number" min="0" step="0.01" value="${Number(shown.replace(/\\s/g,'').replace(',','.'))||0}" onchange="${onchange}" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${shown}</span>`}
 function renderBankSummary(){
  const body=document.getElementById('bankTableBody'),kpis=document.getElementById('bankKpis');if(!body)return;
  if(!db.properties.length){body.innerHTML='<tr><td colspan="10" class="muted">Aucun bien enregistré.</td></tr>';if(kpis)kpis.innerHTML='';return}
