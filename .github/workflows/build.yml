@@ -82,7 +82,7 @@ jobs:
 
       - name: Inspect APK signing certificate
         run: |
-          ROOT="$(find android-project -type f \\( -name settings.gradle -o -name settings.gradle.kts \\) -print -quit | xargs dirname)"
+          ROOT="$(dirname "$(find android-project -name settings.gradle -print -quit)")"
           APK="$ROOT/app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
