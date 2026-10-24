@@ -120,7 +120,7 @@ header .top{align-items:center!important}
   <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions header-backup-actions"><button type="button" class="secondary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div></div>
   <nav id="nav"></nav>
 </header>
-<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button><button type="button" class="secondary" onclick="backupDirectDrive()">🔒 Sauvegarder dans Google Drive (test)</button><button type="button" class="secondary" onclick="exportVisibleDrive()">📁 Exporter une copie visible dans Drive</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
+<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button><button type="button" class="secondary" onclick="backupDirectDrive()">🔒 Sauvegarder dans Google Drive (test)</button><button type="button" class="secondary" onclick="listPrivateDriveBackups()">📋 Voir mes sauvegardes privées (bientôt)</button><button type="button" class="secondary" onclick="exportVisibleDrive()">📁 Exporter une copie visible dans Drive</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
 <div class="commercial-banner no-print">
   <div><b>Mon Patrimoine</b> — votre cockpit immobilier personnel</div>
   <span class="commercial-badge">Version découverte · 1 logement complet gratuit</span>
@@ -698,6 +698,14 @@ function exportVisibleDrive(){
   const status=document.getElementById('backupStatus');
   if(status)status.textContent='Dans le sélecteur Android, choisissez Google Drive puis le dossier souhaité. Validez et vérifiez la présence du fichier. Aucun envoi automatique.';
  }catch(error){alert('Export impossible. Vos données locales sont conservées.');}
+}
+function listPrivateDriveBackups(){
+ if(!window.AndroidBridge||typeof window.AndroidBridge.listPrivateDriveBackups!=='function'){
+  alert('La consultation des sauvegardes privées nécessite une version Android ultérieure. Vos sauvegardes restent conservées.');
+  return;
+ }
+ window.AndroidBridge.listPrivateDriveBackups();
+ closeBackupOptions();
 }
 function backupDirectDrive(){
  if(!window.AndroidBridge||typeof window.AndroidBridge.backupToGoogleDrive!=='function'){
