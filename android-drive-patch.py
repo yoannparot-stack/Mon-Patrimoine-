@@ -23,9 +23,13 @@ bridge='''            @JavascriptInterface public void backupToGoogleDrive(Strin
                 runOnUiThread(() -> beginDriveBackup(json));
             }
 '''
-s=s.replace('            @JavascriptInterface public void shareFile(',bridge+'            @JavascriptInterface public void shareFile(',1)
+s=s.replace('            @JavascriptInterface public void listPrivateDriveBackups() {
+                runOnUiThread(() -> beginDriveRestore());
+            }
+            @JavascriptInterface public void shareFile(',bridge+'            @JavascriptInterface public void shareFile(',1)
 methods='''    private static final int IMMOPTIMA_DRIVE_AUTH_REQUEST = 7413;
     private String pendingDriveBackup;
+    private boolean pendingDriveRestore;
     private void beginDriveBackup(String json) {
         if (json == null || json.length() > 10 * 1024 * 1024) {
             Toast.makeText(this, "Sauvegarde trop volumineuse", Toast.LENGTH_LONG).show();
@@ -67,12 +71,14 @@ methods='''    private static final int IMMOPTIMA_DRIVE_AUTH_REQUEST = 7413;
 
     private void handleDriveAuthorizationResult(int resultCode, android.content.Intent data) {
         if (resultCode != RESULT_OK || data == null) {
+            pendingDriveRestore = false;
             pendingDriveBackup = null;
             Toast.makeText(this, "Autorisation Drive annulée", Toast.LENGTH_LONG).show();
             return;
         }
         try {
-            uploadDriveBackup(Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(data));
+            AuthorizationResult auth = Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(data);
+            if (pendingDriveRestore) listDriveBackups(auth); else uploadDriveBackup(auth);
         } catch (Exception ex) {
             pendingDriveBackup = null;
             Toast.makeText(this, "Autorisation Drive refusée", Toast.LENGTH_LONG).show();
