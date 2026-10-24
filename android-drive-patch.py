@@ -65,9 +65,7 @@ methods='''    private static final int IMMOPTIMA_DRIVE_AUTH_REQUEST = 7413;
         }
     }
 
-    @Override protected void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != IMMOPTIMA_DRIVE_AUTH_REQUEST) return;
+    private void handleDriveAuthorizationResult(int resultCode, android.content.Intent data) {
         if (resultCode != RESULT_OK || data == null) {
             pendingDriveBackup = null;
             Toast.makeText(this, "Autorisation Drive annulée", Toast.LENGTH_LONG).show();
@@ -128,6 +126,11 @@ methods='''    private static final int IMMOPTIMA_DRIVE_AUTH_REQUEST = 7413;
 
 '''
 s=s.replace(anchor,methods+anchor,1)
+# Reuse the existing onActivityResult to preserve the Android file picker.
+existing = 'protected void onActivityResult(int requestCode, int resultCode, Intent data) {'
+if existing not in s:
+    raise SystemExit('Existing onActivityResult not found; refusing unsafe modification')
+s=s.replace(existing,existing+'\n        if (requestCode == IMMOPTIMA_DRIVE_AUTH_REQUEST) { handleDriveAuthorizationResult(resultCode, data); return; }',1)
 java.write_text(s,encoding='utf-8')
 gradle=root/'app/build.gradle'
 g=gradle.read_text(encoding='utf-8')
