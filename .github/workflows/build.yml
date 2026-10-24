@@ -89,8 +89,8 @@ jobs:
           IMMOPTIMA_KEY_PASSWORD: ${{ secrets.IMMOPTIMA_KEY_PASSWORD }}
         run: |
           if [ -z "$IMMOPTIMA_KEYSTORE_BASE64" ]; then
-            echo "Signing secrets not configured yet: retaining temporary debug signature."
-            exit 0
+            echo "::error::Persistent signing secrets are missing. Refusing to publish an APK with an unstable certificate."
+            exit 1
           fi
           test -n "$IMMOPTIMA_STORE_PASSWORD"
           test -n "$IMMOPTIMA_KEY_ALIAS"
@@ -120,7 +120,7 @@ jobs:
           test -s /tmp/immoptima-apk-certs.txt
           cat /tmp/immoptima-apk-certs.txt
           grep -Ei 'SHA-1|SHA-256|SHA1|SHA256' /tmp/immoptima-apk-certs.txt || true
-          echo "IMPORTANT: This is a temporary debug signature, not a stable OAuth production identity."
+          echo "Certificate above is the persistent ImmOptima TEST signing identity (not the future Play Store release identity)."
 
       - name: Upload test APK
         uses: actions/upload-artifact@v4
