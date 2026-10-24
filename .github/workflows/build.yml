@@ -87,7 +87,10 @@ jobs:
           test -s "$APK"
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
           test -x "$APKSIGNER"
-          "$APKSIGNER" verify --print-certs "$APK" | grep -E 'Signer #1 certificate (SHA-1|SHA-256) digest:'
+          "$APKSIGNER" verify --print-certs "$APK" > /tmp/immoptima-apk-certs.txt
+          test -s /tmp/immoptima-apk-certs.txt
+          cat /tmp/immoptima-apk-certs.txt
+          grep -Ei 'SHA-1|SHA-256|SHA1|SHA256' /tmp/immoptima-apk-certs.txt || true
           echo "IMPORTANT: This is a temporary debug signature, not a stable OAuth production identity."
 
       - name: Upload test APK
