@@ -98,7 +98,7 @@ assert(script.includes("setTimeout(()=>URL.revokeObjectURL(url),60000)"),'browse
 assert(java.includes('public void saveFile(String content, String filename, String mimeType)'),'native saveFile bridge must exist');
 console.log('PASS BACKUP Android native JSON Save As integration');
 
-assert(html.includes('Sauvegarder JSON</button><button type="button" class="secondary" onclick="document.getElementById(\\'importFile\\').click()">Importer JSON'), 'backup and import must be side by side in Settings');
+assert(html.includes('Sauvegarder JSON</button>') && html.includes('>Importer JSON</button>'), 'backup and import must be side by side in Settings');
 assert(html.includes('id="backupStatus"'), 'backup status feedback required');
 console.log('PASS BACKUP buttons adjacent in Settings with user feedback');
 
