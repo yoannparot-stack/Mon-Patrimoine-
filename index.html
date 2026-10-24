@@ -105,11 +105,12 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
  #banque .bank-table-card tr{break-inside:avoid;page-break-inside:avoid}
  #banque .bank-table-card thead{display:table-header-group}
 }
+.header-backup-actions{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;gap:8px;flex-shrink:0}.header-backup-actions button{white-space:nowrap;padding:10px 12px;font-size:13px;min-width:0}@media(max-width:540px){header .top{align-items:flex-start;gap:8px}header .top>div:first-child{min-width:0;flex:1}.header-backup-actions{gap:5px}.header-backup-actions button{font-size:12px;padding:9px 7px}}
 </style>
 </head>
 <body>
 <header>
-  <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div></div>
+  <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions header-backup-actions"><button type="button" class="secondary" onclick="exportData()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div></div>
   <nav id="nav"></nav>
 </header>
 <div class="commercial-banner no-print">
@@ -132,8 +133,8 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
     <div class="card dashboard-pair dashboard-clickable" role="button" tabindex="0" title="Ouvrir Financements" onclick="dashboardGo('financement')" onkeydown="dashboardKey(event,'financement')"><div class="label">Capital remboursé</div><div class="metric" id="mPrincipal">0 €</div><div class="hint">Depuis le début des crédits</div></div>
     <div class="card dashboard-pair valuation-kpi dashboard-clickable" role="button" tabindex="0" title="Ouvrir Marché immobilier" onclick="dashboardGo('valorisation')" onkeydown="dashboardKey(event,'valorisation')"><div class="label">Consensus immobilier</div><div class="pair-values compact"><div><div class="mini-label">Consensus</div><div class="metric" id="mConsensus">0 €</div></div><div class="pair-divider"></div><div><div class="mini-label">Valeur retenue</div><div class="metric" id="mRetained">0 €</div></div></div><div class="consensus-delta" id="mConsensusDelta">Écart : —</div></div>
   </div>
-  <div class="card"><div class="section-title"><h3>Évolution du patrimoine net</h3><button class="secondary" onclick="takeSnapshot()">Enregistrer la valeur actuelle</button></div><canvas id="historyChart"></canvas><div id="historyEmpty" class="empty">Aucun historique pour le moment. Enregistrez une valeur mensuelle ou annuelle pour commencer.</div></div>
   <div class="card structure-card"><h3>Répartition du patrimoine immobilier</h3><div id="structureBreakdown"></div></div>
+  <div class="card"><div class="section-title"><h3>Évolution du patrimoine net</h3><button class="secondary" onclick="takeSnapshot()">Enregistrer la valeur actuelle</button></div><canvas id="historyChart"></canvas><div id="historyEmpty" class="empty">Aucun historique pour le moment. Enregistrez une valeur mensuelle ou annuelle pour commencer.</div></div>
 </section>
 
 <section id="direction" class="page">
