@@ -118,6 +118,6 @@ assert(fs.existsSync(path.join(root,'app/src/main/res/xml/backup_file_paths.xml'
 console.log('PASS BACKUP three modes, native secure email attachment and cloud picker');
 
 const xml=fs.readFileSync(path.join(root,'app/src/main/res/xml/backup_file_paths.xml'),'utf8');
-assert(xml.startsWith('<?xml version="1.0" encoding="utf-8"?>\\n'), 'FileProvider XML must use a real newline after XML declaration');
-assert(!xml.includes('\\\\n'), 'FileProvider XML must not contain literal backslash-n sequences');
+assert(xml.startsWith('<?xml version="1.0" encoding="utf-8"?>'+String.fromCharCode(10)), 'FileProvider XML declaration must be followed by newline');
+assert(!xml.includes(String.fromCharCode(92,110)), 'FileProvider XML must not contain literal backslash-n sequences');
 console.log('PASS BACKUP provider XML format regression');
