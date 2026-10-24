@@ -60,6 +60,50 @@ methods='''    private static final int IMMOPTIMA_DRIVE_AUTH_REQUEST = 7413;
         }
         return out.toByteArray();
     }
+    private void listDriveBackups(AuthorizationResult result) {
+        pendingDriveRestore = false;
+        final String token = result.getAccessToken();
+        if (token == null || token.isEmpty()) return;
+        new Thread(() -> {
+            HttpURLConnection conn = null;
+            try {
+                conn = (HttpURLConnection)new URL("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name,createdTime)&pageSize=100").openConnection();
+                conn.setRequestProperty("Authorization", "Bearer " + token);
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(30000);
+                if(conn.getResponseCode()!=200) throw new java.io.IOException("Listing failed");
+                byte[] bytes;
+                try(InputStream in=conn.getInputStream()){bytes=readDrive(in,1024*1024);}
+                org.json.JSONArray files = new JSONObject(new String(bytes,java.nio.charset.StandardCharsets.UTF_8)).getJSONArray("files");
+                java.util.ArrayList<String> ids = new java.util.ArrayList<>();
+                java.util.ArrayList<String> labels = new java.util.ArrayList<>();
+                for(int i=0;i<files.length();i++){
+                    JSONObject item=files.getJSONObject(i);
+                    String name=item.optString("name");
+                    if(name.startsWith("immoptima-backup-") && name.endsWith(".json")){
+                        ids.add(item.getString("id"));
+                        labels.add(name+"  "+item.optString("createdTime"));
+                    }
+                }
+                runOnUiThread(() -> {
+                    if(ids.isEmpty()){
+                        Toast.makeText(this,"Aucune sauvegarde privée trouvée",Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    new android.app.AlertDialog.Builder(this).setTitle("Sauvegardes Google")
+                        .setItems(labels.toArray(new String[0]),(dialog,which) -> {
+                            new android.app.AlertDialog.Builder(this).setTitle("Restaurer cette sauvegarde ?")
+                                .setMessage("Enregistrez d'abord une copie locale de votre patrimoine actuel.")
+                                .setNegativeButton("Annuler",null)
+                                .setPositiveButton("Télécharger",(d,w) -> downloadDriveBackup(token,ids.get(which)))
+                                .show();
+                        }).setNegativeButton("Fermer",null).show();
+                });
+            }catch(Exception ex){
+                runOnUiThread(() -> Toast.makeText(this,"Lecture Google impossible",Toast.LENGTH_LONG).show());
+            }finally{if(conn!=null)conn.disconnect();}
+        }).start();
+    }
     private void beginDriveBackup(String json) {
         if (json == null || json.length() > 10 * 1024 * 1024) {
             Toast.makeText(this, "Sauvegarde trop volumineuse", Toast.LENGTH_LONG).show();
