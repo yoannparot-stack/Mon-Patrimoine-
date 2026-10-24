@@ -92,3 +92,8 @@ console.log('PASS OWNER dynamic structure cards and owner creation');
 
 assert(script.includes("const shown=bankPrintNumber(value)"),'bank editable values must display at most two decimal places');
 console.log('PASS BANK displayed credit precision');
+
+assert(script.includes("window.AndroidBridge.saveFile(json,filename,'application/json')"),'Android backup must use native Save As dialog');
+assert(script.includes("setTimeout(()=>URL.revokeObjectURL(url),60000)"),'browser fallback must retain blob URL until download begins');
+assert(java.includes('public void saveFile(String content, String filename, String mimeType)'),'native saveFile bridge must exist');
+console.log('PASS BACKUP Android native JSON Save As integration');
