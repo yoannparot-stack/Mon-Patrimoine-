@@ -42,3 +42,23 @@ check('native Google Drive access is least privilege', () => {
   assert.doesNotMatch(drivePatch,/JavascriptInterface public void .*Token/);
 });
 console.log('ImmOptima backup migration regression checks completed.');
+
+check('optional onboarding matches approved Google design', () => {
+ assert.match(html,/Continuer avec Google/);
+ assert.match(html,/Continuer sans compte/);
+ assert.match(html,/immoptima_welcome_v1/);
+});
+check('private restore is explicit and validates all primary collections', () => {
+ assert.match(html,/function immoptimaRestoreFromDriveBase64\(/);
+ assert.match(html,/Dernière confirmation : remplacer votre patrimoine actuel/);
+ assert.match(html,/\['properties','loans','assets'\]/);
+ assert.match(drivePatch,/private void downloadDriveBackup\(/);
+ assert.match(drivePatch,/private void listDriveBackups\(/);
+ assert.match(drivePatch,/readDrive\(in,10\*1024\*1024\)/);
+});
+check('automatic backup requires opt-in and does not trigger during restoration', () => {
+ assert.match(html,/immoptima_auto_google_v1/);
+ assert.match(html,/now-last<86400000/);
+ assert.match(html,/function save\(\)\{localStorage\.setItem\(KEY,JSON\.stringify\(db\)\); renderAll\(\); immoptimaMaybeAutoBackup\(\);\}/);
+ assert.match(html,/try\{db=candidate;localStorage\.setItem\(KEY,JSON\.stringify\(db\)\);renderAll\(\);alert\('Patrimoine restauré depuis Google\.'\)/);
+});
