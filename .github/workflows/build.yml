@@ -9,6 +9,7 @@ on:
       - 'index.html'
       - 'qa_android.js'
       - 'android-print-patch.py'
+      - 'scripts/setup-immoptima-signing.sh'
 
 jobs:
   build:
@@ -79,6 +80,34 @@ jobs:
           gradle :app:assembleDebug --stacktrace
           mkdir -p "$GITHUB_WORKSPACE/apk-out"
           cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/apk-out/Mon-Patrimoine-V1.3.2-debug.apk"
+
+      - name: Sign APK with persistent test certificate when configured
+        env:
+          IMMOPTIMA_KEYSTORE_BASE64: ${{ secrets.IMMOPTIMA_KEYSTORE_BASE64 }}
+          IMMOPTIMA_STORE_PASSWORD: ${{ secrets.IMMOPTIMA_STORE_PASSWORD }}
+          IMMOPTIMA_KEY_ALIAS: ${{ secrets.IMMOPTIMA_KEY_ALIAS }}
+          IMMOPTIMA_KEY_PASSWORD: ${{ secrets.IMMOPTIMA_KEY_PASSWORD }}
+        run: |
+          if [ -z "$IMMOPTIMA_KEYSTORE_BASE64" ]; then
+            echo "Signing secrets not configured yet: retaining temporary debug signature."
+            exit 0
+          fi
+          test -n "$IMMOPTIMA_STORE_PASSWORD"
+          test -n "$IMMOPTIMA_KEY_ALIAS"
+          test -n "$IMMOPTIMA_KEY_PASSWORD"
+          ROOT="$(dirname "$(find android-project -name settings.gradle -print -quit)")"
+          APK="$ROOT/app/build/outputs/apk/debug/app-debug.apk"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
+          KEYSTORE="$RUNNER_TEMP/immoptima-signing.jks"
+          umask 077
+          printf '%s' "$IMMOPTIMA_KEYSTORE_BASE64" | base64 -d > "$KEYSTORE"
+          export IMMOPTIMA_STORE_PASSWORD IMMOPTIMA_KEY_PASSWORD
+          "$APKSIGNER" sign --ks "$KEYSTORE" --ks-key-alias "$IMMOPTIMA_KEY_ALIAS" --ks-pass env:IMMOPTIMA_STORE_PASSWORD --key-pass env:IMMOPTIMA_KEY_PASSWORD --out "$RUNNER_TEMP/signed.apk" "$APK"
+          "$APKSIGNER" verify --print-certs "$RUNNER_TEMP/signed.apk"
+          cp "$RUNNER_TEMP/signed.apk" "$APK"
+          cp "$APK" "$GITHUB_WORKSPACE/apk-out/Mon-Patrimoine-V1.3.2-debug.apk"
+          rm -f "$KEYSTORE"
+          echo "APK signed with persistent ImmOptima test certificate."
 
       - name: Inspect APK signing certificate
         run: |
