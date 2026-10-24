@@ -120,7 +120,7 @@ header .top{align-items:center!important}
   <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions header-backup-actions"><button type="button" class="secondary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div></div>
   <nav id="nav"></nav>
 </header>
-<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
+<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button><button type="button" class="secondary" onclick="backupDirectDrive()">🔒 Sauvegarder dans Google Drive (test)</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
 <div class="commercial-banner no-print">
   <div><b>Mon Patrimoine</b> — votre cockpit immobilier personnel</div>
   <span class="commercial-badge">Version découverte · 1 logement complet gratuit</span>
@@ -686,6 +686,21 @@ function drawProjection(rows){
 
 function openBackupOptions(){const el=document.getElementById('backupChoices');if(el)el.hidden=false}
 function closeBackupOptions(){const el=document.getElementById('backupChoices');if(el)el.hidden=true}
+function backupDirectDrive(){
+ if(!window.AndroidBridge||typeof window.AndroidBridge.backupToGoogleDrive!=='function'){
+  alert('La sauvegarde Google Drive intégrée nécessite la nouvelle application Android de test. Les sauvegardes manuelles restent disponibles.');
+  return;
+ }
+ if(!confirm('Enregistrer une copie de votre patrimoine dans l’espace privé ImmOptima de votre compte Google Drive ?')){
+  return;
+ }
+ try {
+  window.AndroidBridge.backupToGoogleDrive(JSON.stringify(db));
+  closeBackupOptions();
+  const status=document.getElementById('backupStatus');
+  if(status)status.textContent='Autorisation Google ou transfert en cours. Attendez la confirmation Android avant de considérer la sauvegarde réussie.';
+ }catch(error){alert('Démarrage Drive impossible. Vos données locales sont conservées.');}
+}
 function exportData(destination='local'){
  try{
   const json=JSON.stringify(db,null,2);
