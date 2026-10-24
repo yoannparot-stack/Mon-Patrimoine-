@@ -109,7 +109,7 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
 </head>
 <body>
 <header>
-  <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions"><button class="secondary" onclick="exportData()">Sauvegarder</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importer</button><input id="importFile" type="file" accept=".json" style="display:none" onchange="importData(event)"></div></div>
+  <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div></div>
   <nav id="nav"></nav>
 </header>
 <div class="commercial-banner no-print">
@@ -261,7 +261,7 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
   <h2>Paramètres & sauvegarde</h2>
   <div class="card"><h3>Nom du tableau</h3><div class="field"><input id="appName"></div><button class="primary" onclick="saveSettings()">Enregistrer</button></div>
   <div class="card"><h3>Détenteurs des biens</h3><p class="muted">Personnalisez la liste des personnes, sociétés ou structures qui peuvent détenir vos biens. Inscrivez un détenteur par ligne. Cette liste sert au formulaire immobilier, aux filtres et à la synthèse bancaire.</p><div class="field"><label for="holderList">Liste des détenteurs (un par ligne)</label><textarea id="holderList" rows="5" placeholder="Ex. : Personne, société, SCI…"></textarea></div><div class="actions"><button class="primary" onclick="saveHolders()">Enregistrer les détenteurs</button></div><div class="hint">Les détenteurs déjà affectés à un bien restent visibles même si vous modifiez cette liste, pour éviter de perdre leur identification.</div></div>
-  <div class="card"><h3>Données</h3><p class="muted">Toutes les données sont conservées localement dans le navigateur de cet appareil. Faites régulièrement une sauvegarde JSON si vous voulez éviter toute perte.</p><div class="actions"><button class="primary" onclick="exportData()">Exporter mes données</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importer une sauvegarde</button><button class="danger" onclick="resetAll()">Effacer toutes les données</button></div></div>
+  <div class="card"><h3>Données</h3><p class="muted">Toutes les données sont conservées localement dans le navigateur de cet appareil. Faites régulièrement une sauvegarde JSON si vous voulez éviter toute perte.</p><div class="actions" style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="primary" onclick="exportData()">Sauvegarder JSON</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer JSON</button><input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importData(event)"></div><p class="muted" id="backupStatus" role="status" aria-live="polite">La sauvegarde ouvre le choix du dossier sur Android. Vérifiez que le fichier est enregistré avant toute suppression.</p><div class="actions"><button class="danger" onclick="resetAll()">Effacer toutes les données</button></div></div>
   <div class="card"><h3>Jeu de données de démonstration</h3><p class="muted">Données 100 % fictives, ajoutées uniquement sur demande. Une seule propriété est créée pour respecter la limite gratuite. Exportez vos vraies données avant tout test.</p><div class="actions"><button class="secondary" onclick="installDemoData()">Charger le patrimoine fictif</button><button class="danger" onclick="removeDemoData()">Supprimer les données fictives</button></div></div>
   <div class="card"><h3>Offre</h3><div class="plan-card"><div><div class="label">Version actuelle</div><div class="metric">Découverte gratuite</div><div class="hint">1 logement complet · architecture prête pour une offre premium multi-biens.</div></div><span class="commercial-badge">FREE</span></div></div>
   <div class="card"><h3>Version</h3><p>Mon Patrimoine — version commerciale V1.</p></div>
@@ -680,9 +680,11 @@ function exportData(){
   const json=JSON.stringify(db,null,2);
   const filename='mon_patrimoine_sauvegarde_'+new Date().toISOString().slice(0,10)+'.json';
   if(window.AndroidBridge&&typeof window.AndroidBridge.saveFile==='function'){
+   const status=document.getElementById('backupStatus');if(status)status.textContent='Ouverture du sélecteur Android… Choisissez un dossier puis confirmez l’enregistrement.';
    window.AndroidBridge.saveFile(json,filename,'application/json');
    return;
   }
+  const status=document.getElementById('backupStatus');if(status)status.textContent='Téléchargement demandé dans le navigateur. Vérifiez le dossier Téléchargements.';
   const blob=new Blob([json],{type:'application/json;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
