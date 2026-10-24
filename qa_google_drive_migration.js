@@ -7,7 +7,7 @@ const native = fs.readFileSync('android-print-patch.py','utf8');
 const workflow = fs.readFileSync('.github/workflows/build.yml','utf8');
 function check(name, fn) { fn(); console.log('PASS: '+name); }
 check('existing local/email/cloud backup options retained', () => {
-  for (const key of ["exportData('local')","exportData('email')","exportData('cloud')"]) assert.ok(html.includes(key),key);
+  for (const key of ["exportData('local')","exportData('email')","backupDirectDrive()"]) assert.ok(html.includes(key),key);
 });
 check('existing file import retained', () => {
   assert.match(html,/function importData\(e\)/);
@@ -68,4 +68,13 @@ check('local pre-restore recovery is accessible and guarded', () => {
  assert.match(html,/Annuler la dernière restauration/);
  assert.match(html,/immoptima_pre_restore_v1/);
  assert.match(html,/Rétablir le patrimoine enregistré juste avant la dernière restauration Google/);
+});
+
+check('simplified customer-facing backup menu', () => {
+ const menu=html.slice(html.indexOf('id="backupChoices"'),html.indexOf('class="commercial-banner'));
+ assert.match(menu,/Sur mon téléphone/);
+ assert.match(menu,/Par e-mail/);
+ assert.match(menu,/Sur Google/);
+ assert.doesNotMatch(menu,/Restaurer depuis Google|Annuler la dernière restauration|Sur le cloud/);
+ assert.match(menu,/<details/);
 });
