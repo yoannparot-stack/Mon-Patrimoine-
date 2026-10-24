@@ -99,7 +99,7 @@ assert(script.includes("setTimeout(()=>URL.revokeObjectURL(url),60000)"),'browse
 assert(java.includes('public void saveFile(String content, String filename, String mimeType)'),'native saveFile bridge must exist');
 console.log('PASS BACKUP Android native JSON Save As integration');
 
-assert(html.includes('Sauvegarder JSON</button>') && html.includes('>Importer JSON</button>'), 'backup and import must be side by side in Settings');
+assert(html.includes('onclick="openBackupOptions()">Sauvegarder</button>') && html.includes('>Importer</button>'), 'simple backup and import labels in Settings');
 assert(html.includes('id="backupStatus"'), 'backup status feedback required');
 console.log('PASS BACKUP buttons adjacent in Settings with user feedback');
 
@@ -121,3 +121,9 @@ const xml=fs.readFileSync(path.join(root,'app/src/main/res/xml/backup_file_paths
 assert(xml.startsWith('<?xml version="1.0" encoding="utf-8"?>'+String.fromCharCode(10)), 'FileProvider XML declaration must be followed by newline');
 assert(!xml.includes(String.fromCharCode(92,110)), 'FileProvider XML must not contain literal backslash-n sequences');
 console.log('PASS BACKUP provider XML format regression');
+
+assert(!html.includes('Sauvegarder JSON</button>') && !html.includes('Importer JSON</button>'), 'no JSON technical label on backup buttons');
+assert(script.includes("if(destination==='email'||destination==='cloud')"), 'cloud and email use native attachment share chooser');
+assert(html.includes('header{padding-top:calc(56px + env(safe-area-inset-top, 0px))!important}'), 'header must clear Android system status bar');
+assert(html.includes('min-height:44px;touch-action:manipulation'), 'header touch targets must remain accessible');
+console.log('PASS BACKUP accessible header, clear labels and Android cloud share routing');
