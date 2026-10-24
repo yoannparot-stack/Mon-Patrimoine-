@@ -714,9 +714,7 @@ function showImmoptimaWelcome(){
  document.getElementById('welcomeGoogle').onclick=()=>{
   dismiss();
   if(window.AndroidBridge&&typeof window.AndroidBridge.backupToGoogleDrive==='function'){
-   if(confirm('Souhaitez-vous autoriser une première sauvegarde privée Google ?')){
-    backupDirectDrive();
-   }
+   backupDirectDrive();
   }else alert('La sauvegarde Google est disponible dans la version Android ImmOptima. Vous pouvez continuer sans compte.');
  };
 }
@@ -735,7 +733,7 @@ function immoptimaRestoreFromDriveBase64(encoded){
   candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];
   candidate.otherDebt=Number(candidate.otherDebt)||0;
   const previous=db;
-  try{db=candidate;save();alert('Patrimoine restauré depuis Google.');}
+  try{db=candidate;localStorage.setItem(KEY,JSON.stringify(db));renderAll();alert('Patrimoine restauré depuis Google.');}
   catch(e){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw e;}
  }catch(e){alert('Sauvegarde Google invalide ou incompatible : patrimoine conservé.');}
 }
