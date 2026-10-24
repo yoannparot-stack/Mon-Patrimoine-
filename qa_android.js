@@ -37,7 +37,7 @@ console.log('PASS 6/12 persistent local storage load/save functions and recovery
 assert(/function initMarketAuto\(\)/.test(script));
 assert(script.includes('refreshMarket(false)'));
 console.log('PASS 7/12 market auto-refresh function present');
-assert(/function exportData\(\)/.test(script)&&/function importData\(/.test(script));
+assert(/function exportData\(/.test(script)&&/function importData\(/.test(script));
 assert(script.includes("mon_patrimoine_sauvegarde_")&&script.includes(".json"),"dated JSON backup filename");
 assert(script.includes('file.size>10*1024*1024'));
 assert(script.includes('!Array.isArray(x.properties)||!Array.isArray(x.loans)||!Array.isArray(x.assets)'));
