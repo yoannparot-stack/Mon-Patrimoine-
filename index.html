@@ -714,8 +714,10 @@ function showImmoptimaWelcome(){
  document.getElementById('welcomeGoogle').onclick=()=>{
   dismiss();
   if(window.AndroidBridge&&typeof window.AndroidBridge.backupToGoogleDrive==='function'){
-   if(confirm('Souhaitez-vous autoriser la sauvegarde de votre patrimoine dans votre espace privé Google ?'))backupDirectDrive();
-  }else alert('Google Drive est disponible dans la version Android ImmOptima. Vous pouvez continuer sans compte.');
+   if(confirm('Souhaitez-vous autoriser une première sauvegarde privée Google ?')){
+    backupDirectDrive();
+   }
+  }else alert('La sauvegarde Google est disponible dans la version Android ImmOptima. Vous pouvez continuer sans compte.');
  };
 }
 function immoptimaRestoreFromDriveBase64(encoded){
