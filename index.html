@@ -107,6 +107,12 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
 }
 .header-backup-actions{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;gap:8px;flex-shrink:0}.header-backup-actions button{white-space:nowrap;padding:10px 12px;font-size:13px;min-width:0}@media(max-width:540px){header .top{align-items:flex-start;gap:8px}header .top>div:first-child{min-width:0;flex:1}.header-backup-actions{gap:5px}.header-backup-actions button{font-size:12px;padding:9px 7px}}
 .backup-choices[hidden]{display:none!important}.backup-choices{position:fixed;inset:0;z-index:9999;background:rgba(10,22,40,.65);display:flex;align-items:center;justify-content:center;padding:18px}.backup-choices-panel{width:min(100%,460px);background:#fff;color:#17233a;border-radius:16px;padding:20px;max-height:90vh;overflow-y:auto;box-shadow:0 18px 60px #0005}.backup-choice-actions{display:flex;flex-direction:column;gap:10px}.backup-choice-actions button{width:100%;text-align:left;min-height:46px}
+/* Espace Android : le bandeau système ne doit jamais masquer les commandes. */
+header{padding-top:calc(56px + env(safe-area-inset-top, 0px))!important}
+header .top{align-items:center!important}
+.header-backup-actions{align-self:center!important}
+.header-backup-actions button{min-height:44px;touch-action:manipulation}
+@media(max-width:540px){header{padding-top:calc(56px + env(safe-area-inset-top, 0px))!important}header .top{align-items:center!important}}
 </style>
 </head>
 <body>
@@ -114,7 +120,7 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
   <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions header-backup-actions"><button type="button" class="secondary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div></div>
   <nav id="nav"></nav>
 </header>
-<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde JSON contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button></div><p class="muted">Pour le cloud, sélectionnez Google Drive, OneDrive ou un autre fournisseur dans le sélecteur Android. L'e-mail est préparé mais jamais envoyé automatiquement.</p></div></div>
+<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mes données</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><p class="muted">Votre sauvegarde JSON contient des informations financières personnelles. Choisissez où la conserver.</p><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="exportData('cloud')">☁️ Sur le cloud</button></div><p class="muted">Pour le cloud, choisissez Google Drive ou un autre service de stockage dans le partage Android et connectez-vous à votre compte dans cette application si nécessaire. Aucun compte Google n’est créé par ImmOptima. Aucun e-mail n’est envoyé automatiquement.</p></div></div>
 <div class="commercial-banner no-print">
   <div><b>Mon Patrimoine</b> — votre cockpit immobilier personnel</div>
   <span class="commercial-badge">Version découverte · 1 logement complet gratuit</span>
@@ -264,7 +270,7 @@ footer{max-width:1200px;margin:auto;padding:20px 14px;color:var(--muted);font-si
   <h2>Paramètres & sauvegarde</h2>
   <div class="card"><h3>Nom du tableau</h3><div class="field"><input id="appName"></div><button class="primary" onclick="saveSettings()">Enregistrer</button></div>
   <div class="card"><h3>Détenteurs des biens</h3><p class="muted">Personnalisez la liste des personnes, sociétés ou structures qui peuvent détenir vos biens. Inscrivez un détenteur par ligne. Cette liste sert au formulaire immobilier, aux filtres et à la synthèse bancaire.</p><div class="field"><label for="holderList">Liste des détenteurs (un par ligne)</label><textarea id="holderList" rows="5" placeholder="Ex. : Personne, société, SCI…"></textarea></div><div class="actions"><button class="primary" onclick="saveHolders()">Enregistrer les détenteurs</button></div><div class="hint">Les détenteurs déjà affectés à un bien restent visibles même si vous modifiez cette liste, pour éviter de perdre leur identification.</div></div>
-  <div class="card"><h3>Données</h3><p class="muted">Toutes les données sont conservées localement dans le navigateur de cet appareil. Faites régulièrement une sauvegarde JSON si vous voulez éviter toute perte.</p><div class="actions" style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="primary" onclick="openBackupOptions()">Sauvegarder JSON</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer JSON</button><input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importData(event)"></div><p class="muted" id="backupStatus" role="status" aria-live="polite">La sauvegarde ouvre le choix du dossier sur Android. Vérifiez que le fichier est enregistré avant toute suppression.</p><div class="actions"><button class="danger" onclick="resetAll()">Effacer toutes les données</button></div></div>
+  <div class="card"><h3>Données</h3><p class="muted">Toutes les données sont conservées localement dans le navigateur de cet appareil. Faites régulièrement une sauvegarde JSON si vous voulez éviter toute perte.</p><div class="actions" style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="primary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button><input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importData(event)"></div><p class="muted" id="backupStatus" role="status" aria-live="polite">La sauvegarde ouvre le choix du dossier sur Android. Vérifiez que le fichier est enregistré avant toute suppression.</p><div class="actions"><button class="danger" onclick="resetAll()">Effacer toutes les données</button></div></div>
   <div class="card"><h3>Jeu de données de démonstration</h3><p class="muted">Données 100 % fictives, ajoutées uniquement sur demande. Une seule propriété est créée pour respecter la limite gratuite. Exportez vos vraies données avant tout test.</p><div class="actions"><button class="secondary" onclick="installDemoData()">Charger le patrimoine fictif</button><button class="danger" onclick="removeDemoData()">Supprimer les données fictives</button></div></div>
   <div class="card"><h3>Offre</h3><div class="plan-card"><div><div class="label">Version actuelle</div><div class="metric">Découverte gratuite</div><div class="hint">1 logement complet · architecture prête pour une offre premium multi-biens.</div></div><span class="commercial-badge">FREE</span></div></div>
   <div class="card"><h3>Version</h3><p>Mon Patrimoine — version commerciale V1.</p></div>
@@ -685,21 +691,20 @@ function exportData(destination='local'){
   const json=JSON.stringify(db,null,2);
   const filename='mon_patrimoine_sauvegarde_'+new Date().toISOString().slice(0,10)+'.json';
   const status=document.getElementById('backupStatus');
-  if(destination==='email'){
+  if(destination==='email'||destination==='cloud'){
    if(window.AndroidBridge&&typeof window.AndroidBridge.shareFile==='function'){
     window.AndroidBridge.shareFile(json,filename,'application/json');
-    if(status)status.textContent='Choisissez une application de messagerie. Aucun e-mail n’est envoyé automatiquement.';
+    if(status)status.textContent=destination==='cloud'?'Sélectionnez Drive ou un autre stockage cloud dans le menu de partage Android, puis vérifiez que le fichier est bien enregistré.':'Choisissez votre messagerie puis vérifiez la pièce jointe avant envoi.';
     closeBackupOptions();return;
    }
-   alert('Le partage en pièce jointe nécessite l’application Android. Utilisez la sauvegarde locale dans ce navigateur.');
+   alert('Le partage nécessite l’application Android. Dans un navigateur, enregistrez d’abord le fichier sur votre téléphone.');
    return;
   }
   if(window.AndroidBridge&&typeof window.AndroidBridge.saveFile==='function'){
    window.AndroidBridge.saveFile(json,filename,'application/json');
-   if(status)status.textContent=destination==='cloud'?'Choisissez votre fournisseur cloud dans le sélecteur Android.':'Choisissez un dossier puis confirmez l’enregistrement.';
+   if(status)status.textContent='Choisissez un dossier puis confirmez l’enregistrement.';
    closeBackupOptions();return;
   }
-  if(destination==='cloud'){alert('Dans le navigateur, téléchargez le fichier puis transférez-le vers votre cloud.');return;}
   const blob=new Blob([json],{type:'application/json;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';
