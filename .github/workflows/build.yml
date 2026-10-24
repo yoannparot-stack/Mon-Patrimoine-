@@ -18,6 +18,37 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate persistent test signing credentials securely
+        env:
+          IMMOPTIMA_KEYSTORE_BASE64: ${{ secrets.IMMOPTIMA_KEYSTORE_BASE64 }}
+          IMMOPTIMA_STORE_PASSWORD: ${{ secrets.IMMOPTIMA_STORE_PASSWORD }}
+          IMMOPTIMA_KEY_ALIAS: ${{ secrets.IMMOPTIMA_KEY_ALIAS }}
+          IMMOPTIMA_KEY_PASSWORD: ${{ secrets.IMMOPTIMA_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$IMMOPTIMA_KEYSTORE_BASE64" || -z "$IMMOPTIMA_STORE_PASSWORD" || -z "$IMMOPTIMA_KEY_ALIAS" || -z "$IMMOPTIMA_KEY_PASSWORD" ]]; then
+            echo "::error::One or more persistent signing secrets are missing."
+            exit 1
+          fi
+          umask 077
+          KEYSTORE="$RUNNER_TEMP/immoptima-preflight.jks"
+          trap 'rm -f "$KEYSTORE"' EXIT
+          if ! printf '%s' "$IMMOPTIMA_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"; then
+            echo "::error::Keystore secret is not valid base64."
+            exit 1
+          fi
+          if ! keytool -list -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -alias "$IMMOPTIMA_KEY_ALIAS" > /dev/null 2>&1; then
+            echo "::error::Keystore password, alias, or keystore content is invalid."
+            exit 1
+          fi
+          if ! keytool -importkeystore -srckeystore "$KEYSTORE" -srcstorepass:env IMMOPTIMA_STORE_PASSWORD -srcalias "$IMMOPTIMA_KEY_ALIAS" -srckeypass:env IMMOPTIMA_KEY_PASSWORD -destkeystore "$RUNNER_TEMP/immoptima-verify.p12" -deststoretype PKCS12 -deststorepass:env IMMOPTIMA_STORE_PASSWORD -destkeypass:env IMMOPTIMA_STORE_PASSWORD -noprompt > /dev/null 2>&1; then
+            echo "::error::Key password does not unlock the signing key."
+            exit 1
+          fi
+          rm -f "$RUNNER_TEMP/immoptima-verify.p12"
+          echo "Persistent signing credentials verified (values not disclosed)."
+
       - name: Extract Android project
         run: |
           mkdir android-project
