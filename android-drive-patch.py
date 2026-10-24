@@ -22,11 +22,11 @@ s=s.replace('import android.print.PrintManager;',imports+'import android.print.P
 bridge='''            @JavascriptInterface public void backupToGoogleDrive(String json) {
                 runOnUiThread(() -> beginDriveBackup(json));
             }
-'''
-s=s.replace('            @JavascriptInterface public void listPrivateDriveBackups() {
+            @JavascriptInterface public void listPrivateDriveBackups() {
                 runOnUiThread(() -> beginDriveRestore());
             }
-            @JavascriptInterface public void shareFile(',bridge+'            @JavascriptInterface public void shareFile(',1)
+'''
+s=s.replace('            @JavascriptInterface public void shareFile(',bridge+'            @JavascriptInterface public void shareFile(',1)
 methods='''    private static final int IMMOPTIMA_DRIVE_AUTH_REQUEST = 7413;
     private String pendingDriveBackup;
     private boolean pendingDriveRestore;
