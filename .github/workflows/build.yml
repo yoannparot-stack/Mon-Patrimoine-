@@ -10,6 +10,7 @@ on:
       - 'qa_android.js'
       - 'qa_google_drive_migration.js'
       - 'android-print-patch.py'
+      - 'android-drive-patch.py'
       - 'scripts/setup-immoptima-signing.sh'
 
 jobs:
@@ -87,6 +88,7 @@ jobs:
         run: |
           ROOT="$(dirname "$(find android-project -name settings.gradle -print -quit)")"
           python3 android-print-patch.py "$ROOT"
+          python3 android-drive-patch.py "$ROOT"
 
       - name: Set up Java
         uses: actions/setup-java@v4
