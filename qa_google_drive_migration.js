@@ -122,3 +122,11 @@ check('account onboarding cannot silently impersonate a working online identity'
  assert.match(html,/Sauvegarder sur Google Drive/);
  assert.match(html,/Utiliser sans sauvegarde Google/);
 });
+
+check('Firebase security rules are deny-by-default and scoped to owner', () => {
+ const rules=fs.readFileSync('firebase/firestore.rules','utf8');
+ assert.match(rules,/allow read, write: if false/);
+ assert.match(rules,/request\.auth\.uid == uid/);
+ assert.match(rules,/docId == "current"/);
+ assert.doesNotMatch(rules,/allow read, write: if true/);
+});
