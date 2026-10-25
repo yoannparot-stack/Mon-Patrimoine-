@@ -113,3 +113,12 @@ check('future account is not falsely represented as active', () => {
  assert.match(html,/Pour le moment, vos données restent sur cet appareil/);
  assert.doesNotMatch(html,/Compte ImmOptima connecté avec succès/);
 });
+
+check('account onboarding cannot silently impersonate a working online identity', () => {
+ assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='configuration_required'/);
+ assert.match(html,/Compte ImmOptima — bientôt disponible/);
+ assert.match(html,/Aucune inscription n’est actuellement possible/);
+ assert.match(html,/welcomeAccountInfo/);
+ assert.match(html,/Sauvegarder sur Google Drive/);
+ assert.match(html,/Utiliser sans sauvegarde Google/);
+});
