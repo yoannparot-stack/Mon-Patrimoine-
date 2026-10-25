@@ -20,3 +20,9 @@ Ne pas annoncer « compte ImmOptima opérationnel » tant qu'une inscription ré
 - ID de projet communiqué : `immoptima-6af3b`.
 - Cet identifiant n'est pas un secret ; il ne confirme ni l'activation d'Authentication, ni la création de Firestore, ni l'association de l'application Android.
 - Pour associer l'application Android, enregistrer son nom de package définitif et fournir les fichiers de configuration via un canal approprié. Ne jamais publier de clés de compte de service.
+
+## Avancement déclaré par le propriétaire (25 octobre 2026)
+- Google activé dans Firebase Authentication (déclaré, non vérifié par accès administrateur).
+- Firestore créé en mode production (déclaré, règles personnalisées non encore déployées/vérifiées).
+- Projet cible : `immoptima-6af3b`.
+- Étape suivante : enregistrer l'application Android avec son identifiant de package définitif et obtenir la configuration Android Firebase ; vérifier les empreintes SHA de la signature Android et déployer/tester les règles Firestore avant synchronisation.
