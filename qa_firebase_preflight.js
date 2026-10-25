@@ -17,7 +17,7 @@ assert.match(rules,/allow delete: if false;/,'client must not delete cloud portf
 assert.doesNotMatch(rules,/allow (?:read|write): if true/,'no public access');
 assert.match(guide,/immoptima-6af3b/,'project ID documented');
 assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='authentication_preview'/,'sign-in preview must remain explicit');
-assert.match(html,/La synchronisation du patrimoine n’est pas encore activée/,'do not pretend portfolio sync is ready');
+assert.match(html,/La synchronisation n’est pas encore active/,'do not pretend portfolio sync is ready');
 assert.match(html,/backupDirectDrive\(\)/,'visible Drive backup must remain');
 assert.match(html,/if\(immoptimaAuthState\.status==='signed_in'\)\{[\s\S]*?welcome\.remove\(\)/,'successful authentication must dismiss welcome overlay');
 assert.match(html,/id="welcomeAccountInfo" style="[^"]*background:#171717;color:white/,'account button must use black primary style');
