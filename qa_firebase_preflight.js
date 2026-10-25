@@ -16,7 +16,8 @@ assert.doesNotMatch(rules,/resource == null/,'do not access missing resource on 
 assert.match(rules,/allow delete: if false;/,'client must not delete cloud portfolio');
 assert.doesNotMatch(rules,/allow (?:read|write): if true/,'no public access');
 assert.match(guide,/immoptima-6af3b/,'project ID documented');
-assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='configuration_required'/,'do not pretend sign-in is ready');
+assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='authentication_preview'/,'sign-in preview must remain explicit');
+assert.match(html,/La synchronisation du patrimoine n’est pas encore activée/,'do not pretend portfolio sync is ready');
 assert.match(html,/backupDirectDrive\(\)/,'visible Drive backup must remain');
 assert.match(html,/immoptima_pre_import_v1/,'pre-import rollback retained');
 console.log('PASS: Firebase preflight, per-account rules and backward compatibility');
