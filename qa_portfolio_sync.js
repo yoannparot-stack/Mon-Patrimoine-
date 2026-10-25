@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict');
+const {validPortfolio,makeUpload,decideRestore,MAX_BYTES}=require('./cloud/portfolio-sync-core');
+const sample={settings:{holders:[]},properties:[],loans:[],assets:[]};
+assert.deepEqual(validPortfolio(sample),sample);
+assert.equal(makeUpload(sample,0).revision,1);
+assert.equal(makeUpload(sample,4).revision,5);
+assert.throws(()=>makeUpload(sample,-1),/Révision/);
+assert.throws(()=>makeUpload(sample,1.5),/Révision/);
+assert.throws(()=>validPortfolio({settings:{},properties:[],loans:[]}),/assets/);
+assert.throws(()=>validPortfolio({...sample,properties:'broken'}),/properties/);
+assert.throws(()=>validPortfolio({...sample,assets:[{note:'a'.repeat(MAX_BYTES)}]}),/volumineux/);
+const remote={revision:1,payload:sample};
+assert.equal(decideRestore(sample,remote,false).action,'no_change');
+assert.equal(decideRestore({...sample,assets:[{id:1}]},remote,false).action,'confirmation_required');
+assert.equal(decideRestore(sample,remote,true).action,'conflict');
+assert.throws(()=>decideRestore(sample,{revision:0,payload:sample},false),/cloud invalide/);
+assert.throws(()=>decideRestore(sample,{revision:1,payload:{}},false),/Collection/);
+console.log('PASS: sync core rejects invalid payloads and prevents silent cloud overwrite');
