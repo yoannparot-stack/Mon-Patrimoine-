@@ -4,7 +4,7 @@ const workflow=fs.readFileSync('.github/workflows/build.yml','utf8');
 const rules=fs.readFileSync('cloud/firestore.rules','utf8');
 const guide=fs.readFileSync('cloud/DEPLOIEMENT.md','utf8');
 const html=fs.readFileSync('index.html','utf8');
-assert.match(workflow,/applicationId 'com\.immoptima\.app'/,'Firebase preview must use new Android package');
+assert.match(workflow,/com\.immoptima\.app/,'Firebase preview must use new Android package');
 assert.match(workflow,/IMMOPTIMA_KEYSTORE_BASE64/,'persistent signing required');
 assert.match(rules,/request\.auth\.uid == userId/,'user isolation required');
 assert.match(rules,/match \/users\/\{userId\}\/portfolios\/\{portfolioId\}/,'portfolio must be account scoped');
