@@ -26,3 +26,10 @@ Ne pas annoncer « compte ImmOptima opérationnel » tant qu'une inscription ré
 - Firestore créé en mode production (déclaré, règles personnalisées non encore déployées/vérifiées).
 - Projet cible : `immoptima-6af3b`.
 - Étape suivante : enregistrer l'application Android avec son identifiant de package définitif et obtenir la configuration Android Firebase ; vérifier les empreintes SHA de la signature Android et déployer/tester les règles Firestore avant synchronisation.
+
+## Configuration Android reçue et vérifiée
+- Le fichier `google-services.json` fourni par le propriétaire cible bien `immoptima-6af3b` et `com.monpatrimoine.app.test132`.
+- Il annonce un client OAuth Web (type 3), mais aucun client OAuth Android (type 1) dans la configuration reçue : enregistrer les empreintes de signature Android dans Firebase et retélécharger le fichier avant de considérer Google Sign-In opérationnel.
+- Certificat de signature **APK de test**, vérifié depuis les journaux GitHub Actions de la compilation réussie : SHA-1 `F7:B9:DC:CA:F0:74:1F:D7:CE:D1:D3:D6:94:F3:4C:8A:50:EE:72:28` ; SHA-256 `FE:D1:54:B7:A4:20:12:30:DA:BE:6C:08:D1:36:5D:47:1D:62:46:4D:BB:C5:96:CA:37:C3:83:47:9C:BB:EE:35`.
+- Ne pas confondre ces empreintes de test avec la signature Google Play définitive.
+- La configuration fournie reste locale à la conversation ; elle n'a pas été publiée dans le dépôt. Le code de connexion n'est pas encore intégré.
