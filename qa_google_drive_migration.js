@@ -93,3 +93,8 @@ check('visible and private Google backups are clearly distinguished', () => {
  assert.match(html,/Ces copies ne sont pas visibles dans Google Drive/);
  assert.match(html,/Pour une copie visible, utilisez/);
 });
+
+check('JSON import preserves previous portfolio and does not trigger private auto-backup', () => {
+ assert.match(html,/immoptima_pre_import_v1/);
+ assert.match(html,/localStorage\.setItem\(KEY,JSON\.stringify\(db\)\);renderAll\(\);alert\('Sauvegarde importée avec succès/);
+});
