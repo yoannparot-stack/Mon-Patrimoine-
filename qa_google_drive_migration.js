@@ -28,11 +28,12 @@ check('CI requires persistent signing secrets', () => {
 check('no fake Google connected or Drive saved success states', () => {
   assert.doesNotMatch(html,/Google Drive (?:connecté|sauvegardé) avec succès/i);
 });
-check('native Google Drive action requires user confirmation and preserves manual exports', () => {
-  assert.match(html,/function backupDirectDrive\(/);
-  assert.match(html,/confirm\('Enregistrer une copie/);
-  assert.match(html,/backupToGoogleDrive\(JSON\.stringify\(db\)\)/);
-  assert.match(html,/Attendez la confirmation Android/);
+check('visible Google backup uses document picker with explicit destination', () => {
+ assert.match(html,/function backupDirectDrive\(/);
+ assert.match(html,/exportVisibleDrive\(\);/);
+ assert.match(html,/function exportVisibleDrive\(/);
+ assert.match(html,/AndroidBridge\.saveFile\(JSON\.stringify\(db,null,2\),filename,'application\/json'\)/);
+ assert.match(html,/Choisissez Google Drive et un dossier/);
 });
 const drivePatch = fs.readFileSync('android-drive-patch.py','utf8');
 check('native Google Drive access is least privilege', () => {
