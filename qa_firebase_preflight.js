@@ -19,5 +19,7 @@ assert.match(guide,/immoptima-6af3b/,'project ID documented');
 assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='authentication_preview'/,'sign-in preview must remain explicit');
 assert.match(html,/La synchronisation du patrimoine n’est pas encore activée/,'do not pretend portfolio sync is ready');
 assert.match(html,/backupDirectDrive\(\)/,'visible Drive backup must remain');
+assert.match(html,/if\(immoptimaAuthState\.status==='signed_in'\)\{[\s\S]*?welcome\.remove\(\)/,'successful authentication must dismiss welcome overlay');
+assert.match(html,/id="welcomeAccountInfo" style="[^"]*background:#171717;color:white/,'account button must use black primary style');
 assert.match(html,/immoptima_pre_import_v1/,'pre-import rollback retained');
 console.log('PASS: Firebase preflight, per-account rules and backward compatibility');
