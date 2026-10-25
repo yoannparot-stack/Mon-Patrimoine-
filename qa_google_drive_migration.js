@@ -87,3 +87,9 @@ check('visible Drive filenames do not collide across same-day saves', () => {
 check('Google onboarding uses the visible document picker', () => {
  assert.match(html,/typeof window\.AndroidBridge\.saveFile==='function'\)\{\s*backupDirectDrive\(\)/);
 });
+
+check('visible and private Google backups are clearly distinguished', () => {
+ assert.match(html,/Sauvegarde automatique privée \(invisible dans Drive\)/);
+ assert.match(html,/Ces copies ne sont pas visibles dans Google Drive/);
+ assert.match(html,/Pour une copie visible, utilisez/);
+});
