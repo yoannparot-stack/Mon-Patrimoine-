@@ -45,8 +45,8 @@ check('native Google Drive access is least privilege', () => {
 console.log('ImmOptima backup migration regression checks completed.');
 
 check('optional onboarding matches approved Google design', () => {
- assert.match(html,/Continuer avec Google/);
- assert.match(html,/Continuer sans compte/);
+ assert.match(html,/Sauvegarder sur Google Drive/);
+ assert.match(html,/Utiliser sans sauvegarde Google/);
  assert.match(html,/immoptima_welcome_v1/);
 });
 check('private restore is explicit and validates all primary collections', () => {
@@ -102,4 +102,9 @@ check('JSON import preserves previous portfolio and does not trigger private aut
 check('JSON import requires explicit user approval before replacing portfolio', () => {
  assert.match(html,/confirm\('Importer cette sauvegarde et remplacer le patrimoine actuel/);
  assert.match(html,/immoptima_pre_import_v1/);
+});
+
+check('onboarding does not misrepresent Drive file export as account login', () => {
+ assert.match(html,/pas de créer un compte ImmOptima/);
+ assert.doesNotMatch(html,/Continuer avec Google/);
 });
