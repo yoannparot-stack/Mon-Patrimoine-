@@ -10,6 +10,8 @@ on:
       - 'qa_android.js'
       - 'qa_google_drive_migration.js'
       - 'qa_firebase_preflight.js'
+      - 'qa_portfolio_sync.js'
+      - 'cloud/portfolio-sync-core.js'
       - 'cloud/firestore.rules'
       - 'android-print-patch.py'
       - 'android-drive-patch.py'
@@ -110,6 +112,7 @@ jobs:
           node qa_android.js "$ROOT"
           node qa_google_drive_migration.js
           node qa_firebase_preflight.js
+          node qa_portfolio_sync.js
 
       - name: Build debug APK
         run: |
