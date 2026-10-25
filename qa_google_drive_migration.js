@@ -105,6 +105,11 @@ check('JSON import requires explicit user approval before replacing portfolio', 
 });
 
 check('onboarding does not misrepresent Drive file export as account login', () => {
- assert.match(html,/pas de créer un compte ImmOptima/);
+ assert.match(html,/Un compte ImmOptima sera proposé dans une prochaine version/);
  assert.doesNotMatch(html,/Continuer avec Google/);
+});
+
+check('future account is not falsely represented as active', () => {
+ assert.match(html,/Pour le moment, vos données restent sur cet appareil/);
+ assert.doesNotMatch(html,/Compte ImmOptima connecté avec succès/);
 });
