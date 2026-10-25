@@ -1,0 +1,17 @@
+// ImmOptima Firebase integration preflight (does not need credentials or network).
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const workflow=fs.readFileSync('.github/workflows/build.yml','utf8');
+const rules=fs.readFileSync('cloud/firestore.rules','utf8');
+const guide=fs.readFileSync('cloud/DEPLOIEMENT.md','utf8');
+const html=fs.readFileSync('index.html','utf8');
+assert.match(workflow,/com\.monpatrimoine\.app\.test132/,'existing APK package must remain stable');
+assert.match(workflow,/IMMOPTIMA_KEYSTORE_BASE64/,'persistent signing required');
+assert.match(rules,/request\.auth\.uid == userId/,'user isolation required');
+assert.match(rules,/match \/users\/\{userId\}\/portfolios\/\{portfolioId\}/,'portfolio must be account scoped');
+assert.match(rules,/portfolioId == 'current'/,'portfolio document ID must be constrained');
+assert.doesNotMatch(rules,/allow (?:read|write): if true/,'no public access');
+assert.match(guide,/immoptima-6af3b/,'project ID documented');
+assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='configuration_required'/,'do not pretend sign-in is ready');
+assert.match(html,/backupDirectDrive\(\)/,'visible Drive backup must remain');
+assert.match(html,/immoptima_pre_import_v1/,'pre-import rollback retained');
+console.log('PASS: Firebase preflight, per-account rules and backward compatibility');
