@@ -17,6 +17,7 @@ on:
       - 'android-print-patch.py'
       - 'android-drive-patch.py'
       - 'android-firebase-patch.py'
+      - 'android-auth-patch.py'
       - 'cloud/immoptima-firebase-public.json'
       - 'scripts/setup-immoptima-signing.sh'
 
@@ -99,6 +100,7 @@ jobs:
           python3 android-drive-patch.py "$ROOT"
           cp cloud/immoptima-firebase-public.json "$ROOT/app/src/main/assets/immoptima-firebase.json"
           python3 android-firebase-patch.py "$ROOT"
+          python3 android-auth-patch.py "$ROOT"
 
       - name: Set up Java
         uses: actions/setup-java@v4
