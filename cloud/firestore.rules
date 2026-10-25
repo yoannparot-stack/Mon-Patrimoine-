@@ -20,7 +20,12 @@ service cloud.firestore {
         && request.resource.data.revision is int
         && request.resource.data.revision >= 1
         && request.resource.data.updatedAt == request.time
-        && request.resource.data.payload is map;
+        && request.resource.data.payload is map
+        && request.resource.data.payload.keys().hasAll(['settings','properties','loans','assets'])
+        && request.resource.data.payload.properties is list
+        && request.resource.data.payload.loans is list
+        && request.resource.data.payload.assets is list
+        && (resource == null ? request.resource.data.revision == 1 : request.resource.data.revision == resource.data.revision + 1);
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
   }
