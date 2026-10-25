@@ -19,7 +19,7 @@ check('Android native share and PDF paths retained', () => {
   assert.match(native,/public void printBankSummary\(/);
 });
 check('test package matches configured Google OAuth Android client', () => {
-  assert.match(workflow,/com\.monpatrimoine\.app\.test132/);
+  assert.match(workflow,/com\.immoptima\.app/);
 });
 check('CI requires persistent signing secrets', () => {
   for(const key of ['IMMOPTIMA_KEYSTORE_BASE64','IMMOPTIMA_STORE_PASSWORD','IMMOPTIMA_KEY_ALIAS','IMMOPTIMA_KEY_PASSWORD']) assert.ok(workflow.includes(key),key);
