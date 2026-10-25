@@ -120,7 +120,7 @@ header .top{align-items:center!important}
   <div class="top"><div><h1>Mon Patrimoine</h1><small>Le cockpit de l’investisseur immobilier particulier</small></div><div class="actions header-backup-actions"><button type="button" class="secondary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div></div>
   <nav id="nav"></nav>
 </header>
-<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mon patrimoine</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="backupDirectDrive()">☁️ Sur Google</button></div><details style="margin-top:14px"><summary style="cursor:pointer;color:#64748b;font-size:.9rem">Options avancées</summary><div class="actions backup-choice-actions" style="margin-top:10px"><button type="button" class="secondary" onclick="toggleImmoptimaAutoBackup()">⏱️ Sauvegarde automatique Google</button><button type="button" class="secondary" onclick="exportVisibleDrive()">📁 Exporter une copie dans un dossier</button></div></details><p class="muted" style="font-size:.85rem">Pour Google, sélectionnez Drive et votre dossier. Vérifiez ensuite le fichier enregistré.</p></div></div>
+<div id="backupChoices" class="backup-choices" hidden role="dialog" aria-modal="true" aria-labelledby="backupChoicesTitle"><div class="backup-choices-panel"><div class="section-title"><h3 id="backupChoicesTitle">Sauvegarder mon patrimoine</h3><button type="button" class="secondary" onclick="closeBackupOptions()" aria-label="Fermer">✕</button></div><div class="actions backup-choice-actions"><button type="button" class="primary" onclick="exportData('local')">📱 Sur mon téléphone</button><button type="button" class="secondary" onclick="exportData('email')">✉️ Par e-mail</button><button type="button" class="secondary" onclick="backupDirectDrive()">☁️ Sur Google</button></div><details style="margin-top:14px"><summary style="cursor:pointer;color:#64748b;font-size:.9rem">Options avancées</summary><div class="actions backup-choice-actions" style="margin-top:10px"><button type="button" class="secondary" onclick="toggleImmoptimaAutoBackup()">⏱️ Sauvegarde automatique privée (invisible dans Drive)</button><button type="button" class="secondary" onclick="exportVisibleDrive()">📁 Exporter une copie dans un dossier</button></div></details><p class="muted" style="font-size:.85rem">Pour Google, sélectionnez Drive et votre dossier. Vérifiez ensuite le fichier enregistré.</p></div></div>
 <div class="commercial-banner no-print">
   <div><b>Mon Patrimoine</b> — votre cockpit immobilier personnel</div>
   <span class="commercial-badge">Version découverte · 1 logement complet gratuit</span>
@@ -767,7 +767,7 @@ function toggleImmoptimaAutoBackup(){
  const enabled=localStorage.getItem('immoptima_auto_google_v1')==='yes';
  if(enabled){
   localStorage.removeItem('immoptima_auto_google_v1');
-  alert('Sauvegarde automatique Google désactivée.');
+  alert('Sauvegarde automatique privée désactivée. Les copies déjà présentes dans l’espace privé Google ne sont pas supprimées.');
   return;
  }
  if(!window.AndroidBridge||typeof window.AndroidBridge.backupToGoogleDrive!=='function'){
@@ -777,7 +777,7 @@ function toggleImmoptimaAutoBackup(){
   return;
  }
  localStorage.setItem('immoptima_auto_google_v1','yes');
- alert('Sauvegarde automatique activée. Une autorisation Google peut être demandée lors de la prochaine modification.');
+ alert('Sauvegarde automatique privée activée. Ces copies ne sont pas visibles dans Google Drive. Pour une copie visible, utilisez « Sur Google ». Une autorisation peut être demandée.');
 }
 function immoptimaMaybeAutoBackup(){
  if(localStorage.getItem('immoptima_auto_google_v1')!=='yes')return;
