@@ -105,7 +105,7 @@ check('JSON import requires explicit user approval before replacing portfolio', 
 });
 
 check('onboarding does not misrepresent Drive file export as account login', () => {
- assert.match(html,/Un compte ImmOptima sera proposé dans une prochaine version/);
+ assert.match(html,/Connexion Google en version de test/);
  assert.doesNotMatch(html,/Continuer avec Google/);
 });
 
@@ -115,8 +115,8 @@ check('future account is not falsely represented as active', () => {
 });
 
 check('account onboarding cannot silently impersonate a working online identity', () => {
- assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='configuration_required'/);
- assert.match(html,/Compte ImmOptima — bientôt disponible/);
+ assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='authentication_preview'/);
+ assert.match(html,/Se connecter à ImmOptima/);
  assert.match(html,/Aucune inscription n’est actuellement possible/);
  assert.match(html,/welcomeAccountInfo/);
  assert.match(html,/Sauvegarder sur Google Drive/);
