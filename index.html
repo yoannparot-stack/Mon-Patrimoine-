@@ -708,7 +708,12 @@ window.immoptimaNativeAuthResult=function(payload){
  const button=document.getElementById('welcomeAccountInfo');
  if(button&&immoptimaAuthState.status==='signed_in')button.textContent='Compte Google connecté';
  if(immoptimaAuthState.status==='error')alert('Connexion ImmOptima : '+immoptimaAuthState.detail);
- if(immoptimaAuthState.status==='signed_in')alert('Connexion Google confirmée. La synchronisation du patrimoine n’est pas encore activée : vos données restent sur ce téléphone.');
+ if(immoptimaAuthState.status==='signed_in'){
+  // Google authentication must unlock the app, not leave the welcome modal blocking it.
+  localStorage.setItem('immoptima_welcome_v1','seen');
+  const welcome=document.getElementById('immoptimaWelcome');
+  if(welcome)welcome.remove();
+ }
 };
 function immoptimaAccountInformation(){
  if(!window.AndroidBridge||typeof window.AndroidBridge.immoptimaSignIn!=='function'){
@@ -728,7 +733,7 @@ function showImmoptimaWelcome(){
  overlay.setAttribute('aria-modal','true');
  overlay.setAttribute('aria-label','Bienvenue sur ImmOptima');
  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.75);display:flex;align-items:center;justify-content:center;padding:20px';
- overlay.innerHTML='<div style="background:#f4f4f4;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 18px 55px #0004;text-align:center"><h2 style="margin:0 0 10px;color:#151515">Bienvenue sur ImmOptima</h2><p style="color:#666;margin:0 0 20px">Un seul outil pour tout votre patrimoine.</p><button id="welcomeGoogle" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">☁️ &nbsp; Sauvegarder sur Google Drive</button><button id="welcomeAccountInfo" style="display:block;width:100%;border:1px solid #d1d1d1;border-radius:999px;background:white;color:#333;padding:13px 10px;font-size:15px;font-weight:600;margin:0 0 14px">Se connecter à ImmOptima</button><div style="color:#777;margin-bottom:18px">ou</div><button id="welcomeOffline" style="display:block;width:100%;border:2px solid #d1d1d1;border-radius:999px;background:transparent;color:#5c5c5c;padding:15px 10px;font-size:17px;font-weight:600">Utiliser sans sauvegarde Google</button><small style="display:block;color:#777;margin-top:18px">Connexion Google en version de test. La synchronisation n’est pas encore active. Vos données restent sur cet appareil ; sauvegardez-les aussi dans Google Drive.</small></div>';
+ overlay.innerHTML='<div style="background:#f4f4f4;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 18px 55px #0004;text-align:center"><h2 style="margin:0 0 10px;color:#151515">Bienvenue sur ImmOptima</h2><p style="color:#666;margin:0 0 20px">Un seul outil pour tout votre patrimoine.</p><button id="welcomeGoogle" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">☁️ &nbsp; Sauvegarder sur Google Drive</button><button id="welcomeAccountInfo" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">Se connecter à ImmOptima</button><div style="color:#777;margin-bottom:18px">ou</div><button id="welcomeOffline" style="display:block;width:100%;border:2px solid #d1d1d1;border-radius:999px;background:transparent;color:#5c5c5c;padding:15px 10px;font-size:17px;font-weight:600">Utiliser sans sauvegarde Google</button><small style="display:block;color:#777;margin-top:18px">Connexion Google en version de test. La synchronisation n’est pas encore active. Vos données restent sur cet appareil ; sauvegardez-les aussi dans Google Drive.</small></div>';
  document.body.appendChild(overlay);
  const dismiss=()=>{localStorage.setItem('immoptima_welcome_v1','seen');overlay.remove()};
  document.getElementById('welcomeOffline').onclick=dismiss;
