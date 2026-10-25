@@ -726,6 +726,7 @@ function immoptimaAccountInformation(){
  if(confirm('Se connecter avec Google ? Cette version teste uniquement la connexion. Le patrimoine ne sera pas encore synchronisé.'))window.AndroidBridge.immoptimaSignIn();
 }
 function showImmoptimaWelcome(){
+ if(immoptimaAuthState.status==='signed_in')return;
  if(localStorage.getItem('immoptima_welcome_v1')==='seen')return;
  const overlay=document.createElement('div');
  overlay.id='immoptimaWelcome';
@@ -892,6 +893,9 @@ if(addPropertyButton){
 }
 renderAll();
 setTimeout(initMarketAuto,250);
+if(window.AndroidBridge&&typeof window.AndroidBridge.immoptimaAuthStatus==='function'){
+ try{window.AndroidBridge.immoptimaAuthStatus();}catch(error){console.warn('État du compte indisponible');}
+}
 setTimeout(showImmoptimaWelcome,350);
 </script>
 </body>
