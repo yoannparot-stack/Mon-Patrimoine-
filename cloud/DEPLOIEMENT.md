@@ -1,6 +1,6 @@
 # Déploiement du compte ImmOptima — prérequis obligatoires
 
-**État : non déployé.** Les fichiers de sécurité sont préparatoires ; ils ne créent pas de compte et ne rendent pas l'APK synchronisée.
+**Projet Firebase déclaré par le propriétaire : `immoptima-6af3b`. État : non déployé.** Les fichiers de sécurité sont préparatoires ; ils ne créent pas de compte et ne rendent pas l'APK synchronisée.
 
 ## Action du propriétaire
 Créer un projet Firebase **appartenant à ImmOptima** dans la console Firebase et activer Authentication (e-mail, et éventuellement Google) ainsi que Firestore en mode verrouillé. Configurer les informations de facturation et d'usage du projet selon les besoins. Définir l'identifiant Android final et enregistrer les empreintes SHA-1/SHA-256 du certificat utilisé. Les accès d'administration doivent rester chez le propriétaire ; **ne jamais envoyer de compte administrateur, mot de passe, clé privée ou fichier de compte de service dans ce dépôt ou dans le chat**.
@@ -15,3 +15,8 @@ Créer un projet Firebase **appartenant à ImmOptima** dans la console Firebase 
 
 ## Critère de livraison
 Ne pas annoncer « compte ImmOptima opérationnel » tant qu'une inscription réelle, une connexion, une déconnexion et une récupération du patrimoine sur un second appareil n'ont pas été testées avec succès.
+
+## Projet cible
+- ID de projet communiqué : `immoptima-6af3b`.
+- Cet identifiant n'est pas un secret ; il ne confirme ni l'activation d'Authentication, ni la création de Firestore, ni l'association de l'application Android.
+- Pour associer l'application Android, enregistrer son nom de package définitif et fournir les fichiers de configuration via un canal approprié. Ne jamais publier de clés de compte de service.
