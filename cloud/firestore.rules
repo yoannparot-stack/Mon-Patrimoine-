@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Deny everything by default. Only authenticated owners can read/write
+    // their own account-scoped documents. Never use public test-mode rules.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['createdAt','updatedAt','displayName'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 120;
+    }
+    match /users/{userId}/portfolios/{portfolioId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+        && portfolioId == 'current'
+        && request.resource.data.keys().hasOnly(['schemaVersion','revision','updatedAt','payload'])
+        && request.resource.data.schemaVersion is int
+        && request.resource.data.schemaVersion >= 1
+        && request.resource.data.revision is int
+        && request.resource.data.revision >= 1
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.payload is map;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
