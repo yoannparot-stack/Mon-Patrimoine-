@@ -699,6 +699,11 @@ function exportVisibleDrive(){
   if(status)status.textContent='Choisissez Google Drive et un dossier dans le sélecteur Android. Vérifiez ensuite que le fichier ImmOptima apparaît bien dans Drive. La sauvegarde n’est confirmée qu’après enregistrement.';
  }catch(error){alert('Export impossible. Vos données locales sont conservées.');}
 }
+// Account rollout guard: never claim an online account exists before the backend is provisioned.
+const IMMOPTIMA_ACCOUNT_STATUS='configuration_required';
+function immoptimaAccountInformation(){
+ alert('Le compte ImmOptima nécessite encore l’activation d’un service sécurisé de connexion et de synchronisation. Aucune inscription n’est actuellement possible. Vos données restent sur ce téléphone. Vous pouvez continuer sans compte et utiliser la sauvegarde Google Drive.');
+}
 function showImmoptimaWelcome(){
  if(localStorage.getItem('immoptima_welcome_v1')==='seen')return;
  const overlay=document.createElement('div');
@@ -707,10 +712,11 @@ function showImmoptimaWelcome(){
  overlay.setAttribute('aria-modal','true');
  overlay.setAttribute('aria-label','Bienvenue sur ImmOptima');
  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.75);display:flex;align-items:center;justify-content:center;padding:20px';
- overlay.innerHTML='<div style="background:#f4f4f4;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 18px 55px #0004;text-align:center"><h2 style="margin:0 0 10px;color:#151515">Bienvenue sur ImmOptima</h2><p style="color:#666;margin:0 0 20px">Un seul outil pour tout votre patrimoine.</p><button id="welcomeGoogle" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">☁️ &nbsp; Sauvegarder sur Google Drive</button><div style="color:#777;margin-bottom:18px">ou</div><button id="welcomeOffline" style="display:block;width:100%;border:2px solid #d1d1d1;border-radius:999px;background:transparent;color:#5c5c5c;padding:15px 10px;font-size:17px;font-weight:600">Utiliser sans sauvegarde Google</button><small style="display:block;color:#777;margin-top:18px">Un compte ImmOptima sera proposé dans une prochaine version. Pour le moment, vos données restent sur cet appareil et vous pouvez enregistrer une copie dans Google Drive.</small></div>';
+ overlay.innerHTML='<div style="background:#f4f4f4;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 18px 55px #0004;text-align:center"><h2 style="margin:0 0 10px;color:#151515">Bienvenue sur ImmOptima</h2><p style="color:#666;margin:0 0 20px">Un seul outil pour tout votre patrimoine.</p><button id="welcomeGoogle" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">☁️ &nbsp; Sauvegarder sur Google Drive</button><button id="welcomeAccountInfo" style="display:block;width:100%;border:1px solid #d1d1d1;border-radius:999px;background:white;color:#333;padding:13px 10px;font-size:15px;font-weight:600;margin:0 0 14px">Compte ImmOptima — bientôt disponible</button><div style="color:#777;margin-bottom:18px">ou</div><button id="welcomeOffline" style="display:block;width:100%;border:2px solid #d1d1d1;border-radius:999px;background:transparent;color:#5c5c5c;padding:15px 10px;font-size:17px;font-weight:600">Utiliser sans sauvegarde Google</button><small style="display:block;color:#777;margin-top:18px">Un compte ImmOptima sera proposé dans une prochaine version. Pour le moment, vos données restent sur cet appareil et vous pouvez enregistrer une copie dans Google Drive.</small></div>';
  document.body.appendChild(overlay);
  const dismiss=()=>{localStorage.setItem('immoptima_welcome_v1','seen');overlay.remove()};
  document.getElementById('welcomeOffline').onclick=dismiss;
+ document.getElementById('welcomeAccountInfo').onclick=immoptimaAccountInformation;
  document.getElementById('welcomeGoogle').onclick=()=>{
   dismiss();
   if(window.AndroidBridge&&typeof window.AndroidBridge.saveFile==='function'){
