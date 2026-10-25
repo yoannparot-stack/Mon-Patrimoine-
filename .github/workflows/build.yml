@@ -9,6 +9,8 @@ on:
       - 'index.html'
       - 'qa_android.js'
       - 'qa_google_drive_migration.js'
+      - 'qa_firebase_preflight.js'
+      - 'cloud/firestore.rules'
       - 'android-print-patch.py'
       - 'android-drive-patch.py'
       - 'scripts/setup-immoptima-signing.sh'
@@ -107,6 +109,7 @@ jobs:
           echo "Projet Android : $ROOT"
           node qa_android.js "$ROOT"
           node qa_google_drive_migration.js
+          node qa_firebase_preflight.js
 
       - name: Build debug APK
         run: |
