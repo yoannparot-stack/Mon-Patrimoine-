@@ -79,3 +79,11 @@ check('simplified customer-facing backup menu', () => {
  assert.doesNotMatch(menu,/Restaurer depuis Google|Annuler la dernière restauration|Sur le cloud/);
  assert.match(menu,/<details/);
 });
+
+check('visible Drive filenames do not collide across same-day saves', () => {
+ assert.match(html,/ImmOptima_patrimoine_/);
+ assert.match(html,/toISOString\(\)\.replace\(\/\[:\.\]\/g,'-'\)/);
+});
+check('Google onboarding uses the visible document picker', () => {
+ assert.match(html,/typeof window\.AndroidBridge\.saveFile==='function'\)\{\s*backupDirectDrive\(\)/);
+});
