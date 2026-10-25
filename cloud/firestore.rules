@@ -31,7 +31,9 @@ service cloud.firestore {
       allow create: if validWrite() && request.resource.data.revision == 1;
       allow update: if validWrite() && resource.data.revision is int
         && request.resource.data.revision == resource.data.revision + 1;
-      allow delete: if request.auth != null && request.auth.uid == userId;
+      // Cloud data removal will be performed by a verified account-deletion flow.
+      // A compromised WebView must not be able to delete the only remote backup.
+      allow delete: if false;
     }
   }
 }
