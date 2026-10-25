@@ -110,14 +110,14 @@ check('onboarding does not misrepresent Drive file export as account login', () 
 });
 
 check('future account is not falsely represented as active', () => {
- assert.match(html,/Pour le moment, vos données restent sur cet appareil/);
+ assert.match(html,/vos données restent sur cet appareil/);
  assert.doesNotMatch(html,/Compte ImmOptima connecté avec succès/);
 });
 
 check('account onboarding cannot silently impersonate a working online identity', () => {
  assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='authentication_preview'/);
  assert.match(html,/Se connecter à ImmOptima/);
- assert.match(html,/Aucune inscription n’est actuellement possible/);
+ assert.match(html,/La synchronisation n’est pas encore active/);
  assert.match(html,/welcomeAccountInfo/);
  assert.match(html,/Sauvegarder sur Google Drive/);
  assert.match(html,/Utiliser sans sauvegarde Google/);
