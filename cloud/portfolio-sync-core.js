@@ -26,7 +26,8 @@
    if(!remote||!Number.isSafeInteger(remote.revision)||remote.revision<1)throw Error('Sauvegarde cloud invalide');
    const cloud=validPortfolio(remote.payload);
    if(hasLocalChanges)return {action:'conflict',message:'Choisissez explicitement quelle version conserver',cloud};
-   if(local&&JSON.stringify(validPortfolio(local))!==JSON.stringify(cloud))
+   if(local==null)return {action:'confirmation_required',cloud};
+   if(JSON.stringify(validPortfolio(local))!==JSON.stringify(cloud))
      return {action:'confirmation_required',cloud};
    return {action:'no_change',cloud};
  }
