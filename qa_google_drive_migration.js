@@ -98,3 +98,8 @@ check('JSON import preserves previous portfolio and does not trigger private aut
  assert.match(html,/immoptima_pre_import_v1/);
  assert.match(html,/localStorage\.setItem\(KEY,JSON\.stringify\(db\)\);renderAll\(\);alert\('Sauvegarde importée avec succès/);
 });
+
+check('JSON import requires explicit user approval before replacing portfolio', () => {
+ assert.match(html,/confirm\('Importer cette sauvegarde et remplacer le patrimoine actuel/);
+ assert.match(html,/immoptima_pre_import_v1/);
+});
