@@ -692,7 +692,7 @@ function exportVisibleDrive(){
   return;
  }
  try{
-  const filename='ImmOptima_patrimoine_'+new Date().toISOString().slice(0,10)+'.json';
+  const filename='ImmOptima_patrimoine_'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
   window.AndroidBridge.saveFile(JSON.stringify(db,null,2),filename,'application/json');
   closeBackupOptions();
   const status=document.getElementById('backupStatus');
@@ -713,7 +713,7 @@ function showImmoptimaWelcome(){
  document.getElementById('welcomeOffline').onclick=dismiss;
  document.getElementById('welcomeGoogle').onclick=()=>{
   dismiss();
-  if(window.AndroidBridge&&typeof window.AndroidBridge.backupToGoogleDrive==='function'){
+  if(window.AndroidBridge&&typeof window.AndroidBridge.saveFile==='function'){
    backupDirectDrive();
   }else alert('La sauvegarde Google est disponible dans la version Android ImmOptima. Vous pouvez continuer sans compte.');
  };
