@@ -13,6 +13,7 @@ assert.match(rules,/allow create: if validWrite\(\) && request.resource.data.rev
 assert.match(rules,/allow update: if validWrite\(\)/,'cloud update must use guarded validation');
 assert.match(rules,/request.resource.data.revision == resource.data.revision \+ 1/,'cloud update must be sequential');
 assert.doesNotMatch(rules,/resource == null/,'do not access missing resource on create');
+assert.match(rules,/allow delete: if false;/,'client must not delete cloud portfolio');
 assert.doesNotMatch(rules,/allow (?:read|write): if true/,'no public access');
 assert.match(guide,/immoptima-6af3b/,'project ID documented');
 assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='configuration_required'/,'do not pretend sign-in is ready');
