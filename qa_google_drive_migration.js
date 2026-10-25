@@ -110,7 +110,7 @@ check('onboarding does not misrepresent Drive file export as account login', () 
 });
 
 check('future account is not falsely represented as active', () => {
- assert.match(html,/vos données restent sur cet appareil/);
+ assert.match(html,/Vos données restent sur cet appareil/);
  assert.doesNotMatch(html,/Compte ImmOptima connecté avec succès/);
 });
 
