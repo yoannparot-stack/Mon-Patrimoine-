@@ -9,6 +9,10 @@ assert.match(workflow,/IMMOPTIMA_KEYSTORE_BASE64/,'persistent signing required')
 assert.match(rules,/request\.auth\.uid == userId/,'user isolation required');
 assert.match(rules,/match \/users\/\{userId\}\/portfolios\/\{portfolioId\}/,'portfolio must be account scoped');
 assert.match(rules,/portfolioId == 'current'/,'portfolio document ID must be constrained');
+assert.match(rules,/allow create: if validWrite\(\) && request.resource.data.revision == 1/,'first cloud write starts at revision one');
+assert.match(rules,/allow update: if validWrite\(\)/,'cloud update must use guarded validation');
+assert.match(rules,/request.resource.data.revision == resource.data.revision \+ 1/,'cloud update must be sequential');
+assert.doesNotMatch(rules,/resource == null/,'do not access missing resource on create');
 assert.doesNotMatch(rules,/allow (?:read|write): if true/,'no public access');
 assert.match(guide,/immoptima-6af3b/,'project ID documented');
 assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='configuration_required'/,'do not pretend sign-in is ready');
