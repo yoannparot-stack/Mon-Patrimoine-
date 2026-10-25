@@ -30,3 +30,12 @@ L'option avancée « sauvegarde automatique privée » est distincte : elle util
 - Ne jamais publier de clés, tokens OAuth, certificats privés ou fichiers réels de patrimoine dans GitHub.
 - Les données de test doivent être fictives.
 - Ne pas considérer une compilation réussie comme une validation fonctionnelle sur Android.
+
+## Audit du parcours utilisateur — 25 octobre 2026
+- Le bouton de bienvenue Google était trompeur : il déclenchait un export de fichier, et non une authentification persistante. Le texte a été corrigé pour décrire l'action réelle.
+- Le stockage principal repose sur `localStorage` dans la WebView : pas de synchronisation automatique multi-appareils. Tester la perte de données après effacement du stockage ou désinstallation avant toute promesse de récupération.
+- La sauvegarde visible repose sur le sélecteur Android : aucune vérification automatique de la présence du fichier sur Drive n'est implémentée.
+- L'import JSON vérifie les collections principales et demande une confirmation avant remplacement, mais un audit approfondi du schéma, des limites et de la compatibilité entre versions reste nécessaire.
+- La sauvegarde privée automatique, si activée, fonctionne séparément de l'export visible et note l'heure de tentative plutôt que la confirmation de succès. Ne pas la présenter comme garantie de récupération.
+- La logique Premium et la facturation Google Play ne sont pas prouvées par les tests de compilation actuels.
+- L'APK de test utilise un identifiant d'application de test : ne pas la confondre avec un artefact Google Play de production.
