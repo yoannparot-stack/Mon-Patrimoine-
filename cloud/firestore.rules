@@ -12,7 +12,8 @@ service cloud.firestore {
     }
     match /users/{userId}/portfolios/{portfolioId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow create, update: if request.auth != null && request.auth.uid == userId
+      function validWrite() {
+        return request.auth != null && request.auth.uid == userId
         && portfolioId == 'current'
         && request.resource.data.keys().hasOnly(['schemaVersion','revision','updatedAt','payload'])
         && request.resource.data.schemaVersion is int
@@ -25,7 +26,11 @@ service cloud.firestore {
         && request.resource.data.payload.properties is list
         && request.resource.data.payload.loans is list
         && request.resource.data.payload.assets is list
-        && (resource == null ? request.resource.data.revision == 1 : request.resource.data.revision == resource.data.revision + 1);
+        && request.resource.data.payload.settings is map;
+      }
+      allow create: if validWrite() && request.resource.data.revision == 1;
+      allow update: if validWrite() && resource.data.revision is int
+        && request.resource.data.revision == resource.data.revision + 1;
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
   }
