@@ -11,6 +11,8 @@ assert.throws(()=>validPortfolio({...sample,properties:'broken'}),/properties/);
 assert.throws(()=>validPortfolio({...sample,assets:[{note:'a'.repeat(MAX_BYTES)}]}),/volumineux/);
 const remote={revision:1,payload:sample};
 assert.equal(decideRestore(sample,remote,false).action,'no_change');
+assert.equal(decideRestore(null,remote,false).action,'confirmation_required');
+assert.equal(decideRestore(null,remote,true).action,'conflict');
 assert.equal(decideRestore({...sample,assets:[{id:1}]},remote,false).action,'confirmation_required');
 assert.equal(decideRestore(sample,remote,true).action,'conflict');
 assert.throws(()=>decideRestore(sample,{revision:0,payload:sample},false),/cloud invalide/);
