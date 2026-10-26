@@ -60,7 +60,7 @@ methods='''    // Firestore bridge: authenticated user only, optimistic revision
                     "Lecture cloud impossible. Données locales conservées.",requestUid));
         } catch(Exception e) { notifyImmoptimaCloud("error","","Compte indisponible",""); }
     }
-    private static final boolean IMMOPTIMA_NATIVE_CLOUD_WRITE_ENABLED = false;
+    private static final boolean IMMOPTIMA_NATIVE_CLOUD_WRITE_ENABLED = true;
     private void writeImmoptimaCloud(String json, int expectedRevision) {
         if(!IMMOPTIMA_NATIVE_CLOUD_WRITE_ENABLED) {
             notifyImmoptimaCloud("error","","Synchronisation cloud non activée","");return;
