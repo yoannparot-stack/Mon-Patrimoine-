@@ -34,12 +34,11 @@ methods='''    // Firestore bridge: authenticated user only, optimistic revision
         return FirebaseFirestore.getInstance().collection("users")
             .document(user.getUid()).collection("portfolios").document("current");
     }
-    private void notifyImmoptimaCloud(String event, String data, String message) {
+    private void notifyImmoptimaCloud(String event, String data, String message, String requestUid) {
         try {
             JSONObject payload=new JSONObject();
             payload.put("event",event);
-            FirebaseUser active=FirebaseAuth.getInstance().getCurrentUser();
-            payload.put("uid",active==null?"":active.getUid());
+            payload.put("uid",requestUid==null?"":requestUid);
             payload.put("data",data==null?"":data);
             payload.put("message",message==null?"":message);
             runOnUiThread(() -> webView.evaluateJavascript(
@@ -48,34 +47,37 @@ methods='''    // Firestore bridge: authenticated user only, optimistic revision
     }
     private void readImmoptimaCloud() {
         try {
+            FirebaseUser reader=FirebaseAuth.getInstance().getCurrentUser();
+            if(reader==null)throw new IllegalStateException("Compte déconnecté");
+            final String requestUid=reader.getUid();
             immoptimaPortfolioRef().get(com.google.firebase.firestore.Source.SERVER)
                 .addOnSuccessListener(snapshot -> {
                     if(!snapshot.exists()) {
-                        notifyImmoptimaCloud("missing","",""); return;
+                        notifyImmoptimaCloud("missing","","",requestUid); return;
                     }
-                    notifyImmoptimaCloud("snapshot",new JSONObject(snapshot.getData()).toString(),"");
+                    notifyImmoptimaCloud("snapshot",new JSONObject(snapshot.getData()).toString(),"",requestUid);
                 }).addOnFailureListener(error -> notifyImmoptimaCloud("error","",
-                    "Lecture cloud impossible. Données locales conservées."));
-        } catch(Exception e) { notifyImmoptimaCloud("error","","Compte indisponible"); }
+                    "Lecture cloud impossible. Données locales conservées.",requestUid));
+        } catch(Exception e) { notifyImmoptimaCloud("error","","Compte indisponible",""); }
     }
     private void writeImmoptimaCloud(String json, int expectedRevision) {
         if(expectedRevision<0 || json==null || json.length()>850000) {
-            notifyImmoptimaCloud("error","","Taille ou révision invalide");return;
+            notifyImmoptimaCloud("error","","Taille ou révision invalide","");return;
         }
         try {
             JSONObject payload=new JSONObject(json);
             if(!payload.has("properties")||!payload.has("loans")||!payload.has("assets")||!payload.has("settings")) {
-                notifyImmoptimaCloud("error","","Format du patrimoine invalide");return;
+                notifyImmoptimaCloud("error","","Format du patrimoine invalide","");return;
             }
             // Capture UID before transaction; reject if sign-out/account switch occurs.
             FirebaseUser user=FirebaseAuth.getInstance().getCurrentUser();
-            if(user==null) {notifyImmoptimaCloud("error","","Compte déconnecté");return;}
+            if(user==null) {notifyImmoptimaCloud("error","","Compte déconnecté","");return;}
             final String uid=user.getUid();
             DocumentReference ref=immoptimaPortfolioRef();
             Map<String,Object> parsed=com.google.firebase.firestore.util.CustomClassMapper
                 .convertToPlainJavaTypes(new HashMap<String,Object>());
         } catch(Exception e) {
-            notifyImmoptimaCloud("error","","Synchronisation non disponible");
+            notifyImmoptimaCloud("error","","Synchronisation non disponible","");
         }
     }
 '''
@@ -101,8 +103,8 @@ methods=methods.replace('''            Map<String,Object> parsed=com.google.fire
                 document.put("updatedAt",FieldValue.serverTimestamp());
                 transaction.set(ref,document);
                 return revision+1;
-            }).addOnSuccessListener(revision -> notifyImmoptimaCloud("saved",String.valueOf(revision),""))
-              .addOnFailureListener(error -> notifyImmoptimaCloud("conflict","","Révision modifiée ou écriture refusée"));''')
+            }).addOnSuccessListener(revision -> notifyImmoptimaCloud("saved",String.valueOf(revision),"",uid))
+              .addOnFailureListener(error -> notifyImmoptimaCloud("conflict","","Révision modifiée ou écriture refusée",uid));''')
 methods=methods.replace('''    private void writeImmoptimaCloud(String json, int expectedRevision) {''','''    private Object jsonToCloud(Object value) throws org.json.JSONException {
         if(value==null || value==JSONObject.NULL)return null;
         if(value instanceof JSONObject) {
