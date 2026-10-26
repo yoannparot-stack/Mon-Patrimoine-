@@ -726,7 +726,8 @@ function immoptimaSyncUpload(){
  if(!IMMOPTIMA_CLOUD_WRITE_ENABLED||immoptimaAuthState.status!=='signed_in')return;
  if(!immoptimaCloudState.loaded||immoptimaCloudState.busy)return;
  const meta=immoptimaSyncMeta();
- if(!meta.dirty)return;
+ if(!meta.dirty||meta.uploadConsent!==true)return;
+ if(!navigator.onLine)return;
  if(!window.AndroidBridge||typeof window.AndroidBridge.immoptimaCloudWrite!=='function')return;
  try{
   const serialized=JSON.stringify(db);
@@ -761,8 +762,15 @@ window.immoptimaNativeCloudResult=function(event){
  immoptimaCloudState.loaded=true;
  if(event.event==='missing'){
   immoptimaCloudState.revision=0;
-  // Never silently upload an existing local portfolio into an empty remote account.
-  if(IMMOPTIMA_CLOUD_WRITE_ENABLED&&meta.dirty)immoptimaScheduleSync();
+  // First upload must be explicitly approved, including when existing data predates sync.
+  if(!meta.uploadConsent){
+   if(!confirm('Activer la sauvegarde automatique chiffrée en transit vers votre compte ImmOptima pour ce patrimoine ? Vos données resteront aussi sur ce téléphone.'))return;
+   meta.uploadConsent=true;
+   meta.dirty=true;
+   meta.localUpdatedAt=Date.now();
+   localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
+  }
+  if(IMMOPTIMA_CLOUD_WRITE_ENABLED)immoptimaScheduleSync();
   return;
  }
  try{
@@ -774,21 +782,23 @@ window.immoptimaNativeCloudResult=function(event){
     throw Error('Structure distante invalide');
   immoptimaCloudState.revision=remote.revision;
   const same=JSON.stringify(db)===JSON.stringify(remote.payload);
-  if(same){meta.dirty=false;meta.revision=remote.revision;localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));return;}
+  if(same){meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));return;}
   // No automatic replacement, including on a new device: request explicit consent.
   if(meta.dirty){
+   immoptimaCloudState.loaded=false;
    alert('Le patrimoine local et le cloud diffèrent. Aucune donnée n’a été remplacée. Une résolution de conflit sera nécessaire.');
    return;
   }
-  if(!confirm('Un patrimoine existe sur votre compte ImmOptima. Le charger sur cet appareil ? Une copie de secours locale sera conservée.'))return;
+  if(!confirm('Un patrimoine existe sur votre compte ImmOptima. Le charger sur cet appareil ? Une copie de secours locale sera conservée.')){immoptimaCloudState.loaded=false;return;}
   localStorage.setItem('immoptima_pre_cloud_restore_v1',JSON.stringify(db));
   db={...structuredClone(empty),...remote.payload};
   localStorage.setItem(KEY,JSON.stringify(db));
-  meta.dirty=false;meta.revision=remote.revision;
+  meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;
   localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
   renderAll();
  }catch(error){console.warn('Patrimoine cloud refusé :',error.message)}
 };
+window.addEventListener('online',()=>{if(IMMOPTIMA_CLOUD_WRITE_ENABLED){if(!immoptimaCloudState.loaded&&immoptimaAuthState.status==='signed_in')immoptimaCloudAfterLogin(immoptimaAuthState.uid);else immoptimaScheduleSync();}});
 function immoptimaCloudAfterLogin(uid){
  if(!uid||!IMMOPTIMA_CLOUD_WRITE_ENABLED)return;
  const meta=immoptimaSyncMeta();
