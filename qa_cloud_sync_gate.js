@@ -13,6 +13,7 @@ assert.match(html,/immoptima_pre_cloud_restore_v1/,'rollback backup required');
 assert.match(html,/if\(!confirm\('Un patrimoine existe sur votre compte ImmOptima/,'remote restore needs consent');
 assert.match(html,/meta\.uid&&meta\.uid!==uid/,'account switch must be guarded');
 assert.match(html,/meta\.localUpdatedAt===immoptimaCloudState\.uploadStartedAt/,'edits during upload must stay dirty');
+assert.match(patch,/IMMOPTIMA_NATIVE_CLOUD_WRITE_ENABLED = false/,'native Firestore writes must be independently gated');
 assert.match(patch,/transaction\.get\(ref\)/,'read revision inside Firestore transaction');
 assert.match(patch,/payload\.put\("uid",requestUid/,'cloud response must be tagged with originating account');
 assert.match(html,/event\.uid!==immoptimaAuthState\.uid/,'ignore cloud responses from another account');
