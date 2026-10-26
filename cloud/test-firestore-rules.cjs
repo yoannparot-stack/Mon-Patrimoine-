@@ -1,5 +1,7 @@
 const {initializeTestEnvironment,assertSucceeds,assertFails}=require('@firebase/rules-unit-testing');
 const fs=require('fs');
+const firebase=require('firebase/compat/app');
+require('firebase/compat/firestore');
 (async()=>{
  const env=await initializeTestEnvironment({
   projectId:'immoptima-rules-test',
@@ -12,7 +14,7 @@ const fs=require('fs');
   const path='users/owner/portfolios/current';
   const doc=owner.doc(path);
   const payload={settings:{holders:[]},properties:[],loans:[],assets:[]};
-  const create={schemaVersion:1,revision:1,updatedAt:require('firebase/firestore').serverTimestamp(),payload};
+  const create={schemaVersion:1,revision:1,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),payload};
   await assertFails(anon.doc(path).get());
   await assertFails(intruder.doc(path).get());
   await assertSucceeds(doc.set(create));
