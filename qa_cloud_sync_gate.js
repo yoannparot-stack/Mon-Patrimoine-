@@ -1,0 +1,22 @@
+// ImmOptima automatic sync safety regression: no remote write before rules deployment.
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8');
+const patch=fs.readFileSync('android-cloud-sync-patch.py','utf8');
+const workflow=fs.readFileSync('.github/workflows/build.yml','utf8');
+const rules=fs.readFileSync('cloud/firestore.rules','utf8');
+assert.match(html,/const IMMOPTIMA_CLOUD_WRITE_ENABLED=false/,'cloud uploads must remain disabled before rules deployment');
+assert.match(html,/function immoptimaSyncMarkDirty\(\)/,'local changes must be marked dirty');
+assert.match(html,/function save\(\)\{[^\n]*immoptimaSyncMarkDirty\(\)/,'save must queue changes');
+assert.match(html,/function immoptimaScheduleSync\(\)/,'automatic debounced queue');
+assert.match(html,/if\(!IMMOPTIMA_CLOUD_WRITE_ENABLED\|\|immoptimaAuthState\.status!=='signed_in'\)return/,'sync requires both gate and sign-in');
+assert.match(html,/immoptima_pre_cloud_restore_v1/,'rollback backup required');
+assert.match(html,/if\(!confirm\('Un patrimoine existe sur votre compte ImmOptima/,'remote restore needs consent');
+assert.match(html,/meta\.uid&&meta\.uid!==uid/,'account switch must be guarded');
+assert.match(html,/meta\.localUpdatedAt===immoptimaCloudState\.uploadStartedAt/,'edits during upload must stay dirty');
+assert.match(patch,/transaction\.get\(ref\)/,'read revision inside Firestore transaction');
+assert.match(patch,/revision!=expectedRevision/,'reject stale writers');
+assert.match(patch,/FieldValue\.serverTimestamp\(\)/,'server timestamp required');
+assert.match(patch,/getCurrentUser\(\)\.getUid\(\)/,'transaction must re-check identity');
+assert.match(workflow,/python3 android-cloud-sync-patch\.py/,'CI must build bridge');
+assert.match(rules,/request\.resource\.data\.revision == resource\.data\.revision \+ 1/,'Firestore rules require sequential revisions');
+console.log('PASS gated automatic sync, revision transactions, local rollback and conflict guards');
