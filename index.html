@@ -307,7 +307,7 @@ function addHolderFromPropertyForm(){
 }
 function saveHolders(){const raw=document.getElementById('holderList').value;const names=[...new Set(raw.split('\n').map(x=>x.trim()).filter(Boolean))];db.settings.holders=names;save();renderHolderControls();alert(names.length?'Liste des détenteurs enregistrée.':'Liste des détenteurs vidée. Vous pourrez en ajouter quand vous le souhaitez.');}
 function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.settings={...empty.settings,...(base.settings||{})};x.settings.holders=Array.isArray(x.settings.holders)?x.settings.holders:[...DEFAULT_HOLDERS];if(JSON.stringify(x.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))x.settings.holders=[];x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const raw=localStorage.getItem(KEY);if(raw){try{const recoveryKey=KEY+'_recovery_'+Date.now();localStorage.setItem(recoveryKey,raw);alert('Les données locales ne peuvent pas être chargées. Une copie de récupération a été conservée sous '+recoveryKey+'. Restaurez une sauvegarde valide avant de saisir de nouvelles données.')}catch(backupError){alert('Les données locales ne peuvent pas être chargées. Ne modifiez pas votre patrimoine avant d’avoir récupéré votre sauvegarde.')}}const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
-function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll(); immoptimaMaybeAutoBackup();}
+function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll(); immoptimaMaybeAutoBackup(); immoptimaSyncMarkDirty();}
 function euro(n){return (Number(n)||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})}
 function pct(n){return (Number(n)||0).toLocaleString('fr-FR',{maximumFractionDigits:1})+' %'}
 function dateFR(s){if(!s)return '';return new Date(s+'T12:00:00').toLocaleDateString('fr-FR')}
@@ -702,6 +702,108 @@ function exportVisibleDrive(){
 // Account rollout guard: never claim an online account exists before the backend is provisioned.
 const IMMOPTIMA_ACCOUNT_STATUS='authentication_preview';
 let immoptimaAuthState={status:'unknown',uid:'',detail:''};
+// The cloud write gate stays CLOSED until Firestore owner-only rules are deployed and tested.
+// Never enable it solely because a Google account is connected.
+const IMMOPTIMA_CLOUD_WRITE_ENABLED=false;
+const IMMOPTIMA_SYNC_META_KEY='immoptima_cloud_sync_v1';
+let immoptimaCloudState={uid:'',revision:0,dirty:false,loaded:false,busy:false,queue:false};
+let immoptimaSyncTimer=null;
+function immoptimaSyncMeta(){try{return JSON.parse(localStorage.getItem(IMMOPTIMA_SYNC_META_KEY)||'{}')}catch(e){return {}}}
+function immoptimaSyncMarkDirty(){
+ const meta=immoptimaSyncMeta();
+ meta.dirty=true;
+ meta.localUpdatedAt=Date.now();
+ localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
+ immoptimaCloudState.dirty=true;
+ if(IMMOPTIMA_CLOUD_WRITE_ENABLED)immoptimaScheduleSync();
+}
+function immoptimaScheduleSync(){
+ if(!IMMOPTIMA_CLOUD_WRITE_ENABLED||immoptimaAuthState.status!=='signed_in')return;
+ if(immoptimaSyncTimer)clearTimeout(immoptimaSyncTimer);
+ immoptimaSyncTimer=setTimeout(immoptimaSyncUpload,1500);
+}
+function immoptimaSyncUpload(){
+ if(!IMMOPTIMA_CLOUD_WRITE_ENABLED||immoptimaAuthState.status!=='signed_in')return;
+ if(!immoptimaCloudState.loaded||immoptimaCloudState.busy)return;
+ const meta=immoptimaSyncMeta();
+ if(!meta.dirty)return;
+ if(!window.AndroidBridge||typeof window.AndroidBridge.immoptimaCloudWrite!=='function')return;
+ try{
+  const serialized=JSON.stringify(db);
+  if(new TextEncoder().encode(serialized).length>850000)throw Error('Patrimoine trop volumineux');
+  immoptimaCloudState.busy=true;
+  immoptimaCloudState.uploadStartedAt=meta.localUpdatedAt;
+  window.AndroidBridge.immoptimaCloudWrite(serialized,immoptimaCloudState.revision);
+ }catch(error){immoptimaCloudState.busy=false;console.warn('Synchronisation suspendue :',error.message)}
+}
+window.immoptimaNativeCloudResult=function(event){
+ if(!event||typeof event!=='object')return;
+ if(immoptimaAuthState.status!=='signed_in')return;
+ const meta=immoptimaSyncMeta();
+ if(event.event==='error'||event.event==='conflict'){
+  immoptimaCloudState.busy=false;
+  immoptimaCloudState.loaded=false;
+  console.warn('Synchronisation cloud suspendue :',event.message||event.event);
+  return;
+ }
+ if(event.event==='saved'){
+  immoptimaCloudState.busy=false;
+  immoptimaCloudState.revision=Number(event.data)||immoptimaCloudState.revision;
+  if(meta.localUpdatedAt===immoptimaCloudState.uploadStartedAt){
+   meta.dirty=false;
+   meta.revision=immoptimaCloudState.revision;
+   localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
+  }else immoptimaScheduleSync();
+  return;
+ }
+ if(event.event!=='snapshot'&&event.event!=='missing')return;
+ immoptimaCloudState.busy=false;
+ immoptimaCloudState.loaded=true;
+ if(event.event==='missing'){
+  immoptimaCloudState.revision=0;
+  // Never silently upload an existing local portfolio into an empty remote account.
+  if(IMMOPTIMA_CLOUD_WRITE_ENABLED&&meta.dirty)immoptimaScheduleSync();
+  return;
+ }
+ try{
+  const remote=JSON.parse(event.data);
+  if(!remote||!Number.isSafeInteger(remote.revision)||remote.revision<1||
+    !remote.payload||!Array.isArray(remote.payload.properties)||
+    !Array.isArray(remote.payload.loans)||!Array.isArray(remote.payload.assets)||
+    !remote.payload.settings||typeof remote.payload.settings!=='object')
+    throw Error('Structure distante invalide');
+  immoptimaCloudState.revision=remote.revision;
+  const same=JSON.stringify(db)===JSON.stringify(remote.payload);
+  if(same){meta.dirty=false;meta.revision=remote.revision;localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));return;}
+  // No automatic replacement, including on a new device: request explicit consent.
+  if(meta.dirty){
+   alert('Le patrimoine local et le cloud diffèrent. Aucune donnée n’a été remplacée. Une résolution de conflit sera nécessaire.');
+   return;
+  }
+  if(!confirm('Un patrimoine existe sur votre compte ImmOptima. Le charger sur cet appareil ? Une copie de secours locale sera conservée.'))return;
+  localStorage.setItem('immoptima_pre_cloud_restore_v1',JSON.stringify(db));
+  db={...structuredClone(empty),...remote.payload};
+  localStorage.setItem(KEY,JSON.stringify(db));
+  meta.dirty=false;meta.revision=remote.revision;
+  localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
+  renderAll();
+ }catch(error){console.warn('Patrimoine cloud refusé :',error.message)}
+};
+function immoptimaCloudAfterLogin(uid){
+ if(!uid||!IMMOPTIMA_CLOUD_WRITE_ENABLED)return;
+ const meta=immoptimaSyncMeta();
+ if(meta.uid&&meta.uid!==uid){
+  // Prevent data from account A being sent to account B.
+  alert('Compte différent détecté. La synchronisation reste suspendue pour protéger les données locales.');
+  return;
+ }
+ meta.uid=uid;
+ localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
+ immoptimaCloudState.uid=uid;
+ immoptimaCloudState.loaded=false;
+ if(window.AndroidBridge&&typeof window.AndroidBridge.immoptimaCloudRead==='function')
+  window.AndroidBridge.immoptimaCloudRead();
+}
 window.immoptimaNativeAuthResult=function(payload){
  if(!payload||typeof payload!=='object')return;
  immoptimaAuthState={status:String(payload.status||'error'),uid:String(payload.uid||''),detail:String(payload.detail||'')};
@@ -713,6 +815,7 @@ window.immoptimaNativeAuthResult=function(payload){
   localStorage.setItem('immoptima_welcome_v1','seen');
   const welcome=document.getElementById('immoptimaWelcome');
   if(welcome)welcome.remove();
+  immoptimaCloudAfterLogin(immoptimaAuthState.uid);
  }
 };
 function immoptimaAccountInformation(){
