@@ -798,6 +798,9 @@ window.immoptimaNativeCloudResult=function(event){
   const same=canonical(db)===canonical(remote.payload);
   if(same){
    meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;
+   // The remote document was successfully read and its content verified.
+   // Record the confirmation time even when no new upload was necessary.
+   meta.lastSavedAt=Date.now();
    localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
    immoptimaCloudUpdateStatus();return;
   }
