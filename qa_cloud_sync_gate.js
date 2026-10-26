@@ -10,6 +10,10 @@ assert.match(html,/function save\(\)\{[^\n]*immoptimaSyncMarkDirty\(\)/,'save mu
 assert.match(html,/function immoptimaScheduleSync\(\)/,'automatic debounced queue');
 assert.match(html,/if\(!IMMOPTIMA_CLOUD_WRITE_ENABLED\|\|immoptimaAuthState\.status!=='signed_in'\)return/,'sync requires both gate and sign-in');
 assert.match(html,/immoptima_pre_cloud_restore_v1/,'rollback backup required');
+assert.match(html,/meta\.uploadConsent!==true/,'no cloud upload without explicit consent');
+assert.match(html,/window\.addEventListener\('online'/,'pending changes retry on network reconnect');
+assert.match(html,/if\(!navigator\.onLine\)return/,'do not start cloud writes offline');
+assert.match(html,/if\(!meta\.uploadConsent\)/,'first upload must ask for consent');
 assert.match(html,/if\(!confirm\('Un patrimoine existe sur votre compte ImmOptima/,'remote restore needs consent');
 assert.match(html,/meta\.uid&&meta\.uid!==uid/,'account switch must be guarded');
 assert.match(html,/meta\.localUpdatedAt===immoptimaCloudState\.uploadStartedAt/,'edits during upload must stay dirty');
