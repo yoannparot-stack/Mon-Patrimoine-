@@ -268,6 +268,7 @@ header .top{align-items:center!important}
 
 <section id="parametres" class="page">
   <h2>Paramètres & sauvegarde</h2>
+  <div class="card" id="immoptimaCloudAccountCard"><h3>☁️ Mon compte ImmOptima</h3><p id="immoptimaAccountStatus" role="status" aria-live="polite">Connexion Google : vérification…</p><p id="immoptimaCloudStatus" class="muted" role="status" aria-live="polite">Sauvegarde Firebase : en attente</p><p id="immoptimaCloudLastSaved" class="muted">Dernière sauvegarde : aucune confirmation</p><div class="actions" style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="primary" id="immoptimaAccountAction" onclick="immoptimaAccountInformation()">Se connecter avec Google</button><button type="button" class="secondary" onclick="immoptimaCloudCheckNow()">Vérifier la sauvegarde</button></div><p class="hint">La sauvegarde locale et Google Drive restent disponibles. Une sauvegarde cloud n'est confirmée qu'après réponse de Firebase.</p></div>
   <div class="card"><h3>Nom du tableau</h3><div class="field"><input id="appName"></div><button class="primary" onclick="saveSettings()">Enregistrer</button></div>
   <div class="card"><h3>Détenteurs des biens</h3><p class="muted">Personnalisez la liste des personnes, sociétés ou structures qui peuvent détenir vos biens. Inscrivez un détenteur par ligne. Cette liste sert au formulaire immobilier, aux filtres et à la synthèse bancaire.</p><div class="field"><label for="holderList">Liste des détenteurs (un par ligne)</label><textarea id="holderList" rows="5" placeholder="Ex. : Personne, société, SCI…"></textarea></div><div class="actions"><button class="primary" onclick="saveHolders()">Enregistrer les détenteurs</button></div><div class="hint">Les détenteurs déjà affectés à un bien restent visibles même si vous modifiez cette liste, pour éviter de perdre leur identification.</div></div>
   <div class="card"><h3>Données</h3><p class="muted">Toutes les données sont conservées localement dans le navigateur de cet appareil. Faites régulièrement une sauvegarde JSON si vous voulez éviter toute perte.</p><div class="actions" style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="primary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button><input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importData(event)"></div><p class="muted" id="backupStatus" role="status" aria-live="polite">La sauvegarde ouvre le choix du dossier sur Android. Vérifiez que le fichier est enregistré avant toute suppression.</p><div class="actions"><button class="danger" onclick="resetAll()">Effacer toutes les données</button></div></div>
@@ -715,6 +716,7 @@ function immoptimaSyncMarkDirty(){
  meta.localUpdatedAt=Date.now();
  localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
  immoptimaCloudState.dirty=true;
+ immoptimaCloudUpdateStatus();
  if(IMMOPTIMA_CLOUD_WRITE_ENABLED)immoptimaScheduleSync();
 }
 function immoptimaScheduleSync(){
@@ -744,6 +746,8 @@ window.immoptimaNativeCloudResult=function(event){
  if(event.event==='error'||event.event==='conflict'){
   immoptimaCloudState.busy=false;
   immoptimaCloudState.loaded=false;
+  immoptimaCloudState.error=event.message||'Conflit ou accès Firebase refusé';
+  immoptimaCloudUpdateStatus();
   console.warn('Synchronisation cloud suspendue :',event.message||event.event);
   return;
  }
@@ -753,13 +757,17 @@ window.immoptimaNativeCloudResult=function(event){
   if(meta.localUpdatedAt===immoptimaCloudState.uploadStartedAt){
    meta.dirty=false;
    meta.revision=immoptimaCloudState.revision;
+   meta.lastSavedAt=Date.now();
    localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
   }else immoptimaScheduleSync();
+  immoptimaCloudUpdateStatus();
   return;
  }
  if(event.event!=='snapshot'&&event.event!=='missing')return;
  immoptimaCloudState.busy=false;
  immoptimaCloudState.loaded=true;
+ immoptimaCloudState.error='';
+ immoptimaCloudUpdateStatus();
  if(event.event==='missing'){
   immoptimaCloudState.revision=0;
   // First upload must be explicitly approved, including when existing data predates sync.
@@ -832,6 +840,7 @@ window.immoptimaNativeAuthResult=function(payload){
   immoptimaCloudState.loaded=false;immoptimaCloudState.uid='';immoptimaCloudState.busy=false;
   if(immoptimaSyncTimer)clearTimeout(immoptimaSyncTimer);
  }
+ immoptimaCloudUpdateStatus();
  if(immoptimaAuthState.status==='signed_in'){
   // Google authentication must unlock the app, not leave the welcome modal blocking it.
   localStorage.setItem('immoptima_welcome_v1','seen');
@@ -839,7 +848,36 @@ window.immoptimaNativeAuthResult=function(payload){
   if(welcome)welcome.remove();
   immoptimaCloudAfterLogin(immoptimaAuthState.uid);
  }
+ immoptimaCloudUpdateStatus();
 };
+function immoptimaCloudUpdateStatus(){
+ const account=document.getElementById('immoptimaAccountStatus'),cloud=document.getElementById('immoptimaCloudStatus'),last=document.getElementById('immoptimaCloudLastSaved'),action=document.getElementById('immoptimaAccountAction');
+ if(!account||!cloud||!last||!action)return;
+ const connected=immoptimaAuthState.status==='signed_in';
+ account.textContent=connected?'Compte Google : connecté':immoptimaAuthState.status==='error'?'Compte Google : erreur de connexion':'Compte Google : non connecté';
+ action.textContent=connected?'Gérer la connexion':'Se connecter avec Google';
+ const meta=immoptimaSyncMeta();
+ let status='Non activée — connexion Google nécessaire';
+ if(connected){
+  if(immoptimaCloudState.error)status='Erreur : '+immoptimaCloudState.error;
+  else if(immoptimaCloudState.busy)status='Synchronisation en cours…';
+  else if(!immoptimaCloudState.loaded)status='Vérification Firebase nécessaire';
+  else if(!meta.uploadConsent)status='Autorisation de sauvegarde nécessaire';
+  else if(meta.dirty)status='Modifications en attente de sauvegarde';
+  else if(meta.lastSavedAt)status='Sauvegarde automatique active';
+  else status='Connecté — première sauvegarde à confirmer';
+ }
+ cloud.textContent='Sauvegarde Firebase : '+status;
+ last.textContent='Dernière sauvegarde confirmée : '+(meta.lastSavedAt?new Date(meta.lastSavedAt).toLocaleString('fr-FR'):'aucune');
+}
+function immoptimaCloudCheckNow(){
+ if(immoptimaAuthState.status!=='signed_in'){immoptimaAccountInformation();return;}
+ if(!window.AndroidBridge||typeof window.AndroidBridge.immoptimaCloudRead!=='function'){alert('Vérification Firebase indisponible dans cette version Android.');return;}
+ immoptimaCloudState.error='';
+ immoptimaCloudState.loaded=false;
+ immoptimaCloudUpdateStatus();
+ window.AndroidBridge.immoptimaCloudRead();
+}
 function immoptimaAccountInformation(){
  if(!window.AndroidBridge||typeof window.AndroidBridge.immoptimaSignIn!=='function'){
   alert('La connexion ImmOptima est disponible uniquement dans la nouvelle version Android. Vos données restent sur ce téléphone.');return;
@@ -859,7 +897,7 @@ function showImmoptimaWelcome(){
  overlay.setAttribute('aria-modal','true');
  overlay.setAttribute('aria-label','Bienvenue sur ImmOptima');
  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.75);display:flex;align-items:center;justify-content:center;padding:20px';
- overlay.innerHTML='<div style="background:#f4f4f4;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 18px 55px #0004;text-align:center"><h2 style="margin:0 0 10px;color:#151515">Bienvenue sur ImmOptima</h2><p style="color:#666;margin:0 0 20px">Un seul outil pour tout votre patrimoine.</p><button id="welcomeGoogle" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">☁️ &nbsp; Sauvegarder sur Google Drive</button><button id="welcomeAccountInfo" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">Se connecter à ImmOptima</button><div style="color:#777;margin-bottom:18px">ou</div><button id="welcomeOffline" style="display:block;width:100%;border:2px solid #d1d1d1;border-radius:999px;background:transparent;color:#5c5c5c;padding:15px 10px;font-size:17px;font-weight:600">Utiliser sans sauvegarde Google</button><small style="display:block;color:#777;margin-top:18px">Connexion Google en version de test. La synchronisation n’est pas encore active. Vos données restent sur cet appareil ; sauvegardez-les aussi dans Google Drive.</small></div>';
+ overlay.innerHTML='<div style="background:#f4f4f4;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 18px 55px #0004;text-align:center"><h2 style="margin:0 0 10px;color:#151515">Bienvenue sur ImmOptima</h2><p style="color:#666;margin:0 0 20px">Un seul outil pour tout votre patrimoine.</p><button id="welcomeGoogle" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">☁️ &nbsp; Sauvegarder sur Google Drive</button><button id="welcomeAccountInfo" style="display:block;width:100%;border:0;border-radius:999px;background:#171717;color:white;padding:17px 10px;font-size:17px;font-weight:600;margin:0 0 18px">Se connecter à ImmOptima</button><div style="color:#777;margin-bottom:18px">ou</div><button id="welcomeOffline" style="display:block;width:100%;border:2px solid #d1d1d1;border-radius:999px;background:transparent;color:#5c5c5c;padding:15px 10px;font-size:17px;font-weight:600">Utiliser sans sauvegarde Google</button><small style="display:block;color:#777;margin-top:18px">Connexion Google et synchronisation Firebase en version de test. Vos données restent sur cet appareil ; sauvegardez-les aussi dans Google Drive.</small></div>';
  document.body.appendChild(overlay);
  const dismiss=()=>{localStorage.setItem('immoptima_welcome_v1','seen');overlay.remove()};
  document.getElementById('welcomeOffline').onclick=dismiss;
