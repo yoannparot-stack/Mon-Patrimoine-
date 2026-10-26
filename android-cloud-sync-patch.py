@@ -60,7 +60,11 @@ methods='''    // Firestore bridge: authenticated user only, optimistic revision
                     "Lecture cloud impossible. Données locales conservées.",requestUid));
         } catch(Exception e) { notifyImmoptimaCloud("error","","Compte indisponible",""); }
     }
+    private static final boolean IMMOPTIMA_NATIVE_CLOUD_WRITE_ENABLED = false;
     private void writeImmoptimaCloud(String json, int expectedRevision) {
+        if(!IMMOPTIMA_NATIVE_CLOUD_WRITE_ENABLED) {
+            notifyImmoptimaCloud("error","","Synchronisation cloud non activée","");return;
+        }
         if(expectedRevision<0 || json==null || json.length()>850000) {
             notifyImmoptimaCloud("error","","Taille ou révision invalide","");return;
         }
