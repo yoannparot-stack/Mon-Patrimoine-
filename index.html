@@ -738,7 +738,7 @@ function immoptimaSyncUpload(){
 }
 window.immoptimaNativeCloudResult=function(event){
  if(!event||typeof event!=='object')return;
- if(immoptimaAuthState.status!=='signed_in')return;
+ if(immoptimaAuthState.status!=='signed_in'||!event.uid||event.uid!==immoptimaAuthState.uid)return;
  const meta=immoptimaSyncMeta();
  if(event.event==='error'||event.event==='conflict'){
   immoptimaCloudState.busy=false;
