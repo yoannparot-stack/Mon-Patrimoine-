@@ -26,4 +26,8 @@ assert.match(patch,/FieldValue\.serverTimestamp\(\)/,'server timestamp required'
 assert.match(patch,/getCurrentUser\(\)\.getUid\(\)/,'transaction must re-check identity');
 assert.match(workflow,/python3 android-cloud-sync-patch\.py/,'CI must build bridge');
 assert.match(rules,/request\.resource\.data\.revision == resource\.data\.revision \+ 1/,'Firestore rules require sequential revisions');
+assert.match(html,/id="immoptimaCloudAccountCard"/,'account status must be visible in settings');
+assert.match(html,/id="immoptimaCloudLastSaved"/,'last confirmed cloud backup must be visible');
+assert.match(html,/function immoptimaCloudCheckNow\(\)/,'user must be able to recheck cloud status');
+assert.match(html,/meta\.lastSavedAt=Date\.now\(\)/,'last backup timestamp must come from confirmed Firebase save');
 console.log('PASS gated automatic sync, revision transactions, local rollback and conflict guards');
