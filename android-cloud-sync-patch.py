@@ -38,6 +38,8 @@ methods='''    // Firestore bridge: authenticated user only, optimistic revision
         try {
             JSONObject payload=new JSONObject();
             payload.put("event",event);
+            FirebaseUser active=FirebaseAuth.getInstance().getCurrentUser();
+            payload.put("uid",active==null?"":active.getUid());
             payload.put("data",data==null?"":data);
             payload.put("message",message==null?"":message);
             runOnUiThread(() -> webView.evaluateJavascript(
