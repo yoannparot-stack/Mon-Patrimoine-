@@ -704,7 +704,7 @@ const IMMOPTIMA_ACCOUNT_STATUS='authentication_preview';
 let immoptimaAuthState={status:'unknown',uid:'',detail:''};
 // The cloud write gate stays CLOSED until Firestore owner-only rules are deployed and tested.
 // Never enable it solely because a Google account is connected.
-const IMMOPTIMA_CLOUD_WRITE_ENABLED=false;
+const IMMOPTIMA_CLOUD_WRITE_ENABLED=true;
 const IMMOPTIMA_SYNC_META_KEY='immoptima_cloud_sync_v1';
 let immoptimaCloudState={uid:'',revision:0,dirty:false,loaded:false,busy:false,queue:false};
 let immoptimaSyncTimer=null;
@@ -786,7 +786,15 @@ window.immoptimaNativeCloudResult=function(event){
   // No automatic replacement, including on a new device: request explicit consent.
   if(meta.dirty){
    immoptimaCloudState.loaded=false;
-   alert('Le patrimoine local et le cloud diffèrent. Aucune donnée n’a été remplacée. Une résolution de conflit sera nécessaire.');
+   const useCloud=confirm('Conflit : les données locales et le cloud sont différentes. OK : récupérer la version cloud en conservant une copie locale. Annuler : conserver les données locales sans écraser le cloud.');
+   if(!useCloud)return;
+   localStorage.setItem('immoptima_pre_cloud_restore_v1',JSON.stringify(db));
+   db={...structuredClone(empty),...remote.payload};
+   localStorage.setItem(KEY,JSON.stringify(db));
+   meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;
+   localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
+   immoptimaCloudState.loaded=true;
+   renderAll();
    return;
   }
   if(!confirm('Un patrimoine existe sur votre compte ImmOptima. Le charger sur cet appareil ? Une copie de secours locale sera conservée.')){immoptimaCloudState.loaded=false;return;}
@@ -820,6 +828,10 @@ window.immoptimaNativeAuthResult=function(payload){
  const button=document.getElementById('welcomeAccountInfo');
  if(button&&immoptimaAuthState.status==='signed_in')button.textContent='Compte Google connecté';
  if(immoptimaAuthState.status==='error')alert('Connexion ImmOptima : '+immoptimaAuthState.detail);
+ if(immoptimaAuthState.status!=='signed_in'){
+  immoptimaCloudState.loaded=false;immoptimaCloudState.uid='';immoptimaCloudState.busy=false;
+  if(immoptimaSyncTimer)clearTimeout(immoptimaSyncTimer);
+ }
  if(immoptimaAuthState.status==='signed_in'){
   // Google authentication must unlock the app, not leave the welcome modal blocking it.
   localStorage.setItem('immoptima_welcome_v1','seen');
@@ -836,7 +848,7 @@ function immoptimaAccountInformation(){
   if(confirm('Compte Google connecté. Voulez-vous vous déconnecter ?'))window.AndroidBridge.immoptimaSignOut();
   return;
  }
- if(confirm('Se connecter avec Google ? Cette version teste uniquement la connexion. Le patrimoine ne sera pas encore synchronisé.'))window.AndroidBridge.immoptimaSignIn();
+ if(confirm('Se connecter avec Google ? La sauvegarde automatique du patrimoine dans Firebase peut être activée après votre accord.'))window.AndroidBridge.immoptimaSignIn();
 }
 function showImmoptimaWelcome(){
  if(immoptimaAuthState.status==='signed_in')return;
