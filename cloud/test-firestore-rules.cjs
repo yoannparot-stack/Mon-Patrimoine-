@@ -21,6 +21,8 @@ require('firebase/compat/firestore');
   await assertSucceeds(doc.get());
   await assertFails(intruder.doc(path).set(create));
   await assertFails(doc.set({...create,revision:3}));
+  await assertFails(doc.set({...create,schemaVersion:2}));
+  await assertFails(doc.set({...create,unexpectedField:'blocked'}));
   await assertSucceeds(doc.set({...create,revision:2}));
   await assertFails(doc.delete());
   await assertFails(owner.doc('users/owner/portfolios/other').set(create));
