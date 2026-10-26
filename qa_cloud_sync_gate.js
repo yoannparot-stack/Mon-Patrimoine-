@@ -14,6 +14,8 @@ assert.match(html,/if\(!confirm\('Un patrimoine existe sur votre compte ImmOptim
 assert.match(html,/meta\.uid&&meta\.uid!==uid/,'account switch must be guarded');
 assert.match(html,/meta\.localUpdatedAt===immoptimaCloudState\.uploadStartedAt/,'edits during upload must stay dirty');
 assert.match(patch,/transaction\.get\(ref\)/,'read revision inside Firestore transaction');
+assert.match(patch,/payload\.put\("uid",requestUid/,'cloud response must be tagged with originating account');
+assert.match(html,/event\.uid!==immoptimaAuthState\.uid/,'ignore cloud responses from another account');
 assert.match(patch,/revision!=expectedRevision/,'reject stale writers');
 assert.match(patch,/FieldValue\.serverTimestamp\(\)/,'server timestamp required');
 assert.match(patch,/getCurrentUser\(\)\.getUid\(\)/,'transaction must re-check identity');
