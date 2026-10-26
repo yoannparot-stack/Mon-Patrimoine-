@@ -4,7 +4,7 @@ const html=fs.readFileSync('index.html','utf8');
 const patch=fs.readFileSync('android-cloud-sync-patch.py','utf8');
 const workflow=fs.readFileSync('.github/workflows/build.yml','utf8');
 const rules=fs.readFileSync('cloud/firestore.rules','utf8');
-assert.match(html,/const IMMOPTIMA_CLOUD_WRITE_ENABLED=false/,'cloud uploads must remain disabled before rules deployment');
+assert.match(html,/const IMMOPTIMA_CLOUD_WRITE_ENABLED=true/,'test build must enable consent-gated cloud sync');
 assert.match(html,/function immoptimaSyncMarkDirty\(\)/,'local changes must be marked dirty');
 assert.match(html,/function save\(\)\{[^\n]*immoptimaSyncMarkDirty\(\)/,'save must queue changes');
 assert.match(html,/function immoptimaScheduleSync\(\)/,'automatic debounced queue');
@@ -17,7 +17,7 @@ assert.match(html,/if\(!meta\.uploadConsent\)/,'first upload must ask for consen
 assert.match(html,/if\(!confirm\('Un patrimoine existe sur votre compte ImmOptima/,'remote restore needs consent');
 assert.match(html,/meta\.uid&&meta\.uid!==uid/,'account switch must be guarded');
 assert.match(html,/meta\.localUpdatedAt===immoptimaCloudState\.uploadStartedAt/,'edits during upload must stay dirty');
-assert.match(patch,/IMMOPTIMA_NATIVE_CLOUD_WRITE_ENABLED = false/,'native Firestore writes must be independently gated');
+assert.match(patch,/IMMOPTIMA_NATIVE_CLOUD_WRITE_ENABLED = true/,'native Firestore transaction bridge must be enabled for test');
 assert.match(patch,/transaction\.get\(ref\)/,'read revision inside Firestore transaction');
 assert.match(patch,/payload\.put\("uid",requestUid/,'cloud response must be tagged with originating account');
 assert.match(html,/event\.uid!==immoptimaAuthState\.uid/,'ignore cloud responses from another account');
