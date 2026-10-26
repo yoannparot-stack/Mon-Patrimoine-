@@ -789,8 +789,28 @@ window.immoptimaNativeCloudResult=function(event){
     !remote.payload.settings||typeof remote.payload.settings!=='object')
     throw Error('Structure distante invalide');
   immoptimaCloudState.revision=remote.revision;
-  const same=JSON.stringify(db)===JSON.stringify(remote.payload);
-  if(same){meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));return;}
+  // Compare content independent of Firestore map key ordering.
+  const canonical=(value)=>JSON.stringify(value,function(key,v){
+   if(v&&typeof v==='object'&&!Array.isArray(v)){
+    const sorted={};Object.keys(v).sort().forEach(k=>sorted[k]=v[k]);return sorted;
+   }return v;
+  });
+  const same=canonical(db)===canonical(remote.payload);
+  if(same){
+   meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;
+   localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
+   immoptimaCloudUpdateStatus();return;
+  }
+  // A previously acknowledged revision can be safely restored on startup when
+  // there are no unsent local edits. Preserve a local rollback before replacement.
+  if(!meta.dirty&&meta.uploadConsent===true&&Number(meta.revision)===remote.revision){
+   localStorage.setItem('immoptima_pre_cloud_restore_v1',JSON.stringify(db));
+   db={...structuredClone(empty),...remote.payload};
+   localStorage.setItem(KEY,JSON.stringify(db));
+   meta.revision=remote.revision;
+   localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
+   renderAll();immoptimaCloudUpdateStatus();return;
+  }
   // No automatic replacement, including on a new device: request explicit consent.
   if(meta.dirty){
    immoptimaCloudState.loaded=false;
