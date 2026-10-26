@@ -20,6 +20,6 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Install emulator and test dependencies
-        run: npm install --no-save --no-package-lock firebase-tools@14 @firebase/rules-unit-testing@5 firebase@11
+        run: npm install --no-save --no-package-lock firebase-tools@14 @firebase/rules-unit-testing@5 firebase@12
       - name: Validate Firestore owner isolation with emulator
         run: npx firebase emulators:exec --only firestore --project immoptima-rules-test 'node cloud/test-firestore-rules.cjs'
