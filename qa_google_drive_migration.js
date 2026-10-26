@@ -104,23 +104,17 @@ check('JSON import requires explicit user approval before replacing portfolio', 
  assert.match(html,/immoptima_pre_import_v1/);
 });
 
-check('onboarding does not misrepresent Drive file export as account login', () => {
- assert.match(html,/Connexion Google en version de test/);
- assert.doesNotMatch(html,/Continuer avec Google/);
+check('Google sign-in is gated by native Android bridge', () => {
+ assert.match(html,/function immoptimaAccountInformation\(\)/);
+ assert.match(html,/AndroidBridge\.immoptimaSignIn/);
+ assert.match(html,/window\.immoptimaNativeAuthResult/);
 });
 
-check('future account is not falsely represented as active', () => {
- assert.match(html,/Vos données restent sur cet appareil/);
- assert.doesNotMatch(html,/Compte ImmOptima connecté avec succès/);
-});
-
-check('account onboarding cannot silently impersonate a working online identity', () => {
- assert.match(html,/IMMOPTIMA_ACCOUNT_STATUS='authentication_preview'/);
- assert.match(html,/Se connecter à ImmOptima/);
- assert.match(html,/La synchronisation n’est pas encore active/);
- assert.match(html,/welcomeAccountInfo/);
- assert.match(html,/Sauvegarder sur Google Drive/);
- assert.match(html,/Utiliser sans sauvegarde Google/);
+check('account and sync status are visible in settings', () => {
+ assert.match(html,/id="immoptimaCloudAccountCard"/);
+ assert.match(html,/id="immoptimaCloudStatus"/);
+ assert.match(html,/id="immoptimaCloudLastSaved"/);
+ assert.match(html,/immoptimaCloudCheckNow\(\)/);
 });
 
 check('Firebase security rules are deny-by-default and scoped to owner', () => {
