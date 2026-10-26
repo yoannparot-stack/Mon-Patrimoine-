@@ -1,0 +1,25 @@
+name: Validate ImmOptima Firestore security rules
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'cloud/firestore.rules'
+      - 'cloud/test-firestore-rules.cjs'
+      - 'firebase.json'
+      - '.github/workflows/cloud-rules-test.yml'
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install emulator and test dependencies
+        run: npm install --no-save --no-package-lock firebase-tools@14 @firebase/rules-unit-testing@5 firebase@11
+      - name: Validate Firestore owner isolation with emulator
+        run: npx firebase emulators:exec --only firestore --project immoptima-rules-test 'node cloud/test-firestore-rules.cjs'
