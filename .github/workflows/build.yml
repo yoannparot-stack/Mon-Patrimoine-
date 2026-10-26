@@ -11,6 +11,7 @@ on:
       - 'qa_google_drive_migration.js'
       - 'qa_firebase_preflight.js'
       - 'qa_portfolio_sync.js'
+      - 'qa_cloud_sync_gate.js'
       - 'cloud/portfolio-sync-core.js'
       - 'cloud/firestore.rules'
       - 'cloud/CONFIGURATION_ANDROID_IMMOPTIMA.md'
@@ -123,6 +124,7 @@ jobs:
           node qa_google_drive_migration.js
           node qa_firebase_preflight.js
           node qa_portfolio_sync.js
+          node qa_cloud_sync_gate.js
 
       - name: Build debug APK
         run: |
