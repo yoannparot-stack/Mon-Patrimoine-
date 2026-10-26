@@ -17,7 +17,7 @@ service cloud.firestore {
         && portfolioId == 'current'
         && request.resource.data.keys().hasOnly(['schemaVersion','revision','updatedAt','payload'])
         && request.resource.data.schemaVersion is int
-        && request.resource.data.schemaVersion >= 1
+        && request.resource.data.schemaVersion == 1
         && request.resource.data.revision is int
         && request.resource.data.revision >= 1
         && request.resource.data.updatedAt == request.time
