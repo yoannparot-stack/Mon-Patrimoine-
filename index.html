@@ -533,7 +533,7 @@ function immoptimaEstimatedLoanBalance(l,at){
  const start=/^\d{4}-\d{2}-\d{2}$/.test(l.startDate||'')?new Date(l.startDate+'T12:00:00'):null;
  if(!start||!Number.isFinite(start.getTime())||initial<=0||years<=0)return null;
  const elapsed=(d)=>Math.max(0,(d.getFullYear()-start.getFullYear())*12+d.getMonth()-start.getMonth()-(d.getDate()<start.getDate()?1:0));
- const n=Math.round(years*12),balance=(m)=>{if(m>=n)return 0;const payment=rate?initial*rate/(1-Math.pow(1+rate,-n)):initial/n;return Math.max(0,rate?initial*Math.pow(1+rate*m*0+rate,0)*Math.pow(1+rate,m)-payment*(Math.pow(1+rate,m)-1)/rate:initial-payment*m)};
+ const n=Math.round(years*12),balance=(m)=>{if(m>=n)return 0;const payment=rate?initial*rate/(1-Math.pow(1+rate,-n)):initial/n;return Math.max(0,rate?initial*Math.pow(1+rate,m)-payment*(Math.pow(1+rate,m)-1)/rate:initial-payment*m)};
  const now=new Date(),m=elapsed(at),todayMonths=elapsed(now),current=Number(l.remaining);
  if(at>now&&Number.isFinite(current)&&current>=0){
   const base=balance(todayMonths),future=balance(m);
