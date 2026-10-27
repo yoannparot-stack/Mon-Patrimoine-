@@ -352,7 +352,7 @@ function addHolderFromPropertyForm(){
 }
 function saveHolders(){const raw=document.getElementById('holderList').value;const names=[...new Set(raw.split('\n').map(x=>x.trim()).filter(Boolean))];db.settings.holders=names;save();renderHolderControls();alert(names.length?'Liste des détenteurs enregistrée.':'Liste des détenteurs vidée. Vous pourrez en ajouter quand vous le souhaitez.');}
 function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.settings={...empty.settings,...(base.settings||{})};x.settings.holders=Array.isArray(x.settings.holders)?x.settings.holders:[...DEFAULT_HOLDERS];if(JSON.stringify(x.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))x.settings.holders=[];x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const raw=localStorage.getItem(KEY);if(raw){try{const recoveryKey=KEY+'_recovery_'+Date.now();localStorage.setItem(recoveryKey,raw);alert('Les données locales ne peuvent pas être chargées. Une copie de récupération a été conservée sous '+recoveryKey+'. Restaurez une sauvegarde valide avant de saisir de nouvelles données.')}catch(backupError){alert('Les données locales ne peuvent pas être chargées. Ne modifiez pas votre patrimoine avant d’avoir récupéré votre sauvegarde.')}}const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
-function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll(); immoptimaMaybeAutoBackup(); immoptimaSyncMarkDirty();}
+function save(){immoptimaRecordDashboardSnapshot();localStorage.setItem(KEY,JSON.stringify(db)); renderAll(); immoptimaMaybeAutoBackup(); immoptimaSyncMarkDirty();}
 function euro(n){return (Number(n)||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})}
 function pct(n){return (Number(n)||0).toLocaleString('fr-FR',{maximumFractionDigits:1})+' %'}
 function dateFR(s){if(!s)return '';return new Date(s+'T12:00:00').toLocaleDateString('fr-FR')}
@@ -492,6 +492,20 @@ function immoptimaDashboardModeChange(){const mode=document.getElementById('dash
 function immoptimaDashboardCompact(t,consensus){const values={ioNet:euro(t.net),ioGross:euro(t.gross),ioDebt:euro(t.debt),ioCashNet:euro(t.cashNet),ioRent:euro(t.rent),ioYield:pct(t.grossYield),ioNetYield:pct(t.netYield),ioPrincipal:euro(t.principal)};Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v});const ratio=t.gross>0?Math.max(0,Math.min(100,t.net/t.gross*100)):0;document.getElementById('ioWealthBar').style.width=ratio.toFixed(2)+'%';document.getElementById('ioWealthExplain').textContent=t.gross>0?Math.round(ratio)+' % de la valeur de mon patrimoine est nette de dettes.':'Aucune valeur de patrimoine renseignée.';const low=t.rent>0&&t.cashNet>=0&&t.cashNet<t.rent*.05;document.getElementById('ioCashWarning').textContent=low?'⚠ Marge mensuelle très faible':t.cashNet<0?'⚠ Cash-flow négatif':'Cash-flow net après crédit';document.getElementById('ioAlertCash').textContent=t.cashNet<0?'⚠ Cash-flow négatif : '+euro(t.cashNet)+'/mois':low?'⚠ Cash-flow faible : '+euro(t.cashNet)+'/mois':'✓ Cash-flow : '+euro(t.cashNet)+'/mois';document.getElementById('ioAlertMarket').textContent=consensus>0?'✓ Estimation de marché disponible':'ⓘ Estimation de marché à compléter';}
 
 /* ImmOptima - graphiques explicatifs, données historiques réelles uniquement. */
+function immoptimaRecordDashboardSnapshot(){
+ if(!Array.isArray(db.dashboardSnapshots))db.dashboardSnapshots=[];
+ const now=new Date(),day=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+ const holders=['Tous',...holderNames(),'À attribuer'];
+ for(const holder of [...new Set(holders)]){
+  const properties=holder==='Tous'?db.properties:db.properties.filter(p=>(p.holder||((p.structure==='SARL de famille')?'SARL de famille':'À attribuer'))===holder);
+  const t=totalsFor(properties);
+  const entry={date:day,holder,net:t.net,debt:t.debt,rent:t.rent,cashNet:t.cashNet,grossYield:t.grossYield,netYield:t.netYield};
+  const index=db.dashboardSnapshots.findIndex(r=>r.date===day&&r.holder===holder);
+  if(index>=0)db.dashboardSnapshots[index]=entry;else db.dashboardSnapshots.push(entry);
+ }
+ if(db.dashboardSnapshots.length>12000)db.dashboardSnapshots=db.dashboardSnapshots.slice(-12000);
+}
+
 let ioAnalysisKind='wealth',ioAnalysisHidden=new Set();
 function immoptimaHolderChange(value){const old=document.getElementById('dashboardHolder');if(old)old.value=value;renderDashboard()}
 function immoptimaGraphKey(event,kind){if(event.key==='Enter'||event.key===' '){event.preventDefault();immoptimaOpenAnalysis(kind)}}
