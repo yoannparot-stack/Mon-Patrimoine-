@@ -167,7 +167,7 @@ header .top{align-items:center!important}
   <article class="io-tile io-performance io-graph-tile" role="button" tabindex="0" onclick="immoptimaOpenAnalysis('yield')" onkeydown="immoptimaGraphKey(event,'yield')"><div class="io-tile-title">▥ &nbsp; 03 · MA PERFORMANCE</div><div class="io-two"><div><div class="io-caption">Rendement brut</div><div class="io-number" id="igGrossYield">0 %</div></div><div><div class="io-caption">Rendement net</div><div class="io-number" id="igNetYield">0 %</div></div></div><div class="io-mini-bars"><span>Brut</span><div><i id="igGrossBar"></i></div><span>Net</span><div><i id="igNetBar"></i></div></div><div class="io-caption" id="igPrincipal">Capital remboursé : 0 €</div><div class="io-open-hint">↗ Toucher pour comparer les rendements</div></article>
   <article class="io-tile io-alert io-graph-tile" role="button" tabindex="0" onclick="immoptimaOpenAnalysis('diagnostic')" onkeydown="immoptimaGraphKey(event,'diagnostic')"><div class="io-tile-title">✦ &nbsp; 04 · MON DIAGNOSTIC</div><div class="io-alert-line" id="igAlertCash"></div><div class="io-alert-line" id="igAlertMarket"></div><div class="io-open-hint">↗ Toucher pour comprendre mes alertes</div></article>
  </div>
- <div id="ioAnalysisOverlay" class="io-analysis-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ioAnalysisTitle"><div class="io-analysis-panel"><div class="io-analysis-header"><h2 id="ioAnalysisTitle">Analyse détaillée</h2><button type="button" onclick="immoptimaCloseAnalysis()" aria-label="Fermer l'analyse">✕</button></div><div class="io-analysis-period"><label for="ioAnalysisPeriod">Période</label><select id="ioAnalysisPeriod" onchange="immoptimaRenderAnalysis()"><option value="3">3 mois</option><option value="6">6 mois</option><option value="12" selected>12 mois</option><option value="all">Tout</option></select></div><div id="ioAnalysisBody"></div><button type="button" class="secondary" onclick="immoptimaCloseAnalysis()">← Retour au tableau de bord</button></div></div>
+ <div id="ioAnalysisOverlay" class="io-analysis-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ioAnalysisTitle"><div class="io-analysis-panel"><div class="io-analysis-header"><h2 id="ioAnalysisTitle">Analyse détaillée</h2><button type="button" onclick="immoptimaCloseAnalysis()" aria-label="Fermer l'analyse">✕</button></div><div class="io-analysis-period"><label for="ioAnalysisPeriod">Période</label><select id="ioAnalysisPeriod" onchange="immoptimaRenderAnalysis()"><option value="3">3 mois</option><option value="6">6 mois</option><option value="12" selected>12 mois</option><option value="all">Depuis l’achat</option></select></div><div id="ioAnalysisBody"></div><button type="button" class="secondary" onclick="immoptimaCloseAnalysis()">← Retour au tableau de bord</button></div></div>
  <div id="dashboardDetailed" hidden>
   <div class="section-title"><h2>Vue d’ensemble</h2><div class="field dashboard-filter"><label>Afficher</label><select id="dashboardHolder" onchange="renderDashboard()"><option value="Tous">Tous les biens</option></select></div></div>
   <div class="grid">
@@ -527,6 +527,55 @@ function immoptimaRenderGraph(t,consensus){
 }
 function immoptimaOpenAnalysis(kind){ioAnalysisKind=kind;ioAnalysisHidden=new Set();document.getElementById('ioAnalysisOverlay').hidden=false;immoptimaRenderAnalysis()}
 function immoptimaCloseAnalysis(){document.getElementById('ioAnalysisOverlay').hidden=true}
+
+function immoptimaEstimatedLoanBalance(l,at){
+ const initial=Number(l.initial)||0,years=Number(l.years)||0,rate=(Number(l.rate)||0)/1200;
+ const start=/^\d{4}-\d{2}-\d{2}$/.test(l.startDate||'')?new Date(l.startDate+'T12:00:00'):null;
+ if(!start||!Number.isFinite(start.getTime())||initial<=0||years<=0)return null;
+ const elapsed=(d)=>Math.max(0,(d.getFullYear()-start.getFullYear())*12+d.getMonth()-start.getMonth()-(d.getDate()<start.getDate()?1:0));
+ const n=Math.round(years*12),balance=(m)=>{if(m>=n)return 0;const payment=rate?initial*rate/(1-Math.pow(1+rate,-n)):initial/n;return Math.max(0,rate?initial*Math.pow(1+rate*m*0+rate,0)*Math.pow(1+rate,m)-payment*(Math.pow(1+rate,m)-1)/rate:initial-payment*m)};
+ const now=new Date(),m=elapsed(at),todayMonths=elapsed(now),current=Number(l.remaining);
+ if(at>now&&Number.isFinite(current)&&current>=0){
+  const base=balance(todayMonths),future=balance(m);
+  return Math.max(0,Math.min(initial,current*Math.min(1,base>0?future/base:0)));
+ }
+ const adjustment=Number.isFinite(current)&&current>=0?current-balance(todayMonths):0;
+ return Math.max(0,Math.min(initial,balance(m)+adjustment*Math.min(1,m/Math.max(1,todayMonths))));
+}
+function immoptimaEstimatedHistory(kind){
+ const props=dashboardProperties(),now=new Date();
+ const loans=db.loans.filter(l=>props.some(p=>p.id===l.propertyId));
+ const dates=props.map(p=>p.acquisitionDate).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d||''));
+ if(!dates.length)return [];
+ const first=new Date(dates.sort()[0]+'T12:00:00');
+ if(!Number.isFinite(first.getTime())||first>now)return [];
+ const period=document.getElementById('ioAnalysisPeriod')?.value||'12';
+ const cutoff=period==='all'?first:new Date(now.getFullYear(),now.getMonth()-(Number(period)||12),1);
+ const start=first>cutoff?first:cutoff;
+ const maxMonths=Math.max(0,(now.getFullYear()-start.getFullYear())*12+now.getMonth()-start.getMonth());
+ const step=maxMonths>120?12:maxMonths>36?3:1;
+ const points=[];
+ for(let m=0;m<=maxMonths;m+=step){
+  const at=new Date(start.getFullYear(),start.getMonth()+m,15,12);
+  if(at>now)break;
+  const active=props.filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(p.acquisitionDate||'')&&new Date(p.acquisitionDate+'T12:00:00')<=at);
+  if(!active.length)continue;
+  const related=loans.filter(l=>active.some(p=>p.id===l.propertyId));
+  if(related.some(l=>!l.startDate||new Date(l.startDate+'T12:00:00')>at))continue;
+  const balances=related.map(l=>immoptimaEstimatedLoanBalance(l,at));
+  if(balances.some(v=>v===null))continue;
+  const debt=balances.reduce((a,b)=>a+b,0);
+  const value=active.reduce((a,p)=>a+(Number(p.purchase)||0),0);
+  const rent=active.reduce((a,p)=>a+(Number(p.rentHC)||0),0);
+  const cost=active.reduce((a,p)=>a+propertyCost(p),0);
+  const owner=active.reduce((a,p)=>a+(Number(p.ownerCharges)||0)+(Number(p.tax)||0)/12+(Number(p.pno)||0)+(Number(p.otherMonthly)||0),0);
+  const grossCash=rent+active.reduce((a,p)=>a+(Number(p.recoverable)||0),0)-owner;
+  const payments=related.reduce((a,l)=>a+monthlyLoanPayment(l),0);
+  points.push({date:at.getFullYear()+'-'+String(at.getMonth()+1).padStart(2,'0')+'-15',net:value-debt,debt,rent,cashNet:grossCash-payments,grossYield:cost?rent*12/cost*100:0,netYield:cost?grossCash*12/cost*100:0});
+ }
+ return points;
+}
+
 function immoptimaHistoricalSeries(kind){
  /* A snapshot is only valid when it contains recorded, dated metrics for the selected holder. */
  const holder=document.getElementById('ioHolderFilter')?.value||'Tous';
@@ -535,7 +584,8 @@ function immoptimaHistoricalSeries(kind){
  const cutoff=period==='all'?0:Date.now()-Number(period)*31*86400000;
  const keys=kind==='wealth'?['net','debt']:kind==='income'?['rent','cashNet']:['grossYield','netYield'];
  const points=rows.filter(r=>r&&r.holder===holder&&Number.isFinite(Date.parse(r.date))&&Date.parse(r.date)>=cutoff&&keys.every(k=>Number.isFinite(Number(r[k])))).sort((a,b)=>Date.parse(a.date)-Date.parse(b.date));
- return {keys,points};
+ const estimated=points.length<2?immoptimaEstimatedHistory(kind):[];
+ return {keys,points:estimated.length>=2?estimated:points,estimated:estimated.length>=2};
 }
 function immoptimaToggleCurve(key){if(ioAnalysisHidden.has(key))ioAnalysisHidden.delete(key);else ioAnalysisHidden.add(key);immoptimaRenderAnalysis()}
 function immoptimaRenderAnalysis(){
@@ -564,7 +614,7 @@ function immoptimaRenderAnalysis(){
  svg+='<text x="187" y="175" text-anchor="middle" font-size="10" fill="#475569">Date</text></svg>';
  plot=svg+'<div class="io-analysis-tip">Touchez un point pour lire sa date et sa valeur. Touchez une légende pour masquer ou afficher une courbe.</div>';
  }
- body.innerHTML='<div class="io-two" style="margin:10px 0">'+latest+'</div><div class="io-analysis-legend">'+legend+'</div>'+plot+'<div class="io-analysis-help"><strong>Comment lire ce graphique ?</strong><p>'+c.help+'</p><small>Axe horizontal : dates. Axe vertical : '+(c.unit==='%'?'rendement en %':'montants en €')+'. Historique : '+points.length+' relevé(s) réel(s) disponibles.</small></div>';
+ body.innerHTML='<div class="io-two" style="margin:10px 0">'+latest+'</div><div class="io-analysis-legend">'+legend+'</div>'+plot+'<div class="io-analysis-help"><strong>Comment lire ce graphique ?</strong><p>'+c.help+'</p><small>Axe horizontal : dates. Axe vertical : '+(c.unit==='%'?'rendement en %':'montants en €')+'. '+(series.estimated?'Reconstitution indicative : valeur du bien figée au prix d’achat, amortissement estimé, loyers et charges actuels supposés constants. Ce ne sont pas des données historiques constatées.':'Historique : '+points.length+' relevé(s) réels disponibles.')+'</small></div>';
 }
 
 function renderDashboard(){
