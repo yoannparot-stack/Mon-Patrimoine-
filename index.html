@@ -603,7 +603,7 @@ function immoptimaRenderAnalysis(){
  const visible=c.keys.filter(k=>!ioAnalysisHidden.has(k));
  const vals=points.flatMap(p=>visible.map(k=>Number(p[k]))),min=vals.length?Math.min(...vals):0,max=vals.length?Math.max(...vals):1,span=Math.max(1,max-min);
  const lower=min-span*.12,upper=max+span*.12,scale=v=>136-(v-lower)/(upper-lower)*106;
- const x=i=>54+i*260/(points.length-1);
+ const x=i=>54+i*246/(points.length-1);
  const fmt=v=>c.unit==='%'?v.toFixed(1).replace('.',',')+' %':Math.round(v).toLocaleString('fr-FR')+' €';
  let svg='<svg class="io-analysis-plot" viewBox="0 0 340 180" role="img" aria-label="Évolution chronologique : axe horizontal dates, axe vertical '+(c.unit==='%'?'pourcentages':'euros')+'">';
  for(let i=0;i<=4;i++){const v=lower+(upper-lower)*(4-i)/4,y=30+i*26.5;svg+='<line x1="54" y1="'+y+'" x2="320" y2="'+y+'" stroke="#d9e1ea"/><text x="49" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="#475569">'+fmt(v)+'</text>'}
@@ -611,6 +611,17 @@ function immoptimaRenderAnalysis(){
  const ticks=[0,Math.floor((points.length-1)/2),points.length-1].filter((v,i,a)=>a.indexOf(v)===i);
  ticks.forEach(i=>{const date=new Date(points[i].date).toLocaleDateString('fr-FR',{month:'short',year:'2-digit'});svg+='<text x="'+x(i)+'" y="156" text-anchor="middle" font-size="10" fill="#475569">'+date+'</text>'});
  c.keys.forEach((key,j)=>{if(ioAnalysisHidden.has(key))return;svg+='<polyline fill="none" stroke="'+c.colors[j]+'" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" points="'+points.map((p,i)=>x(i)+','+scale(Number(p[key]))).join(' ')+'"/>';points.forEach((p,i)=>{svg+='<circle cx="'+x(i)+'" cy="'+scale(Number(p[key]))+'" r="4" fill="'+c.colors[j]+'"><title>'+new Date(p.date).toLocaleDateString('fr-FR')+' · '+c.labels[j]+' : '+fmt(Number(p[key]))+'</title></circle>'})});
+ // Value labels at the last plotted point, kept inside the mobile SVG.
+ const end=points[points.length-1],active=c.keys.map((key,j)=>({key,j,y:scale(Number(end[key])),value:Number(end[key])})).filter(o=>!ioAnalysisHidden.has(o.key)&&Number.isFinite(o.value)).sort((a,b)=>a.y-b.y);
+ active.forEach((o,i)=>{o.labelY=Math.max(23,Math.min(143,o.y));if(i&&o.labelY-active[i-1].labelY<19)o.labelY=active[i-1].labelY+19;});
+ if(active.length&&active[active.length-1].labelY>143){const shift=active[active.length-1].labelY-143;active.forEach(o=>o.labelY-=shift);}
+ active.forEach(o=>{
+  const value=fmt(o.value),w=Math.min(111,Math.max(45,value.length*5.5+12)),left=335-w;
+  svg+='<line x1="'+x(points.length-1)+'" y1="'+o.y+'" x2="'+left+'" y2="'+o.labelY+'" stroke="'+c.colors[o.j]+'" stroke-width="1" opacity=".7"/>';
+  svg+='<rect x="'+left+'" y="'+(o.labelY-9)+'" width="'+w+'" height="18" rx="5" fill="'+c.colors[o.j]+'"/>';
+  svg+='<text x="'+(left+w/2)+'" y="'+(o.labelY+3.5)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff">'+value+'</text>';
+ });
+
  svg+='<text x="187" y="175" text-anchor="middle" font-size="10" fill="#475569">Date</text></svg>';
  plot=svg+'<div class="io-analysis-tip">Touchez un point pour lire sa date et sa valeur. Touchez une légende pour masquer ou afficher une courbe.</div>';
  }
