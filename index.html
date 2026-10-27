@@ -113,6 +113,9 @@ header .top{align-items:center!important}
 .header-backup-actions{align-self:center!important}
 .header-backup-actions button{min-height:44px;touch-action:manipulation}
 @media(max-width:540px){header{padding-top:calc(56px + env(safe-area-inset-top, 0px))!important}header .top{align-items:center!important}}
+
+/* ImmOptima étape 3 : cockpit compact, quatre catégories en un regard */
+#dashboard .io-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}#dashboard .io-top h2{margin:0;font-size:19px}#dashboard .io-top small{font-size:11px;color:#667085}#dashboard .io-selects select{max-width:145px;font-size:12px;padding:7px;border-radius:9px;border:1px solid #d5dce5;background:white}#dashboard .io-cockpit{display:grid;grid-template-columns:1fr;gap:7px}#dashboard .io-tile{padding:10px 12px;border-radius:13px;min-width:0;cursor:pointer}#dashboard .io-tile-title{font-size:12px;font-weight:850;letter-spacing:.03em;margin-bottom:5px}#dashboard .io-caption{font-size:11px;opacity:.76}#dashboard .io-hero{font-size:27px;font-weight:850;line-height:1.13;margin:2px 0 7px}#dashboard .io-two{display:flex;justify-content:space-between;gap:8px;font-size:12px}#dashboard .io-number{font-size:21px;font-weight:850;margin-top:2px}#dashboard .io-income-row{margin:5px 0}#dashboard .io-three{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:6px}#dashboard .io-three b{font-size:16px;display:block;margin-top:3px;white-space:nowrap}#dashboard .io-warning{font-size:11px;margin-top:5px;color:#a15d0b}#dashboard .io-alert-line{font-size:11px;margin-top:4px}#dashboard .io-wealth{background:#e7f5ed;color:#087b64}#dashboard .io-wealth .io-two span:last-child{color:#ad3c3c}#dashboard .io-income{background:#e9f1ff;color:#1e5bb6}#dashboard .io-performance{background:#f0ebff;color:#6545b1}#dashboard .io-alert{background:#fff3e2;color:#87510c}#dashboard .io-tile:focus-visible{outline:3px solid #2563eb;outline-offset:2px}#dashboardDetailed[hidden],#dashboardCompact[hidden]{display:none!important}@media(min-width:800px){#dashboard .io-cockpit{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){#dashboard{padding-top:2px!important}#dashboard .io-tile{padding:9px 11px}#dashboard .io-hero{font-size:25px}#dashboard .io-number{font-size:19px}#dashboard .io-three b{font-size:15px}}
 </style>
 </head>
 <body>
@@ -128,6 +131,14 @@ header .top{align-items:center!important}
 
 <main>
 <section id="dashboard" class="page active">
+ <div class="io-top"><div><h2>ImmOptima</h2><small>Mon patrimoine en un regard</small></div><div class="io-selects"><select id="dashboardViewMode" aria-label="Mode de lecture" onchange="immoptimaDashboardModeChange()"><option value="compact">Vue chiffrée</option><option value="detailed">Détails complets</option></select></div></div>
+ <div id="dashboardCompact" class="io-cockpit">
+  <article class="io-tile io-wealth" onclick="dashboardGo('immobilier')" role="button" tabindex="0" onkeydown="dashboardKey(event,'immobilier')"><div class="io-tile-title">▣ &nbsp; MA RICHESSE</div><div class="io-caption">Patrimoine net</div><div class="io-hero" id="ioNet">0 €</div><div class="io-two"><span>Brut : <b id="ioGross">0 €</b></span><span>Dettes : <b id="ioDebt">0 €</b></span></div></article>
+  <article class="io-tile io-income" onclick="dashboardGo('immobilier')" role="button" tabindex="0" onkeydown="dashboardKey(event,'immobilier')"><div class="io-tile-title">▣ &nbsp; MES REVENUS</div><div class="io-two io-income-row"><div><div class="io-caption">Cash-flow net / mois</div><div class="io-number" id="ioCashNet">0 €</div></div><div><div class="io-caption">Loyers HC</div><div class="io-number" id="ioRent">0 €</div></div></div><div class="io-warning" id="ioCashWarning"></div></article>
+  <article class="io-tile io-performance" onclick="dashboardGo('immobilier')" role="button" tabindex="0" onkeydown="dashboardKey(event,'immobilier')"><div class="io-tile-title">▥ &nbsp; MA PERFORMANCE</div><div class="io-three"><div><div class="io-caption">Rdt brut</div><b id="ioYield">0 %</b></div><div><div class="io-caption">Rdt net</div><b id="ioNetYield">0 %</b></div><div><div class="io-caption">Capital remboursé</div><b id="ioPrincipal">0 €</b></div></div></article>
+  <article class="io-tile io-alert"><div class="io-tile-title">✦ &nbsp; À SURVEILLER</div><div class="io-alert-line" id="ioAlertCash">Analyse du cash-flow en cours</div><div class="io-alert-line" id="ioAlertMarket">Analyse du marché en cours</div></article>
+ </div>
+ <div id="dashboardDetailed" hidden>
   <div class="section-title"><h2>Vue d’ensemble</h2><div class="field dashboard-filter"><label>Afficher</label><select id="dashboardHolder" onchange="renderDashboard()"><option value="Tous">Tous les biens</option></select></div></div>
   <div class="grid">
     <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Immobilier" onclick="dashboardGo('immobilier')" onkeydown="dashboardKey(event,'immobilier')"><div class="label">Patrimoine brut</div><div class="metric" id="mGross">0 €</div><div class="hint">Immobilier + financier + autres actifs</div></div>
@@ -143,6 +154,9 @@ header .top{align-items:center!important}
   </div>
   <div class="card structure-card"><h3>Répartition du patrimoine immobilier</h3><div id="structureBreakdown"></div></div>
   <div class="card"><div class="section-title"><h3>Évolution du patrimoine net</h3><button class="secondary" onclick="takeSnapshot()">Enregistrer la valeur actuelle</button></div><canvas id="historyChart"></canvas><div id="historyEmpty" class="empty">Aucun historique pour le moment. Enregistrez une valeur mensuelle ou annuelle pour commencer.</div></div>
+</div>
+
+
 </section>
 
 <section id="direction" class="page">
@@ -441,15 +455,18 @@ function renderOptimization(){
   document.getElementById('optimizationTable').innerHTML=html;
 }
 
-function renderAll(){renderHolderControls();renderDashboard();renderProperties();renderLoans();renderAssets();renderHistory();renderValuation();renderBankSummary();renderDirection();renderOptimization();document.getElementById('appName').value=db.settings.name||'Mon Patrimoine';document.getElementById('otherDebt').value=db.otherDebt||0;document.getElementById('otherDebtNote').value=db.otherDebtNote||'';document.title=db.settings.name||'Mon Patrimoine';}
+function renderAll(){const mode=localStorage.getItem('immoptima_dashboard_view_v1')||'compact';const modeEl=document.getElementById('dashboardViewMode');if(modeEl){modeEl.value=mode==='detailed'?'detailed':'compact';immoptimaDashboardModeChange();}renderHolderControls();renderDashboard();renderProperties();renderLoans();renderAssets();renderHistory();renderValuation();renderBankSummary();renderDirection();renderOptimization();document.getElementById('appName').value=db.settings.name||'Mon Patrimoine';document.getElementById('otherDebt').value=db.otherDebt||0;document.getElementById('otherDebtNote').value=db.otherDebtNote||'';document.title=db.settings.name||'Mon Patrimoine';}
 
 function dashboardProperties(){const f=document.getElementById('dashboardHolder')?.value||'Tous';return f==='Tous'?db.properties:db.properties.filter(p=>(p.holder||((p.structure==='SARL de famille')?'SARL de famille':'À attribuer'))===f);}
+function immoptimaDashboardModeChange(){const mode=document.getElementById('dashboardViewMode')?.value||'compact';document.getElementById('dashboardCompact').hidden=mode!=='compact';document.getElementById('dashboardDetailed').hidden=mode!=='detailed';localStorage.setItem('immoptima_dashboard_view_v1',mode);}
+function immoptimaDashboardCompact(t,consensus){const values={ioNet:euro(t.net),ioGross:euro(t.gross),ioDebt:euro(t.debt),ioCashNet:euro(t.cashNet),ioRent:euro(t.rent),ioYield:pct(t.grossYield),ioNetYield:pct(t.netYield),ioPrincipal:euro(t.principal)};Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v});const low=t.rent>0&&t.cashNet>=0&&t.cashNet<t.rent*.05;document.getElementById('ioCashWarning').textContent=low?'⚠ Marge mensuelle très faible':t.cashNet<0?'⚠ Cash-flow négatif':'Cash-flow net après crédit';document.getElementById('ioAlertCash').textContent=t.cashNet<0?'⚠ Cash-flow négatif : '+euro(t.cashNet)+'/mois':low?'⚠ Cash-flow faible : '+euro(t.cashNet)+'/mois':'✓ Cash-flow : '+euro(t.cashNet)+'/mois';document.getElementById('ioAlertMarket').textContent=consensus>0?'✓ Estimation de marché disponible':'ⓘ Estimation de marché à compléter';}
 function renderDashboard(){
  const props=dashboardProperties();
  const t=totalsFor(props);
  const consensus=props.reduce((s,p)=>s+consensusValue(p),0);
  const retained=props.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
  const delta=consensus>0?(retained/consensus-1)*100:0;
+ immoptimaDashboardCompact(t,consensus);
  const dashboardValues=[['mGross',euro(t.gross)],['mDebt',euro(t.debt)],['mNet',euro(t.net)],['mRent',euro(t.rent)],['mCash',euro(t.cash)],['mCashNet',euro(t.cashNet)],['mYield',pct(t.grossYield)],['mNetYield',pct(t.netYield)],['mPrincipal',euro(t.principal)],['mConsensus',euro(consensus)],['mRetained',euro(retained)]];
  dashboardValues.forEach(([idv,val])=>document.getElementById(idv).textContent=val);
  const deltaEl=document.getElementById('mConsensusDelta');
