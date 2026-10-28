@@ -3,9 +3,14 @@ const fs=require('fs'),cp=require('child_process'),assert=require('assert/strict
 const fixture=require('./fixture.cjs'),out='qa-out/android';fs.mkdirSync(out,{recursive:true});
 const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
+ assert.equal(adb('shell','getprop','ro.kernel.qemu'),'1','QA requires a disposable Android emulator');
  const apk=fs.readdirSync('installed-apk').find(n=>n.endsWith('.apk'));assert(apk,'APK artifact missing');adb('install','-r','installed-apk/'+apk);
  adb('shell','settings','put','global','window_animation_scale','0');adb('shell','settings','put','global','transition_animation_scale','0');adb('shell','settings','put','global','animator_duration_scale','0');
  adb('shell','am','start','-n','com.immoptima.app/com.monpatrimoine.app.MainActivity');
+ // Quickstep repeatedly ANRs in the headless API-35 image. Isolate the test app
+ // from this unrelated launcher; this emulator is discarded after the job.
+ adb('shell','pm','disable-user','--user','0','com.android.launcher3');
+ adb('shell','am','force-stop','com.android.launcher3');
  let targets;for(let i=0;i<40;i++){await wait(500);try{const pid=adb('shell','pidof','com.immoptima.app');adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid);targets=await fetch('http://127.0.0.1:9222/json').then(r=>r.json());if(targets.some(t=>t.url.includes('appassets')))break}catch{}}
  const target=targets?.find(t=>t.url.includes('appassets'));assert(target,'WebView debugging target unavailable');
  const ws=new WebSocket(target.webSocketDebuggerUrl);await new Promise((r,j)=>{ws.on('open',r);ws.on('error',j)});let seq=0;const pending=new Map();ws.on('message',d=>{const msg=JSON.parse(d);if(msg.id&&pending.has(msg.id)){const {r,j,t}=pending.get(msg.id);clearTimeout(t);pending.delete(msg.id);msg.error?j(Error(msg.error.message)):r(msg.result)}});
@@ -14,7 +19,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  let ready;for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}fs.writeFileSync(out+'/webview-ready.json',JSON.stringify(ready,null,2));assert.equal(ready.save,'function','application document must finish loading before data injection');
  await evaluate(`localStorage.setItem('immoptima_welcome_v1','seen');document.getElementById('immoptimaWelcome')?.remove();db=(${fixture.toString()})();localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll();showPage('dashboard');true`);
  const waitFor=async expression=>{for(let i=0;i<24;i++){if(await evaluate(expression))return;await wait(250)}throw Error('Android condition not reached: '+expression)};
- const uiNodes=()=>{adb('shell','uiautomator','dump','/sdcard/immoptima-qa-window.xml');return adb('shell','cat','/sdcard/immoptima-qa-window.xml').match(/<node\b[^>]*>/g)||[]};
+ const uiNodes=()=>{try{adb('shell','uiautomator','dump','/sdcard/immoptima-qa-window.xml')}catch(e){if(e.status!==137||!String(e.stdout).includes('dumped to:'))throw e;}return adb('shell','cat','/sdcard/immoptima-qa-window.xml').match(/<node\b[^>]*>/g)||[]};
  const bounds=node=>{const m=node.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);assert(m,'native bounds');return m.slice(1).map(Number)};
  const dismissLauncherAnr=async()=>{const nodes=uiNodes();if(!nodes.some(n=>/Quickstep/.test(n)))return;const button=nodes.find(n=>/resource-id="android:id\/aerr_wait"|text="Wait"/.test(n));assert(button,'known launcher Wait button');const [l,t,r,b]=bounds(button);adb('shell','input','tap',String(Math.round((l+r)/2)),String(Math.round((t+b)/2)));await wait(500)};
  const capture=async(name,expected)=>{
