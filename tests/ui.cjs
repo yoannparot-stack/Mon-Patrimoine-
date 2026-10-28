@@ -37,7 +37,7 @@ const fixture=require('./fixture.cjs');
  await page.evaluate(()=>db.properties[0].rentHC=10);await page.locator('#importFile').setInputFiles('qa-out/backup-test.json');await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>db.properties[0].rentHC),925);assert(await page.evaluate(()=>!!localStorage.getItem('immoptima_pre_import_v1')));
  const before=await page.evaluate(()=>JSON.stringify(db));await page.locator('#importFile').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"properties":"wrong"}')});await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>JSON.stringify(db)),before);assert(dialogs.some(d=>d.includes('invalide')));
  // Snapshot persistence, owner filtering, chart point interaction, no duplicate DOM IDs.
- await page.evaluate(()=>{showPage('dashboard');immoptimaHolderChange('SARL')});assert.equal(await page.locator('#igNet').textContent(),'84 000 €');
+ await page.evaluate(()=>{showPage('dashboard');immoptimaHolderChange('SARL de famille')});assert.equal(await page.locator('#igNet').textContent(),'84 000 €');
  await page.evaluate(()=>{document.getElementById('ioHolderFilter').value='Tous';immoptimaOpenAnalysis('wealth')});await page.locator('#ioAnalysisBody svg g[role=button]').first().dispatchEvent('click');assert(!(await page.locator('#ioAnalysisBody .io-chart-tip').textContent()).includes('Touchez'));
  const dup=await page.evaluate(()=>{const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);return ids.filter((v,i)=>ids.indexOf(v)!==i)});assert.deepEqual(dup,[]);
  await page.evaluate(()=>immoptimaCloseAnalysis());
