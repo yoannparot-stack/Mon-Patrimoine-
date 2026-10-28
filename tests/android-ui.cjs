@@ -13,22 +13,31 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  const evaluate=async expression=>{const v=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(v.exceptionDetails)throw Error(JSON.stringify(v.exceptionDetails));return v.result.value};
  let ready;for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}fs.writeFileSync(out+'/webview-ready.json',JSON.stringify(ready,null,2));assert.equal(ready.save,'function','application document must finish loading before data injection');
  await evaluate(`localStorage.setItem('immoptima_welcome_v1','seen');document.getElementById('immoptimaWelcome')?.remove();db=(${fixture.toString()})();localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll();showPage('dashboard');true`);
- const capture=async name=>{await wait(250);cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/'+name+'.png','w'),'inherit']})};
- assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);await capture('01-dashboard');
+ const capture=async(name,expected)=>{
+  // Let Android's compositor present the frame; validate its actual pixels with OCR.
+  await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))');
+  for(let attempt=0;attempt<5;attempt++){
+   await wait(1000);cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/'+name+'.png','w'),'inherit']});
+   const ocr=cp.execFileSync('tesseract',[out+'/'+name+'.png','stdout'],{encoding:'utf8',stdio:['ignore','pipe','ignore']});fs.writeFileSync(out+'/'+name+'-ocr.txt',ocr);
+   if(ocr.toLowerCase().replace(/[^a-z]/g,'').includes(expected.replace(/[^a-z]/g,'')))return;
+  }
+  throw Error('Android screenshot does not show expected screen: '+name);
+ };
+ assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);await capture('01-dashboard','immoptima');
  // Touch the actual dashboard tile using screen coordinates derived from the DOM.
  const tap=async selector=>{const r=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth,dpr:devicePixelRatio}})()`);const size=adb('shell','wm','size').match(/(\d+)x(\d+)/),scale=Number(size[1])/r.w;adb('shell','input','tap',String(Math.round(r.x*scale)),String(Math.round(r.y*scale+24*r.dpr)));};
  await tap('#dashboardGraph article');await wait(250);assert.equal(await evaluate('document.getElementById("ioAnalysisOverlay").hidden'),false,'native touchscreen opens wealth tile');adb('shell','input','keyevent','4');await wait(200);
  // DOM click events verify handlers; Android Back is exercised natively below.
  for(const [kind,name] of [['wealth','02-richesse'],['income','03-revenus'],['yield','04-performance'],['diagnostic','05-diagnostic']]){
  await evaluate(`document.querySelector('#dashboardGraph article[onclick*="${kind}"]').click();true`);assert.equal(await evaluate('document.getElementById("ioAnalysisOverlay").hidden'),false);
- await capture(name);await evaluate(`document.querySelector('#ioAnalysisBody .io-premium-tabs button:nth-child(2)').click();document.querySelector('#ioAnalysisBody .io-premium-periods button').click();true`);
+ await capture(name,({wealth:'ma richesse',income:'mes revenus',yield:'ma performance',diagnostic:'mon diagnostic'})[kind]);await evaluate(`document.querySelector('#ioAnalysisBody .io-premium-tabs button:nth-child(2)').click();document.querySelector('#ioAnalysisBody .io-premium-periods button').click();true`);
  adb('shell','input','keyevent','4');await wait(250);assert.equal(await evaluate('document.getElementById("ioAnalysisOverlay").hidden'),true,'native Back closes analysis');
  }
- await evaluate("showPage('immobilier');immoptimaOpenPropertyDetail('qa-tours');true");await capture('06-bien');
+ await evaluate("showPage('immobilier');immoptimaOpenPropertyDetail('qa-tours');true");await capture('06-bien','appartement');
  await evaluate("ioPropertyTab(2);true");assert((await evaluate('document.getElementById("ioPropertyDetailOverlay").textContent')).includes('350'));
  adb('shell','input','keyevent','4');await wait(250);assert.equal(await evaluate('document.getElementById("ioPropertyDetailOverlay").hidden'),true);
  await evaluate("db.properties[0].rentHC=925;save();true");await cmd('Page.reload');await wait(1200);assert.equal(await evaluate('db.properties[0].rentHC'),925,'WebView local data survives reload');
  await evaluate("showPage('dashboard');immoptimaMore();true");assert.equal(await evaluate('document.querySelectorAll("#ioMore .io-more-grid button").length'),11);adb('shell','input','keyevent','4');await wait(200);assert.equal(await evaluate('document.getElementById("ioMore").hidden'),true);
- fs.writeFileSync(out+'/results.json',JSON.stringify({passed:true,package:'com.immoptima.app',device:adb('shell','getprop','ro.product.model'),api:adb('shell','getprop','ro.build.version.sdk'),screen:adb('shell','wm','size'),data:'Isolated synthetic QA portfolio, no user account',checks:['financial result 580 EUR','six actual APK screenshots','native touchscreen tile','four analysis handlers','tabs','period buttons','native Android Back','property rents tab','WebView persistence after reload','all legacy destinations accessible']},null,2));
+ fs.writeFileSync(out+'/results.json',JSON.stringify({passed:true,package:'com.immoptima.app',device:adb('shell','getprop','ro.product.model'),api:adb('shell','getprop','ro.build.version.sdk'),screen:adb('shell','wm','size'),data:'Isolated synthetic QA portfolio, no user account',checks:['financial result 580 EUR','six actual APK screenshots verified with OCR','native touchscreen tile','four analysis handlers','tabs','period buttons','native Android Back','property rents tab','WebView persistence after reload','all legacy destinations accessible']},null,2));
  ws.close();console.log('PASS installed Android APK rendering, navigation, Back, persistence and six screenshots');
 })().catch(e=>{console.error(e);try{cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/failure-screen.png','w'),'inherit']});fs.writeFileSync(out+'/logcat.txt',adb('logcat','-d','-t','1000'))}catch{}process.exit(1)});

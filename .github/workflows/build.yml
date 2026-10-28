@@ -226,7 +226,10 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Install QA transport
-        run: npm install --no-save --package-lock=false ws@8.18.0
+        run: |
+          npm install --no-save --package-lock=false ws@8.18.0
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr
       - name: Verify installed APK and capture real Android screens
         uses: reactivecircus/android-emulator-runner@v2
         with:
