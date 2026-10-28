@@ -178,7 +178,7 @@ header .top{align-items:center!important}
   <article class="io-tile io-performance io-graph-tile" role="button" tabindex="0" onclick="immoptimaOpenAnalysis('yield')" onkeydown="immoptimaGraphKey(event,'yield')"><div class="io-tile-title">▥ &nbsp; 03 · MA PERFORMANCE</div><div class="io-two"><div><div class="io-caption">Rendement brut</div><div class="io-number" id="igGrossYield">0 %</div></div><div><div class="io-caption">Rendement net</div><div class="io-number" id="igNetYield">0 %</div></div></div><div class="io-mini-bars"><span>Brut</span><div><i id="igGrossBar"></i></div><span>Net</span><div><i id="igNetBar"></i></div></div><div class="io-caption" id="igPrincipal">Capital remboursé : 0 €</div><div class="io-open-hint">↗ Toucher pour comparer les rendements</div></article>
   <article class="io-tile io-alert io-graph-tile" role="button" tabindex="0" onclick="immoptimaOpenAnalysis('diagnostic')" onkeydown="immoptimaGraphKey(event,'diagnostic')"><div class="io-tile-title">✦ &nbsp; 04 · MON DIAGNOSTIC</div><div class="io-alert-line" id="igAlertCash"></div><div class="io-alert-line" id="igAlertMarket"></div><div class="io-open-hint">↗ Toucher pour comprendre mes alertes</div></article>
  </div>
- <div id="ioAnalysisOverlay" class="io-analysis-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ioAnalysisTitle"><div class="io-analysis-panel"><div class="io-analysis-header"><h2 id="ioAnalysisTitle">Analyse détaillée</h2><button type="button" onclick="immoptimaCloseAnalysis()" aria-label="Fermer l'analyse">✕</button></div><div class="io-analysis-period"><label for="ioAnalysisPeriod">Période</label><select id="ioAnalysisPeriod" onchange="immoptimaRenderAnalysis()"><option value="3">3 mois</option><option value="6">6 mois</option><option value="12" selected>12 mois</option><option value="all">Depuis l’achat</option></select></div><div id="ioAnalysisBody"></div><button type="button" class="secondary" onclick="immoptimaCloseAnalysis()">← Retour au tableau de bord</button></div></div>
+ <div id="ioAnalysisOverlay" class="io-analysis-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ioAnalysisTitle"><div class="io-analysis-panel"><div class="io-analysis-header"><h2 id="ioAnalysisTitle">Analyse détaillée</h2><button type="button" onclick="immoptimaCloseAnalysis()" aria-label="Fermer l'analyse">✕</button></div><div class="io-analysis-period"><label for="ioAnalysisPeriod">Période</label><select id="ioAnalysisPeriod" onchange="immoptimaRenderAnalysis()"><option value="3">3 mois</option><option value="6">6 mois</option><option value="12">12 mois</option><option value="all" selected>Depuis l’achat</option><option value="36">3 ans</option><option value="60">5 ans</option><option value="120">10 ans</option><option value="240">20 ans</option></select></div><div id="ioAnalysisBody"></div><button type="button" class="secondary" onclick="immoptimaCloseAnalysis()">← Retour au tableau de bord</button></div></div>
  <div id="dashboardDetailed" hidden>
   <div class="section-title"><h2>Vue d’ensemble</h2><div class="field dashboard-filter"><label>Afficher</label><select id="dashboardHolder" onchange="renderDashboard()"><option value="Tous">Tous les biens</option></select></div></div>
   <div class="grid">
@@ -560,7 +560,7 @@ function immoptimaEstimatedHistory(kind){
  if(!dates.length)return [];
  const first=new Date(dates.sort()[0]+'T12:00:00');
  if(!Number.isFinite(first.getTime())||first>now)return [];
- const period=document.getElementById('ioAnalysisPeriod')?.value||'12';
+ const period=document.getElementById('ioAnalysisPeriod')?.value||'all';
  const cutoff=period==='all'?first:new Date(now.getFullYear(),now.getMonth()-(Number(period)||12),1);
  const start=first>cutoff?first:cutoff;
  const maxMonths=Math.max(0,(now.getFullYear()-start.getFullYear())*12+now.getMonth()-start.getMonth());
@@ -591,9 +591,9 @@ function immoptimaHistoricalSeries(kind){
  /* A snapshot is only valid when it contains recorded, dated metrics for the selected holder. */
  const holder=document.getElementById('ioHolderFilter')?.value||'Tous';
  const rows=Array.isArray(db.dashboardSnapshots)?db.dashboardSnapshots:[];
- const period=document.getElementById('ioAnalysisPeriod')?.value||'12';
+ const period=document.getElementById('ioAnalysisPeriod')?.value||'all';
  const cutoff=period==='all'?0:Date.now()-Number(period)*31*86400000;
- const keys=kind==='wealth'?['net','debt']:kind==='income'?['rent','cashNet']:['grossYield','netYield'];
+ const keys=kind==='wealth'?['net','debt']:kind==='income'?['rent','cashNet']:kind==='diagnostic'?['debt']:['grossYield','netYield'];
  const points=rows.filter(r=>r&&r.holder===holder&&Number.isFinite(Date.parse(r.date))&&Date.parse(r.date)>=cutoff&&keys.every(k=>Number.isFinite(Number(r[k])))).sort((a,b)=>Date.parse(a.date)-Date.parse(b.date));
  const estimated=points.length<2?immoptimaEstimatedHistory(kind):[];
  return {keys,points:estimated.length>=2?estimated:points,estimated:estimated.length>=2};
@@ -603,8 +603,9 @@ function immoptimaRenderAnalysis(){
  const body=document.getElementById('ioAnalysisBody');if(!body)return;
  const t=totalsFor(dashboardProperties());
  const config={wealth:{title:'Ma richesse',keys:['net','debt'],labels:['Patrimoine net','Dettes restantes'],colors:['#0d9676','#d48c87'],help:'La courbe verte représente la valeur nette de dettes. La courbe rose indique les crédits restants. Une progression du patrimoine net peut venir des remboursements ou de la revalorisation des biens.',unit:'€'},income:{title:'Mes revenus',keys:['rent','cashNet'],labels:['Loyers HC','Cash-flow net'],colors:['#2563eb','#0d9676'],help:'Les loyers hors charges sont les recettes locatives. Le cash-flow net indique ce qui reste après les charges et les mensualités de crédit retenues dans les calculs.',unit:'€'},yield:{title:'Ma performance',keys:['grossYield','netYield'],labels:['Rendement brut','Rendement net'],colors:['#7651bd','#0d9676'],help:'Le rendement brut compare les loyers au coût d’acquisition. Le rendement net tient compte des charges retenues dans le calcul. Les pourcentages ne sont pas une promesse de rendement futur.',unit:'%'}};
+ config.diagnostic={title:'Mon diagnostic',keys:['debt'],labels:['Capital restant dû'],colors:['#f97316'],help:'Le capital restant dû diminue au fil des remboursements. La courbe reconstituée est indicative et dépend des informations du crédit.',unit:'€'};
  const c=config[ioAnalysisKind];document.getElementById('ioAnalysisTitle').textContent=c?c.title:'Mon diagnostic';
- document.querySelector('.io-analysis-period').hidden=!c;
+ document.querySelector('.io-analysis-period').hidden=false;
  if(!c){const consensus=dashboardProperties().reduce((s,p)=>s+consensusValue(p),0);body.innerHTML='<div class="io-analysis-help"><strong>Cash-flow net :</strong> '+euro(t.cashNet)+'/mois. '+(t.cashNet<0?'Les sorties dépassent les entrées.':t.rent>0&&t.cashNet<t.rent*.05?'La marge mensuelle est faible.':'La marge mensuelle est positive.')+'</div><div class="io-analysis-help"><strong>Estimation de marché :</strong> '+(consensus>0?'Une estimation est disponible.':'Complétez les valeurs de marché pour comparer votre patrimoine.')+'</div>';return}
  const series=immoptimaHistoricalSeries(ioAnalysisKind),points=series.points;
  const legend=c.keys.map((key,i)=>'<button type="button" aria-pressed="'+(!ioAnalysisHidden.has(key))+'" onclick="immoptimaToggleCurve(\''+key+'\')" style="color:'+c.colors[i]+'">'+(ioAnalysisHidden.has(key)?'○ ':'● ')+c.labels[i]+'</button>').join('');
