@@ -8,6 +8,7 @@ const fixture=require('./fixture.cjs');
  await page.addInitScript(()=>localStorage.setItem('immoptima_welcome_v1','seen'));
  const url='http://127.0.0.1:'+server.address().port;await page.goto(url);await page.waitForTimeout(500);
  assert.equal(await page.evaluate(()=>db.properties.length),0,'first launch stays empty');
+ await page.evaluate(()=>installDemoData());assert.equal(await page.evaluate(()=>db.properties.length),1);await page.evaluate(()=>removeDemoData());assert.equal(await page.evaluate(()=>db.properties.length),0);assert(await page.evaluate(()=>!db.dashboardSnapshots.some(x=>x.demo==='immoptima_demo_v1')));
  await page.getByRole('button',{name:'Biens',exact:true}).click();await page.locator('#addPropertyButton').click();assert(await page.locator('#propertyFormWrap form').isVisible());
  await page.evaluate(()=>showPage('dashboard'));const data=fixture();
  await page.evaluate(data=>{db=data;localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll()},data);

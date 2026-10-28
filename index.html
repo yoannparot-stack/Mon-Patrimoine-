@@ -280,7 +280,7 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
  </div>
  <div id="ioAnalysisOverlay" class="io-analysis-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ioAnalysisTitle"><div class="io-analysis-panel"><div class="io-analysis-header"><h2 id="ioAnalysisTitle">Analyse détaillée</h2><button type="button" onclick="immoptimaCloseAnalysis()" aria-label="Fermer l'analyse">✕</button></div><div class="io-analysis-period"><label for="ioAnalysisPeriod">Période</label><select id="ioAnalysisPeriod" onchange="immoptimaRenderAnalysis()"><option value="3">3 mois</option><option value="6">6 mois</option><option value="12">12 mois</option><option value="all" selected>Depuis l’achat</option><option value="36">3 ans</option><option value="60">5 ans</option><option value="120">10 ans</option><option value="240">20 ans</option></select></div><div id="ioAnalysisBody"></div><button type="button" class="secondary" onclick="immoptimaCloseAnalysis()">← Retour au tableau de bord</button></div></div>
  <div id="dashboardDetailed" hidden>
-  <div class="section-title"><h2>Vue d’ensemble</h2><div class="field dashboard-filter"><label>Afficher</label><select id="dashboardHolder" onchange="renderDashboard()"><option value="Tous">Tous les biens</option></select></div></div>
+  <div class="section-title"><h2>Vue d’ensemble</h2><div class="field dashboard-filter"><label>Afficher</label><select id="dashboardHolder" onchange="immoptimaHolderChange(this.value)"><option value="Tous">Tous les biens</option></select></div></div>
   <div class="grid">
     <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Immobilier" onclick="dashboardGo('immobilier')" onkeydown="dashboardKey(event,'immobilier')"><div class="label">Patrimoine brut</div><div class="metric" id="mGross">0 €</div><div class="hint">Immobilier + financier + autres actifs</div></div>
     <div class="card dashboard-clickable" role="button" tabindex="0" title="Ouvrir Financements" onclick="dashboardGo('financement')" onkeydown="dashboardKey(event,'financement')"><div class="label">Dettes</div><div class="metric negative" id="mDebt">0 €</div><div class="hint">Crédits + autres dettes</div></div>
@@ -613,12 +613,12 @@ function immoptimaRecordDashboardSnapshot(){
  for(const holder of [...new Set(holders)]){
   const properties=holder==='Tous'?db.properties:db.properties.filter(p=>(p.holder||((p.structure==='SARL de famille')?'SARL de famille':'À attribuer'))===holder);
   const t=totalsFor(properties);
-  const entry={date:day,holder,calculationVersion:2,net:t.net,debt:t.debt,rent:t.rent,cashNet:t.cashNet,charges:t.charges,payments:t.payments,gross:t.gross,grossYield:t.grossYield,netYield:t.netYield};
+  const entry={date:day,holder,demo:properties.length&&properties.every(p=>p.demo===DEMO_MARK)?DEMO_MARK:undefined,calculationVersion:2,principal:t.principal,initial:ioLoanStats(properties).initial,net:t.net,debt:t.debt,rent:t.rent,cashNet:t.cashNet,charges:t.charges,payments:t.payments,gross:t.gross,grossYield:t.grossYield,netYield:t.netYield};
   const index=db.dashboardSnapshots.findIndex(r=>r.date===day&&r.holder===holder);
   if(index>=0)db.dashboardSnapshots[index]=entry;else db.dashboardSnapshots.push(entry);
  }
  if(!Array.isArray(db.propertySnapshots))db.propertySnapshots=[];
- for(const p of db.properties){const t=totalsFor([p]),entry={date:day,propertyId:p.id,calculationVersion:2,value:t.gross,debt:t.debt,net:t.net,cashNet:t.cashNet,rent:t.rent,charges:t.charges,grossYield:t.grossYield,netYield:t.netYield};const i=db.propertySnapshots.findIndex(r=>r.date===day&&r.propertyId===p.id);if(i<0)db.propertySnapshots.push(entry);else db.propertySnapshots[i]=entry;}
+ for(const p of db.properties){const t=totalsFor([p]),entry={date:day,propertyId:p.id,demo:p.demo,calculationVersion:2,principal:t.principal,value:t.gross,debt:t.debt,net:t.net,cashNet:t.cashNet,rent:t.rent,charges:t.charges,grossYield:t.grossYield,netYield:t.netYield};const i=db.propertySnapshots.findIndex(r=>r.date===day&&r.propertyId===p.id);if(i<0)db.propertySnapshots.push(entry);else db.propertySnapshots[i]=entry;}
  if(db.propertySnapshots.length>12000)db.propertySnapshots=db.propertySnapshots.slice(-12000);
  if(db.dashboardSnapshots.length>12000)db.dashboardSnapshots=db.dashboardSnapshots.slice(-12000);
 }
@@ -673,7 +673,7 @@ function ioEstimatedRows(props,period){
  dates.push(now);
  return dates.map(at=>{
  const active=props.filter(p=>ioDate(p.acquisitionDate)<=at),loans=ioRelatedLoans(active),debt=loans.reduce((s,l)=>s+(immoptimaEstimatedLoanBalance(l,at)||0),0),cost=active.reduce((s,p)=>s+propertyCost(p),0),gross=active.reduce((s,p)=>s+(Number(p.purchase)||0),0),rent=active.reduce((s,p)=>s+(Number(p.rentHC)||0),0),charges=active.reduce((s,p)=>s+ioOwnerCharges(p),0),payments=loans.filter(l=>ioDate(l.startDate)<=at&&immoptimaEstimatedLoanBalance(l,at)>0).reduce((s,l)=>s+monthlyLoanPayment(l),0);
- return {date:at.getFullYear()+'-'+String(at.getMonth()+1).padStart(2,'0')+'-'+String(at.getDate()).padStart(2,'0'),net:gross-debt,gross,value:gross,debt,rent,charges,payments,cashNet:rent-charges-payments,grossYield:cost?rent*12/cost*100:0,netYield:cost?(rent-charges)*12/cost*100:0,estimated:true};
+ return {principal:Math.max(0,loans.reduce((s,l)=>s+(Number(l.initial)||0),0)-debt),date:at.getFullYear()+'-'+String(at.getMonth()+1).padStart(2,'0')+'-'+String(at.getDate()).padStart(2,'0'),net:gross-debt,gross,value:gross,debt,rent,charges,payments,cashNet:rent-charges-payments,grossYield:cost?rent*12/cost*100:0,netYield:cost?(rent-charges)*12/cost*100:0,estimated:true};
  }).filter((p,i,a)=>!i||p.date!==a[i-1].date);
 }
 function ioOwnerCharges(p){return (Number(p.ownerCharges)||0)+(Number(p.tax)||0)/12+(Number(p.pno)||0)+(Number(p.otherMonthly)||0)}
@@ -683,7 +683,7 @@ function ioGetSeries(kind,period='all',property=null){
  const dedup=new Map();raw.forEach(r=>{if(!ioDate(r.date)||r.date>today||+ioDate(r.date)<cutoff)return;if(['income','yield'].includes(kind)&&r.calculationVersion!==2)return;if(!keys.every(k=>r[k]!==null&&r[k]!==''&&Number.isFinite(Number(r[k]))))return;dedup.set(r.date,{...r,value:Number(r.value??r.gross),estimated:false})});
  let points=[...dedup.values()].sort((a,b)=>a.date.localeCompare(b.date));const hasRealHistory=points.length>=2||(points.length===1&&points[0].date<today);
  if(!hasRealHistory){points=ioEstimatedRows(props,period);if(points.length<2)points=[...dedup.values()];}
- const current={date:today,net:t.net,debt:t.debt,gross:t.gross,value:t.gross,rent:t.rent,charges:t.charges,payments:t.payments,cashNet:t.cashNet,grossYield:t.grossYield,netYield:t.netYield,estimated:false,current:true};
+ const current={principal:t.principal,date:today,net:t.net,debt:t.debt,gross:t.gross,value:t.gross,rent:t.rent,charges:t.charges,payments:t.payments,cashNet:t.cashNet,grossYield:t.grossYield,netYield:t.netYield,estimated:false,current:true};
  // Append today's actual values; never relabel or overwrite a past recorded observation.
  if(points.length&&points[points.length-1].date===today)points[points.length-1]=current;else points.push(current);
  return {keys,points,estimated:!hasRealHistory&&points.some(p=>p.estimated),legacy:raw.some(r=>r.calculationVersion!==2)&&['income','yield'].includes(kind)};
@@ -741,7 +741,7 @@ function immoptimaRenderAnalysis(){
  if(ioAnalysisKind==='income'&&ioAnalysisTab===2){keys=['cashNet'];colors=['#099550'];labels=['Cash-flow net'];title='Évolution du cash-flow mensuel'}
  let extra='';
  if(ioAnalysisKind==='yield'&&ioAnalysisTab===1)extra='<div class="io-comparison">'+props.map(p=>'<div><b>'+esc(p.name)+'</b><span>'+pct(totalsFor([p]).grossYield)+' brut · '+pct(totalsFor([p]).netYield)+' net</span></div>').join('')+'</div>';
- if(ioAnalysisKind==='diagnostic'&&ioAnalysisTab===1){keys=['repaid'];labels=['Capital remboursé estimé'];colors=['#f36414'];title='Évolution du capital remboursé';series.points=series.points.map(p=>({...p,repaid:Math.max(0,stats.initial-p.debt)}))}
+ if(ioAnalysisKind==='diagnostic'&&ioAnalysisTab===1){keys=['repaid'];labels=['Capital remboursé estimé'];colors=['#f36414'];title='Évolution du capital remboursé';series.points=series.points.map(p=>({...p,repaid:Number.isFinite(Number(p.principal))?Number(p.principal):Math.max(0,stats.initial-p.debt),estimated:p.estimated||!Number.isFinite(Number(p.principal))}))}
  const detail=ioAnalysisTab===c.tabs.length-1&&c.tabs[c.tabs.length-1]==='Détail';
  const legend='<div class="io-analysis-legend">'+keys.map((k,i)=>'<button type="button" aria-pressed="'+!ioAnalysisHidden.has(k)+'" onclick="immoptimaToggleCurve(\''+k+'\')"><i style="background:'+colors[i]+';opacity:'+(ioAnalysisHidden.has(k)?'.25':'1')+'"></i>'+labels[i]+'</button>').join('')+'</div>';
  const chart=ioChart(series.points,keys,colors,labels,ioAnalysisKind==='yield',ioAnalysisHidden,ioAnalysisKind==='income'&&ioAnalysisTab===0);
@@ -1432,6 +1432,7 @@ function removeDemoData(){
  if(!confirm('Supprimer uniquement les enregistrements fictifs ImmOptima ? Les autres données seront conservées.'))return;
  const demo=x=>x.demo===DEMO_MARK||['demo_property_immoptima_v1','demo_loan_immoptima_v1','demo_asset_immoptima_v1'].includes(x.id);
  db.properties=db.properties.filter(x=>!demo(x));db.loans=db.loans.filter(x=>!demo(x));db.assets=db.assets.filter(x=>!demo(x));
+ db.dashboardSnapshots=(db.dashboardSnapshots||[]).filter(x=>x.demo!==DEMO_MARK);db.propertySnapshots=(db.propertySnapshots||[]).filter(x=>x.demo!==DEMO_MARK&&x.propertyId!=='demo_property_immoptima_v1');
  if(!db.properties.some(p=>p.holder==='Détenteur fictif'))db.settings.holders=(db.settings.holders||[]).filter(h=>h!=='Détenteur fictif');
  save();alert('Données fictives supprimées.');
 }
