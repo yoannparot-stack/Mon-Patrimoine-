@@ -45,3 +45,9 @@ Les captures de validation utilisent exclusivement un portefeuille fictif isolé
 Connexion Google avec le compte réel, échanges Firebase entre deux appareils, restauration réelle depuis Drive, sélecteur Android de destination/partage et dialogue d'impression PDF. Les chemins existants sont conservés et leurs gardes sont testées, mais les contrôles automatisés ne remplacent pas ces essais avec un compte authentifié.
 
 Installer en mise à jour de l'application ImmOptima existante ; ne pas désinstaller pour préserver le stockage local. La signature persistante est utilisée pour permettre la mise à jour. L'ancienne application portant un autre package reste distincte.
+
+## Correctif après essais sur téléphone
+
+Le dashboard graphique adapte sa hauteur à l’espace réellement disponible entre l’en-tête et la navigation. Les quatre cartes restent visibles sur une page ; le style validé est conservé. Des tests vérifient les petits écrans 320 × 568 et 360 × 640, les formats courants et la visibilité des textes.
+
+La croissance annuelle n’est calculée qu’à partir d’au moins un an calendaire d’historique. Une hausse de 45 000 à 50 000 € en un jour conserve son gain de 5 000 € et son évolution de 11,1 %, mais affiche « — » pour la croissance annuelle. Les valeurs longues peuvent se répartir dans leur carte sans élargir l’écran. Code de version Android : 9.

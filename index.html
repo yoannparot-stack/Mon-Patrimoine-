@@ -253,6 +253,34 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
  .io-provenance{margin:5px 0 10px}
  .io-footer-stats{margin:9px 0 12px}.io-footer-stats>div{padding:10px 8px}
 }
+
+/* Keep financial values inside their cards, including unusually large amounts. */
+.io-footer-stats b{white-space:normal;overflow-wrap:anywhere;line-height:1.25}
+.io-analysis-panel{min-width:0}.io-analysis-header h2{min-width:0;overflow-wrap:anywhere}
+@media(max-width:749px){
+ body.io-dashboard-fit main{padding-bottom:calc(var(--io-nav-height,64px) + 8px)}
+ body.io-dashboard-fit #dashboardGraph{height:var(--io-cockpit-height);grid-template-rows:1.2fr 1fr 1fr 1fr;gap:calc(11px * var(--io-dashboard-scale,1))}
+ body.io-dashboard-fit #dashboardGraph .io-tile{min-height:0;padding:calc(14px * var(--io-dashboard-scale,1)) calc(16px * var(--io-dashboard-scale,1))}
+ body.io-dashboard-fit #dashboardGraph .io-tile-title{font-size:clamp(10px,calc(12px * var(--io-dashboard-scale,1)),12px);margin-bottom:calc(10px * var(--io-dashboard-scale,1));gap:8px}
+ body.io-dashboard-fit #dashboardGraph .io-tile-title .io-icon{width:calc(26px * var(--io-dashboard-scale,1));height:calc(26px * var(--io-dashboard-scale,1))}
+ body.io-dashboard-fit #dashboardGraph .io-caption{font-size:clamp(10px,calc(13px * var(--io-dashboard-scale,1)),13px)}
+ body.io-dashboard-fit #dashboardGraph .io-hero{font-size:clamp(20px,calc(30px * var(--io-dashboard-scale,1)),30px);margin:2px 0 4px}
+ body.io-dashboard-fit #dashboardGraph .io-delta{font-size:clamp(10px,calc(13px * var(--io-dashboard-scale,1)),13px);overflow-wrap:anywhere}
+ body.io-dashboard-fit #dashboardGraph .io-gauge{width:calc(112px * var(--io-dashboard-scale,1))}
+ body.io-dashboard-fit #dashboardGraph .io-gauge small{font-size:clamp(9px,calc(11px * var(--io-dashboard-scale,1)),11px)}
+ body.io-dashboard-fit #dashboardGraph .io-spark{height:calc(64px * var(--io-dashboard-scale,1));width:calc(116px * var(--io-dashboard-scale,1))}
+ body.io-dashboard-fit #dashboardGraph .io-track{height:calc(11px * var(--io-dashboard-scale,1));margin-top:3px}
+ body.io-dashboard-fit #dashboardGraph .io-repay-track{width:calc(120px * var(--io-dashboard-scale,1));margin-bottom:8px}
+}
+
+@media(max-width:749px){
+ body.io-dashboard-tight #dashboardGraph .io-tile{padding:5px 10px}
+ body.io-dashboard-tight #dashboardGraph .io-tile-title{margin-bottom:4px}
+ body.io-dashboard-tight #dashboardGraph .io-tile-title .io-icon{width:16px;height:16px}
+ body.io-dashboard-tight #dashboardGraph .io-hero{font-size:20px;line-height:1;margin:1px 0}
+ body.io-dashboard-tight #dashboardGraph .io-caption,body.io-dashboard-tight #dashboardGraph .io-delta{font-size:10px;line-height:1.1}
+ body.io-dashboard-tight #dashboardGraph .io-gauge small{font-size:8.5px}
+}
 </style>
 </head>
 <body>
@@ -475,7 +503,7 @@ const ioMainPages=[['dashboard','Dashboard','home'],['immobilier','Biens','build
 document.getElementById('nav').innerHTML=ioMainPages.map(([page,label,icon])=>`<button type="button" data-page="${page}" onclick="${page==='more'?'immoptimaMore()':"showPage('"+page+"')"}">${ioIcon(icon)}<span>${label}</span></button>`).join('');
 function dashboardGo(pageId){showPage(pageId);const page=document.getElementById(pageId);if(page){window.setTimeout(()=>page.scrollIntoView({behavior:'smooth',block:'start'}),30);}}
 function dashboardKey(event,pageId){if(event.key==='Enter'||event.key===' '){event.preventDefault();dashboardGo(pageId);}}
-function showPage(p){immoptimaCloseMore();immoptimaCloseAnalysis();immoptimaClosePropertyDetail();window.scrollTo(0,0);document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));if(p==='projection')renderProjection();if(p==='banque')renderBankSummary();if(p==='direction')renderDirection();if(p==='valorisation')renderMarketPage();if(p==='optimisation')renderOptimization();}
+function showPage(p){immoptimaScheduleDashboardFit();immoptimaCloseMore();immoptimaCloseAnalysis();immoptimaClosePropertyDetail();window.scrollTo(0,0);document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));if(p==='projection')renderProjection();if(p==='banque')renderBankSummary();if(p==='direction')renderDirection();if(p==='valorisation')renderMarketPage();if(p==='optimisation')renderOptimization();}
 
 
 function liquidAssets(){
@@ -602,7 +630,7 @@ function renderOptimization(){
 function renderAll(){const mode=localStorage.getItem('immoptima_dashboard_view_v1')||'graph';const modeEl=document.getElementById('dashboardViewMode');if(modeEl){modeEl.value=['compact','graph','detailed'].includes(mode)?mode:'compact';immoptimaDashboardModeChange();}renderHolderControls();renderDashboard();renderProperties();renderLoans();renderAssets();renderHistory();renderValuation();renderBankSummary();renderDirection();renderOptimization();document.getElementById('appName').value=db.settings.name||'Mon Patrimoine';document.getElementById('otherDebt').value=db.otherDebt||0;document.getElementById('otherDebtNote').value=db.otherDebtNote||'';document.title=db.settings.name||'Mon Patrimoine';}
 
 function dashboardProperties(){const f=document.getElementById('ioHolderFilter')?.value||document.getElementById('dashboardHolder')?.value||'Tous';return f==='Tous'?db.properties:db.properties.filter(p=>(p.holder||((p.structure==='SARL de famille')?'SARL de famille':'À attribuer'))===f);}
-function immoptimaDashboardModeChange(){const mode=document.getElementById('dashboardViewMode')?.value||'graph';document.getElementById('dashboardCompact').hidden=mode!=='compact';document.getElementById('dashboardGraph').hidden=mode!=='graph';document.getElementById('dashboardDetailed').hidden=mode!=='detailed';localStorage.setItem('immoptima_dashboard_view_v1',mode);}
+function immoptimaDashboardModeChange(){const mode=document.getElementById('dashboardViewMode')?.value||'graph';document.getElementById('dashboardCompact').hidden=mode!=='compact';document.getElementById('dashboardGraph').hidden=mode!=='graph';document.getElementById('dashboardDetailed').hidden=mode!=='detailed';localStorage.setItem('immoptima_dashboard_view_v1',mode);immoptimaScheduleDashboardFit();}
 function immoptimaDashboardCompact(t,consensus){const values={ioNet:euro(t.net),ioGross:euro(t.gross),ioDebt:euro(t.debt),ioCashNet:euro(t.cashNet),ioRent:euro(t.rent),ioYield:pct(t.grossYield),ioNetYield:pct(t.netYield),ioPrincipal:euro(t.principal)};Object.entries(values).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v});const ratio=t.gross>0?Math.max(0,Math.min(100,t.net/t.gross*100)):0;document.getElementById('ioWealthBar').style.width=ratio.toFixed(2)+'%';document.getElementById('ioWealthExplain').textContent=t.gross>0?Math.round(ratio)+' % de la valeur de mon patrimoine est nette de dettes.':'Aucune valeur de patrimoine renseignée.';const low=t.rent>0&&t.cashNet>=0&&t.cashNet<t.rent*.05;document.getElementById('ioCashWarning').textContent=low?'⚠ Marge mensuelle très faible':t.cashNet<0?'⚠ Cash-flow négatif':'Cash-flow net après crédit';document.getElementById('ioAlertCash').textContent=t.cashNet<0?'⚠ Cash-flow négatif : '+euro(t.cashNet)+'/mois':low?'⚠ Cash-flow faible : '+euro(t.cashNet)+'/mois':'✓ Cash-flow : '+euro(t.cashNet)+'/mois';document.getElementById('ioAlertMarket').textContent=consensus>0?'✓ Estimation de marché disponible':'ⓘ Estimation de marché à compléter';}
 
 /* ImmOptima - graphiques explicatifs, données historiques réelles uniquement. */
@@ -636,6 +664,16 @@ function immoptimaHolderChange(value){const filter=document.getElementById('ioHo
 function immoptimaGraphKey(event,kind){if(event.key==='Enter'||event.key===' '){event.preventDefault();immoptimaOpenAnalysis(kind)}}
 function ioSigned(v,percent=false){return (v>0?'+':'')+(percent?pct(v):euro(v))}
 function ioChange(points,key,current){const first=points.length>1?Number(points[0][key]):NaN;if(!Number.isFinite(first))return {gain:null,pct:null};return {gain:current-first,pct:first>0?(current/first-1)*100:null}}
+// A one-day change must never be extrapolated into an annual performance.
+function ioAnnualGrowth(points,key,current,endDate=ioToday()){
+ if(points.length<2)return null;
+ const start=ioDate(points[0].date),end=ioDate(endDate),base=Number(points[0][key]),value=Number(current);
+ if(!start||!end||!Number.isFinite(base)||!Number.isFinite(value)||base<=0||value<=0)return null;
+ const anniversary=new Date(start);anniversary.setFullYear(anniversary.getFullYear()+1);
+ if(end<anniversary)return null;
+ const years=(end-start)/(365.25*86400000),growth=Math.expm1(Math.log(value/base)/years)*100;
+ return Number.isFinite(growth)?growth:null;
+}
 function ioGainText(change){return change.gain===null?'Historique à compléter':ioSigned(change.gain)+(change.pct===null?'':'  ('+ioSigned(change.pct,true)+')')}
 function ioGauge(ratio){const safe=Math.max(0,Math.min(100,ratio));return '<svg viewBox="0 0 120 90" role="img" aria-label="Part nette '+Math.round(ratio)+' %"><path d="M12 67a48 48 0 0 1 96 0" pathLength="100" fill="none" stroke="#c7ecdc" stroke-width="12" stroke-linecap="round"/><path d="M12 67a48 48 0 0 1 96 0" pathLength="100" fill="none" stroke="#069653" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+safe+' 100"/><text x="60" y="66" text-anchor="middle" fill="#087844" font-size="22" font-weight="750">'+Math.round(ratio)+' %</text></svg><small>de la valeur nette<br>de mes biens</small>'}
 function ioTrack(value,color){return '<div class="io-track"><i style="width:'+Math.max(0,Math.min(100,value))+'%;background:'+color+'"></i></div>'}
@@ -703,7 +741,7 @@ function ioChart(rows,keys,colors,labels,percent=false,hidden=new Set(),bars=fal
  colors.forEach((c,j)=>svg+='<linearGradient id="'+chartId+j+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+c+'" stop-opacity=".22"/><stop offset="100%" stop-color="'+c+'" stop-opacity=".02"/></linearGradient>');svg+='</defs>';
  for(let i=0;i<=tickCount;i++){const v=high-i*step,Yv=Y+i*H/tickCount;svg+='<line x1="'+X+'" x2="'+(X+W)+'" y1="'+Yv+'" y2="'+Yv+'" stroke="#e8edf2"/><text x="51" y="'+(Yv+4)+'" text-anchor="end" font-size="10" fill="#657086">'+esc(percent?pct(v):euro(Math.round(v/10)*10))+'</text>'}
  const candidates=[...new Set([0,Math.round(last*.2),Math.round(last*.4),Math.round(last*.6),Math.round(last*.8),last])],ticks=[];for(const i of candidates){if(!ticks.length||x(i)-x(ticks[ticks.length-1])>=39)ticks.push(i);else if(i===last){if(ticks.length>1)ticks.pop();ticks.push(i)}}
- ticks.forEach(i=>{const sameYear=rows[0].date.slice(0,4)===rows[last].date.slice(0,4),label=sameYear?new Date(rows[i].date+'T12:00:00').toLocaleDateString('fr-FR',{month:'short'}):rows[i].date.slice(0,4);svg+='<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+Y+'" y2="'+(Y+H)+'" stroke="#f0f2f7"/><text x="'+x(i)+'" y="224" text-anchor="middle" font-size="10" fill="#657086">'+esc(label)+'</text>'});
+ ticks.forEach(i=>{const sameYear=rows[0].date.slice(0,4)===rows[last].date.slice(0,4),sameMonth=rows[0].date.slice(0,7)===rows[last].date.slice(0,7),label=sameYear?new Date(rows[i].date+'T12:00:00').toLocaleDateString('fr-FR',sameMonth?{day:'numeric',month:'short'}:{month:'short'}):rows[i].date.slice(0,4);svg+='<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+Y+'" y2="'+(Y+H)+'" stroke="#f0f2f7"/><text x="'+x(i)+'" y="224" text-anchor="middle" font-size="10" fill="#657086">'+esc(label)+'</text>'});
  active.forEach(({key,j})=>{
  const valid=rows.map((r,i)=>({r,i,v:Number(r[key])})).filter(o=>Number.isFinite(o.v));if(!valid.length)return;
  if(bars&&(key==='rent'||key==='charges')){const width=Math.min(12,Math.max(2,W/rows.length/2.8));valid.forEach(({i,v})=>{const zero=y(0),Yv=y(v),bx=x(i)+(key==='rent'?-width:1);svg+='<rect x="'+bx+'" y="'+Math.min(zero,Yv)+'" width="'+width+'" height="'+Math.max(.5,Math.abs(zero-Yv))+'" rx="2" fill="'+colors[j]+'" opacity=".72"/>'})}
@@ -723,14 +761,14 @@ function ioSetPeriod(i){document.getElementById('ioAnalysisPeriod').value=['12',
 function ioPeriodBar(){const vals=['12','36','60','120','240','all'],v=document.getElementById('ioAnalysisPeriod').value;return ioSegments(['1 an','3 ans','5 ans','10 ans','20 ans','Tout'],vals.indexOf(v),'ioSetPeriod','io-premium-periods')}
 function ioRows(items){return '<div class="io-summary-rows">'+items.map(([label,value,icon])=>'<div>'+ioIcon(icon||'wallet')+'<span>'+label+'</span><b>'+value+'</b></div>').join('')+'</div>'}
 function ioFooter(items){return '<div class="io-footer-stats">'+items.map(([icon,value,label])=>'<div>'+ioIcon(icon)+'<b>'+value+'</b><small>'+label+'</small></div>').join('')+'</div>'}
-function ioHelp(series,extra=''){return '<details class="io-analysis-help"><summary>Comprendre les calculs et les données</summary><p>Le rendement brut = loyers HC annuels ÷ coût total d’acquisition. Le rendement net déduit les charges non récupérables, la taxe foncière, la PNO et les autres dépenses, avant crédit et fiscalité. Le cash-flow net déduit aussi les mensualités avec assurance. Les charges récupérables sont neutres.</p><p>'+(series.estimated?'Pointillés : reconstitution indicative au prix d’achat, amortissement théorique, loyers et charges actuels constants. Le dernier point montre les valeurs actuelles saisies. Aucun historique de marché ni revenu passé n’est inventé.':'Traits pleins : relevés sauvegardés et valeurs actuelles. Les dates sont espacées proportionnellement.')+'</p>'+(series.legacy?'<p>Les anciens relevés de revenus et rendements utilisent une formule différente et sont conservés dans la sauvegarde. Ils ne sont pas mélangés aux nouveaux calculs.</p>':'')+'<p>'+extra+' Le patrimoine de ces écrans couvre les biens sélectionnés et leurs crédits liés. Les actifs financiers et crédits non liés restent accessibles dans Plus.</p></details>'}
+function ioHelp(series,extra=''){return '<details class="io-analysis-help"><summary>Comprendre les calculs et les données</summary><p>Le rendement brut = loyers HC annuels ÷ coût total d’acquisition. Le rendement net déduit les charges non récupérables, la taxe foncière, la PNO et les autres dépenses, avant crédit et fiscalité. Le cash-flow net déduit aussi les mensualités avec assurance. Les charges récupérables sont neutres. La croissance annuelle de la valeur nette n’est calculée qu’avec au moins un an d’historique ; sinon elle est indiquée par un tiret. L’évolution sur la période reste affichée.</p><p>'+(series.estimated?'Pointillés : reconstitution indicative au prix d’achat, amortissement théorique, loyers et charges actuels constants. Le dernier point montre les valeurs actuelles saisies. Aucun historique de marché ni revenu passé n’est inventé.':'Traits pleins : relevés sauvegardés et valeurs actuelles. Les dates sont espacées proportionnellement.')+'</p>'+(series.legacy?'<p>Les anciens relevés de revenus et rendements utilisent une formule différente et sont conservés dans la sauvegarde. Ils ne sont pas mélangés aux nouveaux calculs.</p>':'')+'<p>'+extra+' Le patrimoine de ces écrans couvre les biens sélectionnés et leurs crédits liés. Les actifs financiers et crédits non liés restent accessibles dans Plus.</p></details>'}
 function immoptimaAnalysisSection(i){ioAnalysisTab=i;ioAnalysisHidden=new Set();immoptimaRenderAnalysis()}
 function immoptimaRenderAnalysis(){
  const overlay=document.getElementById('ioAnalysisOverlay'),body=document.getElementById('ioAnalysisBody');if(!body)return;
  const c=IO_CONFIG[ioAnalysisKind],props=dashboardProperties(),t=totalsFor(props),stats=ioLoanStats(props),series=immoptimaHistoricalSeries(ioAnalysisKind),gain=ioChange(series.points,'net',t.net),cashGain=ioChange(series.points,'cashNet',t.cashNet),period=ioPeriodBar();overlay.dataset.kind=ioAnalysisKind;
  const h=overlay.querySelector('.io-analysis-header');h.innerHTML='<button type="button" onclick="immoptimaCloseAnalysis()" aria-label="Fermer l\'analyse">'+ioIcon('back')+'</button><h2 id="ioAnalysisTitle"><span style="color:'+c.color+'">'+c.number+'</span> · '+c.title+'</h2><button type="button" onclick="document.querySelector(\'#ioAnalysisOverlay details\').open=!document.querySelector(\'#ioAnalysisOverlay details\').open;document.querySelector(\'#ioAnalysisOverlay details\').scrollIntoView({block:\'nearest\'})" aria-label="Aide sur les calculs">ⓘ</button>';
  let summary='',footer='',rows=[],headline='',value='',badge='',icon='home';
- if(ioAnalysisKind==='wealth'){headline='Patrimoine net actuel';value=euro(t.net);badge=gain.pct===null?'—':ioSigned(gain.pct,true);rows=[['Valeur totale estimée',euro(t.gross),'shield'],['Capital restant dû',euro(t.debt),'wallet'],['Patrimoine net',euro(t.net),'building']];const years=series.points.length>1?(+ioDate(ioToday())-ioDate(series.points[0].date))/(365.25*86400000):0,base=series.points[0]?.net,cagr=years>0&&base>0&&t.net>0?(Math.pow(t.net/base,1/years)-1)*100:null;footer=ioFooter([['home',gain.gain===null?'—':ioSigned(gain.gain),'Gain de valeur nette'],['arrow',gain.pct===null?'—':ioSigned(gain.pct,true),'Évolution'],['arrow',cagr===null?'—':pct(cagr),'Croissance / an']]);}
+ if(ioAnalysisKind==='wealth'){headline='Patrimoine net actuel';value=euro(t.net);badge=gain.pct===null?'—':ioSigned(gain.pct,true);rows=[['Valeur totale estimée',euro(t.gross),'shield'],['Capital restant dû',euro(t.debt),'wallet'],['Patrimoine net',euro(t.net),'building']];const cagr=ioAnnualGrowth(series.points,'net',t.net);footer=ioFooter([['home',gain.gain===null?'—':ioSigned(gain.gain),'Gain de valeur nette'],['arrow',gain.pct===null?'—':ioSigned(gain.pct,true),'Évolution'],['arrow',cagr===null?'—':pct(cagr),'Croissance / an']]);}
  else if(ioAnalysisKind==='income'){headline='Cash-flow net / mois';value=euro(t.cashNet);icon='coins';badge=cashGain.pct===null?'—':ioSigned(cashGain.pct,true);rows=[['Loyers mensuels (HC)',euro(t.rent),'home'],['Charges non récupérables',euro(t.charges),'wallet'],['Crédits avec assurance',euro(t.payments),'clock'],['Cash-flow net',euro(t.cashNet),'shield']];footer=ioFooter([['home',euro(t.rent*12),'Loyers annuels'],['coins',euro(t.charges*12),'Charges annuelles'],['arrow',cashGain.pct===null?'—':ioSigned(cashGain.pct,true),'Évolution du cash-flow']]);}
  else if(ioAnalysisKind==='yield'){summary='<div class="io-summary io-yield-pair"><div><span>Rendement brut</span><strong>'+pct(t.grossYield)+'</strong>'+ioTrack(t.grossYield*10,'#8108dc')+'</div><div><span>Rendement net</span><strong>'+pct(t.netYield)+'</strong>'+ioTrack(t.netYield*10,'#a459e9')+'</div></div>';const purchase=props.reduce((s,p)=>s+(Number(p.purchase)||0),0),valuation=purchase?(t.gross/purchase-1)*100:null;footer=ioFooter([['wallet',euro(t.rent*12),'Loyers annuels'],['building',euro(t.propCost),'Coût d’acquisition total'],['clock',valuation===null?'—':ioSigned(valuation,true),'Valorisation depuis achat'],['shield',pct(t.netYield),'Rendement net']]);}
  else{headline='Capital remboursé';value=euro(stats.principal);badge=pct(stats.percent);icon='coins';rows=[['Capital initial emprunté',euro(stats.initial),'wallet'],['Capital restant dû',euro(t.debt),'building'],['Durée initiale maximale',stats.years?stats.years+' ans':'À renseigner','clock'],['Années restantes',stats.remaining===null?'À renseigner':pct(stats.remaining).replace(' %',' ans'),'clock']];footer=ioFooter([['calendar',euro(stats.principal),'Capital remboursé'],['clock',stats.remaining===null?'—':Math.ceil(stats.remaining)+' ans','Restant au maximum'],['percent',pct(stats.percent),'Déjà remboursé']]);}
@@ -752,8 +790,23 @@ function immoptimaRenderAnalysis(){
 function immoptimaMore(){let el=document.getElementById('ioMore');if(!el){el=document.createElement('div');el.id='ioMore';el.className='backup-choices';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Toutes les fonctionnalités');document.body.appendChild(el)}el.innerHTML='<div class="backup-choices-panel"><div class="section-title"><h2>Mon espace ImmOptima</h2><button class="secondary" onclick="immoptimaCloseMore()" aria-label="Fermer le menu">✕</button></div><div class="io-more-grid">'+pages.map(([id,label])=>'<button class="secondary" type="button" onclick="showPage(\''+id+'\')">'+label+'</button>').join('')+'</div><label for="ioMoreView">Affichage du tableau de bord</label><select id="ioMoreView" onchange="document.getElementById(\'dashboardViewMode\').value=this.value;immoptimaDashboardModeChange()"><option value="graph">Vue graphique</option><option value="compact">Vue chiffrée</option><option value="detailed">Détails complets</option></select><hr><div class="actions"><button class="primary" onclick="immoptimaCloseMore();openBackupOptions()">Sauvegarder</button><button class="secondary" onclick="document.getElementById(\'importFile\').click()">Importer</button></div></div>';el.hidden=false;el.querySelector('button').focus()}
 function immoptimaCloseMore(){const el=document.getElementById('ioMore');if(el)el.hidden=true}
 function immoptimaHandleBack(){for(const id of ['backupChoices','ioMore','ioPropertyDetailOverlay','ioAnalysisOverlay']){const el=document.getElementById(id);if(el&&!el.hidden){if(id==='ioAnalysisOverlay')immoptimaCloseAnalysis();else if(id==='ioPropertyDetailOverlay')immoptimaClosePropertyDetail();else el.hidden=true;return true}}const p=document.querySelector('.page.active');if(p&&p.id!=='dashboard'){showPage('dashboard');return true}return false}
+function immoptimaFitDashboard(){
+ const graph=document.getElementById('dashboardGraph'),page=document.getElementById('dashboard');
+ const active=page?.classList.contains('active')&&!graph.hidden&&innerWidth<750;
+ document.body.classList.toggle('io-dashboard-fit',active);document.body.classList.remove('io-dashboard-tight');
+ if(!active)return;
+ const nav=document.getElementById('nav'),height=window.visualViewport?.height||innerHeight;
+ document.body.style.setProperty('--io-nav-height',nav.getBoundingClientRect().height+'px');
+ const top=graph.getBoundingClientRect().top,available=Math.floor(height-nav.getBoundingClientRect().height-top-8);
+ if(available<300){document.body.classList.remove('io-dashboard-fit');return;}
+ document.body.classList.toggle('io-dashboard-tight',available<=460);
+ document.body.style.setProperty('--io-cockpit-height',available+'px');
+ document.body.style.setProperty('--io-dashboard-scale',String(Math.min(1,available/640)));
+}
+function immoptimaScheduleDashboardFit(){requestAnimationFrame(immoptimaFitDashboard)}
 function immoptimaInitializeUX(){
  // The detail dialog is outside sections so it remains visible when opened from any destination.
+ window.addEventListener('resize',immoptimaScheduleDashboardFit);window.visualViewport?.addEventListener('resize',immoptimaScheduleDashboardFit);
  document.body.appendChild(document.getElementById('ioAnalysisOverlay'));document.querySelector('.io-account').innerHTML=ioIcon('user');showPage('dashboard');
  document.addEventListener('keydown',e=>{if(e.key==='Escape')immoptimaHandleBack();if(e.key!=='Tab')return;const modal=[...document.querySelectorAll('[role="dialog"]')].reverse().find(x=>!x.hidden&&x.getClientRects().length);if(!modal)return;const list=[...modal.querySelectorAll('button,select,input,summary,[tabindex="0"]')].filter(x=>x.getClientRects().length&&!x.disabled);if(!list.length)return;if(e.shiftKey&&document.activeElement===list[0]){e.preventDefault();list[list.length-1].focus()}else if(!e.shiftKey&&document.activeElement===list[list.length-1]){e.preventDefault();list[0].focus()}});
 }
@@ -764,7 +817,7 @@ function renderDashboard(){
  const consensus=props.reduce((s,p)=>s+consensusValue(p),0);
  const retained=props.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
  const delta=consensus>0?(retained/consensus-1)*100:0;
- immoptimaDashboardCompact(t,consensus);immoptimaRenderGraph(t,consensus);
+ immoptimaDashboardCompact(t,consensus);immoptimaRenderGraph(t,consensus);immoptimaScheduleDashboardFit();
  const dashboardValues=[['mGross',euro(t.gross)],['mDebt',euro(t.debt)],['mNet',euro(t.net)],['mRent',euro(t.rent)],['mCash',euro(t.cash)],['mCashNet',euro(t.cashNet)],['mYield',pct(t.grossYield)],['mNetYield',pct(t.netYield)],['mPrincipal',euro(t.principal)],['mConsensus',euro(consensus)],['mRetained',euro(retained)]];
  dashboardValues.forEach(([idv,val])=>document.getElementById(idv).textContent=val);
  const deltaEl=document.getElementById('mConsensusDelta');

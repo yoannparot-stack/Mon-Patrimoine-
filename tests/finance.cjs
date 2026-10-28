@@ -5,7 +5,7 @@ function fn(name,end){const start=source.indexOf('function '+name+'(');assert(st
 const context={db:fixture(),Date,Set,Map,Number,Math,console,document:{getElementById:id=>({value:id==='ioHolderFilter'?'Tous':'all'})}};
 vm.createContext(context);
 vm.runInContext("const IO_CONFIG={wealth:{keys:['net']},income:{keys:['rent','charges','cashNet']},yield:{keys:['grossYield','netYield']},diagnostic:{keys:['debt']}};"+[
-fn('propertyCost'),fn('monthlyLoanPayment'),fn('loanInsurance'),fn('loanPrincipalPayment'),fn('principalRepaid'),fn('totals','\nconst OPT_DEFAULT'),fn('totalsFor'),fn('propertyLoans'),fn('cashflowGross'),fn('cashflowNet'),fn('ioToday'),fn('ioDate'),fn('ioCutoff'),fn('ioOwnerCharges'),fn('ioRelatedLoans'),fn('immoptimaEstimatedLoanBalance'),fn('ioEstimatedRows'),fn('ioGetSeries'),fn('ioProjectionRows'),fn('bankPrintNumber'),fn('bankEditableNumber'),fn('esc'),"function id(){return 'qa-bankloan'}",fn('updateBankCredit'),"function save(){}","function dashboardProperties(){return db.properties}"
+fn('propertyCost'),fn('monthlyLoanPayment'),fn('loanInsurance'),fn('loanPrincipalPayment'),fn('principalRepaid'),fn('totals','\nconst OPT_DEFAULT'),fn('totalsFor'),fn('propertyLoans'),fn('cashflowGross'),fn('cashflowNet'),fn('ioToday'),fn('ioAnnualGrowth'),fn('ioDate'),fn('ioCutoff'),fn('ioOwnerCharges'),fn('ioRelatedLoans'),fn('immoptimaEstimatedLoanBalance'),fn('ioEstimatedRows'),fn('ioGetSeries'),fn('ioProjectionRows'),fn('bankPrintNumber'),fn('bankEditableNumber'),fn('esc'),"function id(){return 'qa-bankloan'}",fn('updateBankCredit'),"function save(){}","function dashboardProperties(){return db.properties}"
 ].join('\n'),context);
 const run=s=>vm.runInContext(s,context),near=(a,b)=>assert(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 const t=run('totalsFor(db.properties)');near(t.net,124500);near(t.gross,230000);near(t.debt,105500);near(t.principal,49000);near(t.rent,1550);near(t.charges,200);near(t.payments,770);near(t.cashNet,580);near(t.grossYield,18600/275000*100);near(t.netYield,16200/275000*100);
@@ -32,3 +32,11 @@ const forecast=run('ioProjectionRows({years:2})');let balance=100000;for(let m=0
 near(run('ioProjectionRows({years:1,future:10000})[1].debt'),forecast[1].debt+10000);
 context.db.properties=[{id:'p'}];context.db.loans.push({id:'b',propertyId:'p',payment:200});run('updateBankCredit("p",500)');near(run('db.loans.reduce((s,l)=>s+monthlyLoanPayment(l),0)'),500);run('updateBankCredit("p",0)');near(run('db.loans.reduce((s,l)=>s+monthlyLoanPayment(l),0)'),0);
 console.log('PASS financial identities, recoverable neutrality, yields, scope, loan annuity/insurance, zero interest, dated amortization, real history preservation, date deduplication, insufficient history and negative/zero cases');
+
+assert.equal(run("ioAnnualGrowth([{date:'2026-10-27',net:45000},{date:'2026-10-28',net:50000}],'net',50000,'2026-10-28')"),null,'one-day gain is not annualized');
+assert.equal(run("ioAnnualGrowth([{date:'2026-10-01',net:45000},{date:'2026-10-28',net:50000}],'net',50000,'2026-10-28')"),null,'one-month gain is not annualized');
+assert.equal(run("ioAnnualGrowth([{date:'2025-10-29',net:45000},{date:'2026-10-28',net:50000}],'net',50000,'2026-10-28')"),null,'less than one calendar year');
+near(run("ioAnnualGrowth([{date:'2022-10-28',net:100},{date:'2026-10-28',net:146.41}],'net',146.41,'2026-10-28')"),10);
+assert.equal(run("ioAnnualGrowth([{date:'2020-01-01',net:0},{date:'2026-10-28',net:50000}],'net',50000,'2026-10-28')"),null,'zero base is undefined');
+assert.equal(run("ioAnnualGrowth([{date:'2020-01-01',net:-100},{date:'2026-10-28',net:50000}],'net',50000,'2026-10-28')"),null,'negative base is undefined');
+console.log('PASS annual growth: short history suppressed, valid multi-year result, zero/negative base');

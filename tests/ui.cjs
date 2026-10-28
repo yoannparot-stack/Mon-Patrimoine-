@@ -49,6 +49,24 @@ const fixture=require('./fixture.cjs');
  const dup=await page.evaluate(()=>{const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);return ids.filter((v,i)=>ids.indexOf(v)!==i)});assert.deepEqual(dup,[]);
  await page.evaluate(()=>immoptimaCloseAnalysis());
  for(const width of [320,360,393,430,800]){await page.setViewportSize({width,height:851});await page.evaluate(()=>{showPage('dashboard');renderAll()});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'dashboard overflow '+width);await page.evaluate(()=>immoptimaOpenAnalysis('income'));assert(await page.evaluate(()=>document.getElementById('ioAnalysisOverlay').scrollWidth<=innerWidth),'analysis overflow '+width);await page.evaluate(()=>immoptimaCloseAnalysis());}
+ // All four cards and the navigation must fit on ONE screen, including a short phone.
+ for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
+  await page.setViewportSize({width,height});await page.evaluate(()=>{showPage('dashboard');renderAll()});await page.waitForTimeout(100);
+  const geometry=await page.evaluate(()=>{const nav=document.getElementById('nav').getBoundingClientRect();const tiles=[...document.querySelectorAll('#dashboardGraph article')];return {height:innerHeight,scrollHeight:document.documentElement.scrollHeight,navTop:nav.top,tiles:tiles.map(t=>({top:t.getBoundingClientRect().top,bottom:t.getBoundingClientRect().bottom,content:[...t.querySelectorAll('.io-tile-title,.io-caption,.io-hero,.io-delta')].map(e=>({top:e.getBoundingClientRect().top,bottom:e.getBoundingClientRect().bottom}))}))}});
+  assert(geometry.scrollHeight<=height+1,'dashboard vertical overflow '+width+'x'+height+': '+JSON.stringify(geometry));
+  for(const tile of geometry.tiles){assert(tile.bottom<=geometry.navTop+1,'tile hidden under nav');for(const content of tile.content)assert(content.top>=tile.top-1&&content.bottom<=tile.bottom+1,'card text clipped '+width+'x'+height+': '+JSON.stringify(tile));}
+ }
+ await page.setViewportSize({width:393,height:740});await page.waitForTimeout(100);await shot('08-dashboard-une-page');
+ // Regression from the user's screenshot: +5000 / +11.1% in one day, no annualized explosion.
+ await page.setViewportSize({width:393,height:851});await page.evaluate(()=>{
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);const date=yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
+  db.properties=[{id:'short',name:'Bien de validation',retainedValue:90000,currentValue:90000,rentHC:500,holder:'Validation'}];db.loans=[{id:'short-loan',propertyId:'short',remaining:40000,initial:45000,payment:200}];db.dashboardSnapshots=[{date,holder:'Tous',net:45000,debt:45000,gross:90000}];db.propertySnapshots=[];
+  document.getElementById('ioHolderFilter').value='Tous';document.getElementById('dashboardHolder').value='Tous';renderDashboard();immoptimaOpenAnalysis('wealth');
+ });
+ assert.equal(await page.locator('#ioAnalysisBody .io-footer-stats > div').nth(2).locator('b').textContent(),'—');
+ assert((await page.locator('#ioAnalysisBody .io-footer-stats > div').nth(1).textContent()).includes('11,1'));
+ assert(await page.evaluate(()=>document.getElementById('ioAnalysisOverlay').scrollWidth<=innerWidth),'short-history percentage must not widen screen');
+ await shot('07-richesse-historique-court');
  assert.deepEqual(errors,[],'browser runtime errors');
  fs.writeFileSync('qa-out/ui-results.json',JSON.stringify({passed:true,viewportTests:[320,360,393,430,800],screenshots:'Synthetic QA portfolio; real Chromium rendering',checks:['empty launch','all four analyses','tabs','periods','legends','property tabs','property edit','photo upload and persistence','bank CSV','bank print layout','reload persistence','backup export','backup import','invalid import rollback','owner filter','point tooltip','unique IDs','responsive widths'],runtimeErrors:errors},null,2));
  console.log('PASS mobile browser UI, interactions, storage, backup round-trip and responsive layouts');await browser.close();server.close();
