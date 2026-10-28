@@ -150,6 +150,33 @@ header .top{align-items:center!important}
 @keyframes ioPremiumEnter{from{opacity:.5;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 @keyframes ioPremiumTrace{to{stroke-dashoffset:0}}
 @media(prefers-reduced-motion:reduce){#ioPropertyDetailOverlay .io-analysis-panel,#ioPropertyDetailOverlay .io-analysis-plot polyline,.io-analysis-plot polyline{animation:none;stroke-dashoffset:0}}
+
+/* ImmOptima six-screen mobile visual system */
+#ioAnalysisOverlay,#ioPropertyDetailOverlay{background:#fff;align-items:stretch;padding:0;z-index:1100}
+#ioAnalysisOverlay[hidden],#ioPropertyDetailOverlay[hidden]{display:none!important}
+#ioAnalysisOverlay .io-analysis-panel,#ioPropertyDetailOverlay .io-analysis-panel{width:100%;max-width:720px;max-height:none;min-height:100dvh;margin:0 auto;padding:18px 17px 38px;border-radius:0;box-shadow:none;overflow:visible}
+#ioAnalysisOverlay .io-analysis-header,#ioPropertyDetailOverlay .io-analysis-header{position:sticky;top:0;z-index:5;background:#fff;padding:8px 0 13px;border-bottom:1px solid #edf0f5}
+#ioAnalysisOverlay .io-analysis-header h2,#ioPropertyDetailOverlay .io-analysis-header h2{font-size:21px;color:#12234a;font-weight:800}
+#ioAnalysisOverlay .io-analysis-header button,#ioPropertyDetailOverlay .io-analysis-header button{background:#f4f7fc}
+#ioAnalysisOverlay .io-analysis-period{display:none}
+#ioAnalysisOverlay .io-premium-tabs,#ioAnalysisOverlay .io-premium-periods{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:13px 0 8px}
+#ioAnalysisOverlay .io-premium-tabs button,#ioAnalysisOverlay .io-premium-periods button{white-space:nowrap;flex:1;border:1px solid #e9eef7;background:#f7f9fd;color:#34435e;border-radius:9px;padding:10px 7px;font-size:12px;cursor:pointer}
+#ioAnalysisOverlay .io-premium-tabs button.active,#ioAnalysisOverlay .io-premium-periods button.active{background:#0863ca;color:#fff;border-color:#0863ca}
+#ioAnalysisOverlay .io-premium-summary{border-radius:18px;padding:18px;margin:14px 0;background:#eaf9f0;color:#087347}
+#ioAnalysisOverlay[data-kind="income"] .io-premium-summary{background:#eaf3ff;color:#1459bc}
+#ioAnalysisOverlay[data-kind="yield"] .io-premium-summary{background:#f3ebff;color:#6b35ba}
+#ioAnalysisOverlay[data-kind="diagnostic"] .io-premium-summary{background:#fff2e7;color:#db5c12}
+#ioAnalysisOverlay .io-premium-summary strong{font-size:29px;display:block;margin:5px 0}
+#ioAnalysisOverlay .io-premium-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+#ioAnalysisOverlay .io-premium-stat{background:#f7f9fd;border:1px solid #edf1f7;border-radius:13px;padding:12px;font-size:12px}
+#ioAnalysisOverlay .io-premium-stat strong{display:block;font-size:17px;color:#132b54;margin-top:5px}
+#ioAnalysisOverlay .io-analysis-plot{margin-top:15px;min-height:190px}
+#ioAnalysisOverlay .io-analysis-help{background:#f7f9fc;font-size:12px}
+#ioAnalysisOverlay .io-analysis-help p{margin:6px 0}
+#ioAnalysisOverlay .io-premium-title{font-size:17px;font-weight:800;color:#162b50;margin:18px 0 7px}
+#ioAnalysisOverlay .io-analysis-tip{font-size:11px;color:#66758b}
+#ioAnalysisOverlay .io-premium-tabs button:focus-visible,#ioAnalysisOverlay .io-premium-periods button:focus-visible{outline:3px solid #93c5fd}
+@media(min-width:750px){#ioAnalysisOverlay,#ioPropertyDetailOverlay{background:rgba(15,23,42,.55);padding:24px}#ioAnalysisOverlay .io-analysis-panel,#ioPropertyDetailOverlay .io-analysis-panel{min-height:0;border-radius:23px;max-height:90vh;overflow:auto}}
 </style>
 </head>
 <body>
@@ -536,7 +563,7 @@ function immoptimaRenderGraph(t,consensus){
  set('igAlertCash',t.cashNet<0?'⚠ Cash-flow négatif : '+euro(t.cashNet)+'/mois':t.rent>0&&t.cashNet<t.rent*.05?'⚠ Marge faible : '+euro(t.cashNet)+'/mois':'✓ Cash-flow : '+euro(t.cashNet)+'/mois');
  set('igAlertMarket',consensus>0?'✓ Estimation de marché disponible':'ⓘ Estimation de marché à compléter');
 }
-function immoptimaOpenAnalysis(kind){ioAnalysisKind=kind;ioAnalysisHidden=new Set();document.getElementById('ioAnalysisOverlay').hidden=false;immoptimaRenderAnalysis()}
+function immoptimaOpenAnalysis(kind){ioAnalysisKind=kind;document.getElementById('ioAnalysisPeriod').value='all';ioAnalysisHidden=new Set();document.getElementById('ioAnalysisOverlay').hidden=false;immoptimaRenderAnalysis()}
 function immoptimaCloseAnalysis(){document.getElementById('ioAnalysisOverlay').hidden=true}
 
 function immoptimaEstimatedLoanBalance(l,at){
@@ -638,6 +665,27 @@ function immoptimaRenderAnalysis(){
  plot=svg+'<div class="io-analysis-tip">Touchez un point pour lire sa date et sa valeur. Touchez une légende pour masquer ou afficher une courbe.</div>';
  }
  body.innerHTML='<div class="io-two" style="margin:10px 0">'+latest+'</div><div class="io-analysis-legend">'+legend+'</div>'+plot+'<div class="io-analysis-help"><strong>Comment lire ce graphique ?</strong><p>'+c.help+'</p><small>Axe horizontal : dates. Axe vertical : '+(c.unit==='%'?'rendement en %':'montants en €')+'. '+(series.estimated?'Reconstitution indicative : valeur du bien figée au prix d’achat, amortissement estimé, loyers et charges actuels supposés constants. Ce ne sont pas des données historiques constatées.':'Historique : '+points.length+' relevé(s) réels disponibles.')+'</small></div>';
+
+ const overlay=document.getElementById('ioAnalysisOverlay');overlay.dataset.kind=ioAnalysisKind;
+ const periodSelect=document.getElementById('ioAnalysisPeriod'),periodValue=periodSelect.value;
+ const periodItems=[['all',"Depuis l'achat"],['12','1 an'],['36','3 ans'],['60','5 ans'],['120','10 ans'],['240','20 ans']];
+ const periodBar='<div class="io-premium-periods" role="group" aria-label="Période du graphique">'+periodItems.map(([v,label])=>'<button type="button" class="'+(periodValue===v?'active':'')+'" aria-pressed="'+(periodValue===v)+'" onclick="document.getElementById(\'ioAnalysisPeriod\').value=\''+v+'\';immoptimaRenderAnalysis()">'+label+'</button>').join('')+'</div>';
+ const navItems=ioAnalysisKind==='wealth'?['Valeur globale','Capital','Évolution','Détail']:ioAnalysisKind==='income'?['Loyers','Charges','Cash-flow','Détail']:ioAnalysisKind==='yield'?['Rendements','Comparatif','Détail']:['Capital restant dû','Remboursement','Détail'];
+ const navBar='<div class="io-premium-tabs" role="group" aria-label="Rubriques de l’analyse">'+navItems.map((label,i)=>'<button type="button" class="'+(i===0?'active':'')+'" onclick="immoptimaAnalysisSection('+i+')">'+label+'</button>').join('')+'</div>';
+ const summaryLabel=ioAnalysisKind==='wealth'?'Patrimoine net actuel':ioAnalysisKind==='income'?'Cash-flow net / mois':ioAnalysisKind==='yield'?'Rendement net':'Capital remboursé';
+ const summaryValue=ioAnalysisKind==='wealth'?euro(t.net):ioAnalysisKind==='income'?euro(t.cashNet):ioAnalysisKind==='yield'?pct(t.netYield):euro(t.principal);
+ const statData=ioAnalysisKind==='wealth'?[['Valeur totale',euro(t.gross)],['Capital restant dû',euro(t.debt)],['Patrimoine net',euro(t.net)],['Part nette',t.gross?pct(t.net/t.gross*100):'—']]:ioAnalysisKind==='income'?[['Loyers HC / mois',euro(t.rent)],['Cash-flow net / mois',euro(t.cashNet)],['Loyers HC / an',euro(t.rent*12)],['Cash-flow net / an',euro(t.cashNet*12)]]:ioAnalysisKind==='yield'?[['Rendement brut',pct(t.grossYield)],['Rendement net',pct(t.netYield)],['Loyers HC / an',euro(t.rent*12)],['Coût d’acquisition',euro(t.cost||0)]]:[['Capital remboursé',euro(t.principal)],['Capital restant dû',euro(t.debt)],['Cash-flow net',euro(t.cashNet)],['Patrimoine net',euro(t.net)]];
+ const stats='<div class="io-premium-stats">'+statData.map(([label,val])=>'<div class="io-premium-stat">'+label+'<strong>'+val+'</strong></div>').join('')+'</div>';
+ const intro='<div class="io-premium-summary"><span>'+summaryLabel+'</span><strong>'+summaryValue+'</strong><small>'+ (series.estimated?'Évolution indicative reconstituée':'Évolution basée sur les relevés disponibles')+'</small></div>';
+ const graphTitle='<div class="io-premium-title">'+(ioAnalysisKind==='wealth'?'Évolution de mon patrimoine net':ioAnalysisKind==='income'?'Évolution de mes revenus nets':ioAnalysisKind==='yield'?'Évolution de mes rendements':'Évolution du capital restant dû')+' ⓘ</div>';
+ body.innerHTML=navBar+periodBar+intro+stats+graphTitle+body.innerHTML;
+
+}
+
+function immoptimaAnalysisSection(i){
+ const buttons=[...document.querySelectorAll('#ioAnalysisOverlay .io-premium-tabs button')];buttons.forEach((b,j)=>{b.classList.toggle('active',i===j);b.setAttribute('aria-pressed',String(i===j))});
+ const target=i===0?document.querySelector('#ioAnalysisOverlay .io-premium-summary'):i===1?document.querySelector('#ioAnalysisOverlay .io-premium-stats'):i===2?document.querySelector('#ioAnalysisOverlay .io-analysis-plot'):document.querySelector('#ioAnalysisOverlay .io-analysis-help');
+ if(target)target.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
 function renderDashboard(){
