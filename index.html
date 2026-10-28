@@ -244,6 +244,15 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
 @media print{header,#ioMore,.io-analysis-overlay{display:none!important}main{padding:0;max-width:none}.commercial-banner,footer{display:none!important}}
 
+
+@media(max-width:749px){
+ #ioAnalysisOverlay .io-analysis-header,#ioPropertyDetailOverlay .io-analysis-header{padding-top:5px;padding-bottom:9px;min-height:45px}
+ .io-summary-rows>div{min-height:25px}
+ .io-summary{margin:10px 0 12px;padding-top:12px}
+ .io-premium-title,#ioAnalysisOverlay .io-premium-title{margin:14px 0 8px}
+ .io-provenance{margin:5px 0 10px}
+ .io-footer-stats{margin:9px 0 12px}.io-footer-stats>div{padding:10px 8px}
+}
 </style>
 </head>
 <body>
@@ -532,6 +541,7 @@ function renderDirection(){
 function propertyCost(p){return (Number(p.purchase)||0)+(Number(p.notary)||0)+(Number(p.works)||0)+(Number(p.furniture)||0)+(Number(p.otherCost)||0)}
 function monthlyLoanPayment(l){
   const entered=Number(l.payment)||0;
+  if(l.paymentOverride===true)return Math.max(0,entered);
   if(entered>0)return entered;
   const amount=Number(l.initial)||0, r=(Number(l.rate)||0)/100/12, n=(Number(l.years)||0)*12;
   if(!amount||!n)return 0;
@@ -539,6 +549,8 @@ function monthlyLoanPayment(l){
   const insurance=Number(l.insuranceAmount)|| (amount*(Number(l.insuranceRate)||0)/100/12);
   return base+insurance;
 }
+function loanInsurance(l){return Math.max(0,Number(l.insuranceAmount)||((Number(l.initial)||0)*(Number(l.insuranceRate)||0)/1200))}
+function loanPrincipalPayment(l){return Math.max(0,monthlyLoanPayment(l)-loanInsurance(l))}
 function principalRepaid(l){return Math.max(0,(Number(l.initial)||0)-(Number(l.remaining)||0))}
 function totals(){
   const propValue=db.properties.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
@@ -643,7 +655,7 @@ function immoptimaEstimatedLoanBalance(l,at){
  if(!start||!(at instanceof Date)||!Number.isFinite(+at)||!(initial>0)||!(n>0)||!Number.isFinite(r)||r<0)return null;
  if(at<start)return 0;
  const months=d=>Math.max(0,(d.getFullYear()-start.getFullYear())*12+d.getMonth()-start.getMonth()-(d.getDate()<start.getDate()?1:0));
- const payment=r?initial*r/(1-Math.pow(1+r,-n)):initial/n;
+ const payment=loanPrincipalPayment(l);
  const balance=(amount,m)=>Math.max(0,r?amount*Math.pow(1+r,m)-payment*(Math.pow(1+r,m)-1)/r:amount-payment*m);
  const now=new Date(),m=months(at),today=months(now);
  if(at>now&&l.remaining!==''&&l.remaining!==null&&l.remaining!==undefined&&Number.isFinite(Number(l.remaining))&&Number(l.remaining)>=0)return balance(Number(l.remaining),Math.max(0,m-today));
@@ -684,13 +696,13 @@ function ioChart(rows,keys,colors,labels,percent=false,hidden=new Set(),bars=fal
  if(rows.length<2)return '<div class="io-analysis-empty">Les valeurs actuelles sont disponibles. Ajoutez les dates d’achat et les paramètres des crédits pour une reconstitution indicative, ou enregistrez des relevés à deux dates distinctes pour un historique réel.</div>';
  const active=keys.map((key,j)=>({key,j})).filter(o=>!hidden.has(o.key));
  if(!active.length)return '<div class="io-analysis-empty">Toutes les séries sont masquées. Touchez une légende pour les afficher.</div>';
- const values=rows.flatMap(r=>active.map(o=>Number(r[o.key]))).filter(Number.isFinite),min=Math.min(0,...values),max=Math.max(1,...values),span=Math.max(1,max-min),low=min<0?min-span*.08:0,high=max+span*.2;
+ const values=rows.flatMap(r=>active.map(o=>Number(r[o.key]))).filter(Number.isFinite),min=Math.min(0,...values),max=Math.max(1,...values),span=Math.max(1,max-min),rawStep=span*1.12/4,power=Math.pow(10,Math.floor(Math.log10(rawStep))),step=[1,2,2.5,5,10].map(v=>v*power).find(v=>v>=rawStep)||power*10,low=Math.floor(min/step)*step,high=Math.max(low+step,Math.ceil((max+span*.06)/step)*step),tickCount=Math.round((high-low)/step);
  const chartId=document.getElementById('ioPropertyDetailOverlay')?.hidden===false?'ioPropertyFill':'ioAnalysisFill';
  const X=58,W=235,Y=24,H=177,last=rows.length-1,firstTime=+ioDate(rows[0].date),timeSpan=Math.max(1,+ioDate(rows[last].date)-firstTime),x=i=>X+(+ioDate(rows[i].date)-firstTime)/timeSpan*W,y=v=>Y+H-(v-low)/(high-low)*H,fmt=v=>percent?pct(v):euro(v);
  let svg='<svg class="io-analysis-plot" viewBox="0 0 350 239" role="img" aria-label="Évolution par date, '+(percent?'rendements en pourcentage':'montants en euros')+'"><defs>';
  colors.forEach((c,j)=>svg+='<linearGradient id="'+chartId+j+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+c+'" stop-opacity=".22"/><stop offset="100%" stop-color="'+c+'" stop-opacity=".02"/></linearGradient>');svg+='</defs>';
- for(let i=0;i<=4;i++){const v=low+(high-low)*(4-i)/4,Yv=Y+i*H/4;svg+='<line x1="'+X+'" x2="'+(X+W)+'" y1="'+Yv+'" y2="'+Yv+'" stroke="#e8edf2"/><text x="51" y="'+(Yv+4)+'" text-anchor="end" font-size="10" fill="#657086">'+esc(percent?pct(v):euro(Math.round(v/10)*10))+'</text>'}
- const ticks=[...new Set([0,Math.round(last*.2),Math.round(last*.4),Math.round(last*.6),Math.round(last*.8),last])];
+ for(let i=0;i<=tickCount;i++){const v=high-i*step,Yv=Y+i*H/tickCount;svg+='<line x1="'+X+'" x2="'+(X+W)+'" y1="'+Yv+'" y2="'+Yv+'" stroke="#e8edf2"/><text x="51" y="'+(Yv+4)+'" text-anchor="end" font-size="10" fill="#657086">'+esc(percent?pct(v):euro(Math.round(v/10)*10))+'</text>'}
+ const candidates=[...new Set([0,Math.round(last*.2),Math.round(last*.4),Math.round(last*.6),Math.round(last*.8),last])],ticks=[];for(const i of candidates){if(!ticks.length||x(i)-x(ticks[ticks.length-1])>=39)ticks.push(i);else if(i===last){if(ticks.length>1)ticks.pop();ticks.push(i)}}
  ticks.forEach(i=>{const sameYear=rows[0].date.slice(0,4)===rows[last].date.slice(0,4),label=sameYear?new Date(rows[i].date+'T12:00:00').toLocaleDateString('fr-FR',{month:'short'}):rows[i].date.slice(0,4);svg+='<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+Y+'" y2="'+(Y+H)+'" stroke="#f0f2f7"/><text x="'+x(i)+'" y="224" text-anchor="middle" font-size="10" fill="#657086">'+esc(label)+'</text>'});
  active.forEach(({key,j})=>{
  const valid=rows.map((r,i)=>({r,i,v:Number(r[key])})).filter(o=>Number.isFinite(o.v));if(!valid.length)return;
@@ -882,12 +894,12 @@ function openLoanForm(editId=null){
  document.getElementById('loanFormWrap').innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier le crédit':'Nouveau crédit'}</h3><button class="secondary" onclick="closeForm('loanFormWrap')">Fermer</button></div><form onsubmit="saveLoan(event,'${l.id}')">
  <div class="grid3"><div class="field"><label>Bien lié</label><select name="propertyId"><option value="">Crédit non lié</option>${db.properties.map(p=>`<option value="${p.id}" ${p.id===l.propertyId?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div class="field"><label>Banque</label><input name="bank" value="${esc(l.bank)}"></div><div class="field"><label>Montant initial (€)</label><input name="initial" type="number" step="1" value="${l.initial||''}"></div></div>
  <div class="grid3"><div class="field"><label>Durée (années)</label><input name="years" type="number" value="${l.years||20}"></div><div class="field"><label>Taux crédit (%)</label><input name="rate" type="number" step=".01" value="${l.rate||''}"></div><div class="field"><label>Assurance (%)</label><input name="insuranceRate" type="number" step=".01" value="${l.insuranceRate||''}"></div></div>
- <div class="grid3"><div class="field"><label>Assurance mensuelle (€) si fixe</label><input name="insuranceAmount" type="number" step=".01" value="${l.insuranceAmount||''}"></div><div class="field"><label>Mensualité totale (€) si connue</label><input name="payment" type="number" step=".01" value="${l.payment||''}"></div><div class="field"><label>Date de début</label><input name="startDate" type="date" value="${l.startDate||''}"></div></div>
+ <div class="grid3"><div class="field"><label>Assurance mensuelle (€) si fixe</label><input name="insuranceAmount" type="number" step=".01" value="${l.insuranceAmount||''}"></div><div class="field"><label>Mensualité totale (€) si connue</label><input name="payment" type="number" step=".01" value="${l.paymentOverride?l.payment:(l.payment||'')}"></div><div class="field"><label>Date de début</label><input name="startDate" type="date" value="${l.startDate||''}"></div></div>
  <div class="grid3"><div class="field"><label>Capital restant dû (€) *</label><input name="remaining" type="number" step="1" value="${l.remaining||''}"></div><div class="field"><label>Capital déjà remboursé</label><input value="${euro(principalRepaid(l))}" disabled></div><div class="field"><label>Note</label><input name="notes" value="${esc(l.notes)}"></div></div>
  <div class="io-curve-readiness" style="background:#f1f8f6;border:1px solid #d6e9e1;border-radius:12px;padding:12px;margin:14px 0" aria-live="polite"></div><div class="actions"><button class="primary">${editId?'Enregistrer les modifications':'Ajouter le crédit'}</button></div></form></div>`;
  immoptimaWireCurveReadiness('loanFormWrap','loan');
 }
-function saveLoan(e,editId){e.preventDefault();const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'].forEach(k=>o[k]=Number(o[k])||0);if(editId)db.loans[db.loans.findIndex(x=>x.id===editId)]={...db.loans.find(x=>x.id===editId),...o};else db.loans.push(o);closeForm('loanFormWrap');save()}
+function saveLoan(e,editId){e.preventDefault();const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'].forEach(k=>o[k]=Number(o[k])||0);o.paymentOverride=f.get('payment')!=='';if(editId)db.loans[db.loans.findIndex(x=>x.id===editId)]={...db.loans.find(x=>x.id===editId),...o};else db.loans.push(o);closeForm('loanFormWrap');save()}
 function renderLoans(){const wrap=document.getElementById('loans');if(!db.loans.length){wrap.innerHTML='<div class="empty">Aucun crédit enregistré.</div>';return}wrap.innerHTML=`<div class="card"><div class="tablewrap"><table><thead><tr><th>Actions</th><th>Bien / banque</th><th>Initial</th><th>CRD</th><th>Taux</th><th>Mensualité estimée</th><th>Remboursé</th></tr></thead><tbody>${db.loans.map(l=>`<tr><td style="white-space:nowrap"><button class="secondary" onclick="openLoanForm('${l.id}')" aria-label="Modifier le crédit ${esc(l.bank||'')}">Modifier</button> <button class="danger" onclick="deleteLoan('${l.id}')" aria-label="Supprimer le crédit ${esc(l.bank||'')}">Suppr.</button></td><td><button type="button" class="loan-open" onclick="openLoanForm('${l.id}')" aria-label="Ouvrir le crédit"><b>${esc(db.properties.find(p=>p.id===l.propertyId)?.name||'Crédit non lié')}</b><br><span class="muted">${esc(l.bank)}</span> <span aria-hidden="true">›</span></button></td><td>${euro(l.initial)}</td><td>${euro(l.remaining)}</td><td>${pct(l.rate)}</td><td>${euro(monthlyLoanPayment(l))}</td><td>${euro(principalRepaid(l))}</td></tr>`).join('')}</tbody></table></div></div>`}
 function deleteLoan(i){if(confirm('Supprimer ce crédit ?')){db.loans=db.loans.filter(x=>x.id!==i);save()}}
 
@@ -975,9 +987,10 @@ function bankSetProperty(propertyId,field,value){
 function updateBankCredit(propertyId,value){
  const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
  const amount=Math.max(0,Number(value)||0);
- let loan=db.loans.find(l=>l.propertyId===propertyId);
- if(!loan){loan={id:id(),propertyId,initial:0,remaining:0,years:20,rate:0,insuranceRate:0,insuranceAmount:0,payment:amount,start:'',bank:''};db.loans.push(loan)}
- loan.payment=amount;save();
+ const loans=db.loans.filter(l=>l.propertyId===propertyId);
+ if(!loans.length){db.loans.push({id:id(),propertyId,initial:0,remaining:0,years:20,rate:0,insuranceRate:0,insuranceAmount:0,payment:amount,paymentOverride:true,startDate:'',bank:''});}
+ else{const total=loans.reduce((s,l)=>s+monthlyLoanPayment(l),0);loans.forEach((l,i)=>{l.payment=total>0?amount*monthlyLoanPayment(l)/total:amount/loans.length;l.paymentOverride=true;});}
+ save();
 }
 function updateBankCC(propertyId,value){
  const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
@@ -996,7 +1009,7 @@ function updateBankAnnualCC(propertyId,value){
 function bankPrintNumber(value){const n=Number(value)||0;return n.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:2})}
 function bankTextInput(propertyId,field,value){return `<input type="text" value="${esc(value??'')}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:150px;box-sizing:border-box;font-weight:600"><span class="bank-print-value">${esc(value??'')}</span>`}
 function bankNumberInput(propertyId,field,value){return `<input type="number" min="0" step="0.01" value="${Number(value)||0}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${bankPrintNumber(value)}</span>`}
-function bankEditableNumber(value,onchange){const shown=bankPrintNumber(value);return `<input type="number" min="0" step="0.01" value="${Number(shown.replace(/\\s/g,'').replace(',','.'))||0}" onchange="${onchange}" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${shown}</span>`}
+function bankEditableNumber(value,onchange){const shown=bankPrintNumber(value);return `<input type="number" min="0" step="0.01" value="${Number(shown.replace(/\s/g,'').replace(',','.'))||0}" onchange="${onchange}" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${shown}</span>`}
 function renderBankSummary(){
  const body=document.getElementById('bankTableBody'),kpis=document.getElementById('bankKpis');if(!body)return;
  if(!db.properties.length){body.innerHTML='<tr><td colspan="10" class="muted">Aucun bien enregistré.</td></tr>';if(kpis)kpis.innerHTML='';return}
@@ -1025,11 +1038,22 @@ function exportBankCSV(){
 }
 function printBankSummary(){showPage('banque');setTimeout(()=>{if(window.AndroidBridge&&typeof window.AndroidBridge.printBankSummary==='function'){window.AndroidBridge.printBankSummary()}else{window.print()}},150)}
 
+function ioProjectionRows({years=10,pa=0,fa=0,saveM=0,rentA=0,future=0}={}){
+ const t=totals();let prop=t.propValue,fin=t.assets,rent=t.rent,futureDebt=0;
+ const balances=db.loans.map(l=>({loan:l,balance:Math.max(0,Number(l.remaining)||0)})),rows=[];
+ for(let y=0;y<=Math.max(0,Math.min(50,years));y++){
+  if(y>0){prop=prop*(1+pa)+future;fin=fin*(1+fa)+saveM*12;rent*=1+rentA;futureDebt+=future;
+   for(const item of balances){const rate=Math.max(0,Number(item.loan.rate)||0)/1200,payment=loanPrincipalPayment(item.loan);for(let m=0;m<12;m++)item.balance=Math.max(0,item.balance*(1+rate)-payment);}
+  }
+  const debt=balances.reduce((s,x)=>s+x.balance,0)+Math.max(0,Number(db.otherDebt)||0)+futureDebt;
+  rows.push({y,net:prop+fin-debt,prop,fin,debt,rent});
+ }
+ return rows;
+}
 function renderProjection(){
- const t=totals(),years=Number(document.getElementById('pYears').value||10),pa=Number(document.getElementById('pProperty').value||0)/100,fa=Number(document.getElementById('pFinancial').value||0)/100,saveM=Number(document.getElementById('pSavings').value||0),rentA=Number(document.getElementById('pRent').value||0)/100,future=Number(document.getElementById('pFuture').value||0);
- let prop=t.propValue,fin=t.assets,debt=t.debt,rent=t.rent,rows=[];
- for(let y=0;y<=years;y++){if(y>0){prop*=1+pa;fin=fin*(1+fa)+saveM*12;rent*=1+rentA;let principal=db.loans.reduce((s,l)=>{const pay=monthlyLoanPayment(l),r=(Number(l.rate)||0)/100/12,n=12;let bal=Number(l.remaining)||0;for(let m=0;m<n;m++){let interest=bal*r;let pr=Math.max(0,Math.min(bal,pay-interest));bal-=pr;if(bal<=0)break}s+=Number(l.remaining||0)-bal;return s},0);debt=Math.max(0,debt-principal)+future;prop+=future;}rows.push({y,net:prop+fin-debt,prop,fin,debt,rent})}
- document.getElementById('projectionTable').innerHTML=`<div class="tablewrap"><table><thead><tr><th>Année</th><th>Immobilier</th><th>Financier</th><th>Dettes</th><th>Patrimoine net</th><th>Loyers HC/mois</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.y}</td><td>${euro(r.prop)}</td><td>${euro(r.fin)}</td><td>${euro(r.debt)}</td><td><b>${euro(r.net)}</b></td><td>${euro(r.rent)}</td></tr>`).join('')}</tbody></table></div>`;
+ const years=Number(document.getElementById('pYears').value||10),pa=Number(document.getElementById('pProperty').value||0)/100,fa=Number(document.getElementById('pFinancial').value||0)/100,saveM=Number(document.getElementById('pSavings').value||0),rentA=Number(document.getElementById('pRent').value||0)/100,future=Number(document.getElementById('pFuture').value||0);
+ const rows=ioProjectionRows({years,pa,fa,saveM,rentA,future});
+ document.getElementById('projectionTable').innerHTML=`<p class="hint">Projection indicative : amortissement des crédits mois par mois, hors assurance pour le capital remboursé. Les achats futurs sont supposés financés à 100 % par une nouvelle dette constante, sans amortissement ni loyer supplémentaire faute de conditions renseignées.</p><div class="tablewrap"><table><thead><tr><th>Année</th><th>Immobilier</th><th>Financier</th><th>Dettes</th><th>Patrimoine net</th><th>Loyers HC/mois</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.y}</td><td>${euro(r.prop)}</td><td>${euro(r.fin)}</td><td>${euro(r.debt)}</td><td><b>${euro(r.net)}</b></td><td>${euro(r.rent)}</td></tr>`).join('')}</tbody></table></div>`;
  drawProjection(rows);
 }
 function drawProjection(rows){

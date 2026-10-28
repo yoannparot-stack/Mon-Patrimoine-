@@ -5,7 +5,7 @@ function fn(name,end){const start=source.indexOf('function '+name+'(');assert(st
 const context={db:fixture(),Date,Set,Map,Number,Math,console,document:{getElementById:id=>({value:id==='ioHolderFilter'?'Tous':'all'})}};
 vm.createContext(context);
 vm.runInContext("const IO_CONFIG={wealth:{keys:['net']},income:{keys:['rent','charges','cashNet']},yield:{keys:['grossYield','netYield']},diagnostic:{keys:['debt']}};"+[
-fn('propertyCost'),fn('monthlyLoanPayment'),fn('principalRepaid'),fn('totals','\nconst OPT_DEFAULT'),fn('totalsFor'),fn('propertyLoans'),fn('cashflowGross'),fn('cashflowNet'),fn('ioToday'),fn('ioDate'),fn('ioCutoff'),fn('ioOwnerCharges'),fn('ioRelatedLoans'),fn('immoptimaEstimatedLoanBalance'),fn('ioEstimatedRows'),fn('ioGetSeries'),"function dashboardProperties(){return db.properties}"
+fn('propertyCost'),fn('monthlyLoanPayment'),fn('loanInsurance'),fn('loanPrincipalPayment'),fn('principalRepaid'),fn('totals','\nconst OPT_DEFAULT'),fn('totalsFor'),fn('propertyLoans'),fn('cashflowGross'),fn('cashflowNet'),fn('ioToday'),fn('ioDate'),fn('ioCutoff'),fn('ioOwnerCharges'),fn('ioRelatedLoans'),fn('immoptimaEstimatedLoanBalance'),fn('ioEstimatedRows'),fn('ioGetSeries'),fn('ioProjectionRows'),fn('bankPrintNumber'),fn('bankEditableNumber'),fn('esc'),"function id(){return 'qa-bankloan'}",fn('updateBankCredit'),"function save(){}","function dashboardProperties(){return db.properties}"
 ].join('\n'),context);
 const run=s=>vm.runInContext(s,context),near=(a,b)=>assert(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 const t=run('totalsFor(db.properties)');near(t.net,124500);near(t.gross,230000);near(t.debt,105500);near(t.principal,49000);near(t.rent,1550);near(t.charges,200);near(t.payments,770);near(t.cashNet,580);near(t.grossYield,18600/275000*100);near(t.netYield,16200/275000*100);
@@ -25,4 +25,10 @@ run('db.dashboardSnapshots=[]');assert(run("ioGetSeries('wealth').estimated"));a
 run('db.properties[0].acquisitionDate=""');assert.equal(run("ioGetSeries('wealth').points.length"),1,'no invented curve when dates missing');
 run('db.properties[0].rentHC=0;db.properties[1].rentHC=0');assert(run('totalsFor(db.properties).cashNet')<0,'negative cashflow retained');assert(run('totalsFor(db.properties).netYield')<0,'negative net yield retained');
 assert.equal(run('totalsFor([]).net'),0);assert.equal(run('totalsFor([]).netYield'),0);
+assert(run('bankEditableNumber(1234.56,"")').includes('value="1234.56"'),'bank thousands and decimals');
+near(run('monthlyLoanPayment({initial:120000,years:10,rate:0,payment:0,paymentOverride:true})'),0);
+context.db={settings:{},properties:[],assets:[],otherDebt:500,loans:[{id:'a',propertyId:'p',initial:120000,remaining:100000,years:10,rate:3,payment:1050,insuranceAmount:50}]};
+const forecast=run('ioProjectionRows({years:2})');let balance=100000;for(let m=0;m<24;m++){balance=Math.max(0,balance*1.0025-1000);if(m===11)near(forecast[1].debt,balance+500)}near(forecast[2].debt,balance+500);assert(forecast[1].debt-forecast[2].debt>forecast[0].debt-forecast[1].debt,'principal increases with amortization');
+near(run('ioProjectionRows({years:1,future:10000})[1].debt'),forecast[1].debt+10000);
+context.db.properties=[{id:'p'}];context.db.loans.push({id:'b',propertyId:'p',payment:200});run('updateBankCredit("p",500)');near(run('db.loans.reduce((s,l)=>s+monthlyLoanPayment(l),0)'),500);run('updateBankCredit("p",0)');near(run('db.loans.reduce((s,l)=>s+monthlyLoanPayment(l),0)'),0);
 console.log('PASS financial identities, recoverable neutrality, yields, scope, loan annuity/insurance, zero interest, dated amortization, real history preservation, date deduplication, insufficient history and negative/zero cases');
