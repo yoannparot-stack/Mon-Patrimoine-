@@ -669,7 +669,7 @@ function ioGetSeries(kind,period='all',property=null){
  const props=property?[property]:dashboardProperties(),t=totalsFor(props),holder=document.getElementById('ioHolderFilter')?.value||'Tous',keys=IO_CONFIG[kind]?.keys||['net'],cutoff=ioCutoff(period),today=ioToday();
  const raw=property?(db.propertySnapshots||[]).filter(r=>r.propertyId===property.id):(db.dashboardSnapshots||[]).filter(r=>r.holder===holder);
  const dedup=new Map();raw.forEach(r=>{if(!ioDate(r.date)||r.date>today||+ioDate(r.date)<cutoff)return;if(['income','yield'].includes(kind)&&r.calculationVersion!==2)return;if(!keys.every(k=>r[k]!==null&&r[k]!==''&&Number.isFinite(Number(r[k]))))return;dedup.set(r.date,{...r,value:Number(r.value??r.gross),estimated:false})});
- let points=[...dedup.values()].sort((a,b)=>a.date.localeCompare(b.date));const hasRealHistory=points.length>=2;
+ let points=[...dedup.values()].sort((a,b)=>a.date.localeCompare(b.date));const hasRealHistory=points.length>=2||(points.length===1&&points[0].date<today);
  if(!hasRealHistory){points=ioEstimatedRows(props,period);if(points.length<2)points=[...dedup.values()];}
  const current={date:today,net:t.net,debt:t.debt,gross:t.gross,value:t.gross,rent:t.rent,charges:t.charges,payments:t.payments,cashNet:t.cashNet,grossYield:t.grossYield,netYield:t.netYield,estimated:false,current:true};
  // Append today's actual values; never relabel or overwrite a past recorded observation.

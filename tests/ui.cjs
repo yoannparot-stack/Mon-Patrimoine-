@@ -15,7 +15,7 @@ const fixture=require('./fixture.cjs');
  fs.mkdirSync('qa-out/web',{recursive:true});const shot=async name=>{await page.waitForTimeout(120);await page.screenshot({path:'qa-out/web/'+name+'.png'});};await shot('01-dashboard');
  for(const [kind,name] of [['wealth','02-richesse'],['income','03-revenus'],['yield','04-performance'],['diagnostic','05-diagnostic']]){
  await page.locator('#dashboardGraph article').nth(['wealth','income','yield','diagnostic'].indexOf(kind)).click();
- assert(await page.locator('#ioAnalysisOverlay').isVisible());assert(await page.locator('#ioAnalysisBody svg').isVisible());
+ assert(await page.locator('#ioAnalysisOverlay').isVisible());assert(await page.locator('#ioAnalysisBody svg.io-analysis-plot').isVisible());
  assert((await page.locator('#ioAnalysisTitle').textContent()).includes(({wealth:'Ma richesse',income:'Mes revenus',yield:'Ma performance',diagnostic:'Mon diagnostic'})[kind]));
  await shot(name);
  await page.locator('#ioAnalysisBody .io-premium-tabs button').nth(1).click();assert.equal(await page.locator('#ioAnalysisBody .io-premium-tabs button').nth(1).getAttribute('aria-pressed'),'true');
