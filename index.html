@@ -139,6 +139,17 @@ header .top{align-items:center!important}
 .io-analysis-help{background:#f3f6fa;border-radius:12px;padding:12px;line-height:1.5;font-size:13px;margin:12px 0}
 .io-analysis-empty{padding:20px 12px;border:1px dashed #a9b4c5;border-radius:12px;font-size:13px;line-height:1.5}
 .io-analysis-tip{font-size:12px;color:#475569;min-height:18px;margin-top:4px}
+
+/* ImmOptima premium analysis: lightweight motion, accessible on Android */
+#ioPropertyDetailOverlay .io-analysis-panel{animation:ioPremiumEnter .23s ease-out}
+#ioPropertyDetailOverlay .io-analysis-plot polyline,.io-analysis-plot polyline{stroke-dasharray:1200;stroke-dashoffset:1200;animation:ioPremiumTrace .85s ease-out forwards}
+#ioPropertyDetailOverlay .io-analysis-plot{max-width:100%;height:auto}
+#ioPropertyDetailOverlay .io-analysis-legend{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
+#ioPropertyDetailOverlay .io-analysis-legend button{white-space:nowrap;flex-shrink:0;font-size:12px;padding:8px 10px}
+#ioPropertyDetailOverlay .io-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+@keyframes ioPremiumEnter{from{opacity:.5;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ioPremiumTrace{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){#ioPropertyDetailOverlay .io-analysis-panel,#ioPropertyDetailOverlay .io-analysis-plot polyline,.io-analysis-plot polyline{animation:none;stroke-dashoffset:0}}
 </style>
 </head>
 <body>
