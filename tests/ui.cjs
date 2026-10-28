@@ -67,7 +67,27 @@ const fixture=require('./fixture.cjs');
  assert((await page.locator('#ioAnalysisBody .io-footer-stats > div').nth(1).textContent()).includes('11,1'));
  assert(await page.evaluate(()=>document.getElementById('ioAnalysisOverlay').scrollWidth<=innerWidth),'short-history percentage must not widen screen');
  await shot('07-richesse-historique-court');
+ // Every analysis, not only the dashboard: closed help stays on the first screen.
+ await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},fixture());
+ for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
+  await page.setViewportSize({width,height});
+  for(const kind of ['wealth','income','yield','diagnostic']){
+   await page.evaluate(kind=>immoptimaOpenAnalysis(kind),kind);await page.waitForTimeout(120);
+   const geometry=await page.evaluate(()=>{const o=document.getElementById('ioAnalysisOverlay'),h=o.querySelector('details summary'),r=h.getBoundingClientRect(),header=o.querySelector('.io-analysis-header').getBoundingClientRect(),plot=o.querySelector('svg.io-analysis-plot')?.getBoundingClientRect();return {height:o.clientHeight,scroll:o.scrollHeight,scrollTop:o.scrollTop,helpTop:r.top,helpBottom:r.bottom,headerTop:header.top,plotHeight:plot?.height,width:o.scrollWidth}});
+   assert(geometry.scroll<=geometry.height+1,'analysis scroll while help closed '+kind+' '+width+'x'+height+': '+JSON.stringify(geometry));
+   assert(geometry.headerTop>=0&&geometry.helpBottom<=height&&geometry.helpTop>=0,'header and help visible '+kind);
+   assert(geometry.plotHeight>=70,'graph remains readable '+kind+' '+JSON.stringify(geometry));assert(geometry.width<=width,'no horizontal overflow');
+   await page.locator('#ioAnalysisBody details summary').click();await page.waitForTimeout(100);
+   assert(await page.evaluate(()=>document.getElementById('ioAnalysisOverlay').scrollHeight>document.getElementById('ioAnalysisOverlay').clientHeight+20),'help expands scrollable page '+kind);
+   await page.evaluate(()=>{const o=document.getElementById('ioAnalysisOverlay');o.scrollTop=o.scrollHeight});
+   await page.locator('#ioAnalysisBody details summary').click();await page.waitForTimeout(100);
+   assert(await page.evaluate(()=>{const o=document.getElementById('ioAnalysisOverlay');return o.scrollTop===0&&o.scrollHeight<=o.clientHeight+1}),'closing help restores first viewport '+kind);
+   await page.evaluate(()=>immoptimaCloseAnalysis());
+  }
+ }
+ await page.setViewportSize({width:393,height:740});
+ for(const kind of ['wealth','income','yield','diagnostic']){await page.evaluate(kind=>immoptimaOpenAnalysis(kind),kind);await page.waitForTimeout(120);await shot('09-'+kind+'-une-page');await page.evaluate(()=>immoptimaCloseAnalysis());}
  assert.deepEqual(errors,[],'browser runtime errors');
- fs.writeFileSync('qa-out/ui-results.json',JSON.stringify({passed:true,viewportTests:[320,360,393,430,800],screenshots:'Synthetic QA portfolio; real Chromium rendering',checks:['empty launch','all four analyses','tabs','periods','legends','property tabs','property edit','photo upload and persistence','bank CSV','bank print layout','reload persistence','backup export','backup import','invalid import rollback','owner filter','point tooltip','unique IDs','responsive widths'],runtimeErrors:errors},null,2));
+ fs.writeFileSync('qa-out/ui-results.json',JSON.stringify({passed:true,viewportTests:[320,360,393,430,800],screenshots:'Synthetic QA portfolio; real Chromium rendering',checks:['empty launch','all four analyses','tabs','periods','legends','property tabs','property edit','photo upload and persistence','bank CSV','bank print layout','reload persistence','backup export','backup import','invalid import rollback','owner filter','point tooltip','unique IDs','responsive widths','four analyses fit with closed help','help expands and closing restores viewport'],runtimeErrors:errors},null,2));
  console.log('PASS mobile browser UI, interactions, storage, backup round-trip and responsive layouts');await browser.close();server.close();
 })().catch(e=>{console.error(e);process.exit(1)});

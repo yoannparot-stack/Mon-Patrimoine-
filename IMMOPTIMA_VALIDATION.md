@@ -51,3 +51,7 @@ Installer en mise à jour de l'application ImmOptima existante ; ne pas désinst
 Le dashboard graphique adapte sa hauteur à l’espace réellement disponible entre l’en-tête et la navigation. Les quatre cartes restent visibles sur une page ; le style validé est conservé. Des tests vérifient les petits écrans 320 × 568 et 360 × 640, les formats courants et la visibilité des textes.
 
 La croissance annuelle n’est calculée qu’à partir d’au moins un an calendaire d’historique. Une hausse de 45 000 à 50 000 € en un jour conserve son gain de 5 000 € et son évolution de 11,1 %, mais affiche « — » pour la croissance annuelle. Les valeurs longues peuvent se répartir dans leur carte sans élargir l’écran. Code de version Android : 9.
+
+## Analyses sur une page — version 10
+
+Les quatre analyses (richesse, revenus, performance, diagnostic) adaptent la hauteur du graphique à l’espace restant pour afficher dès l’ouverture les onglets, indicateurs, graphique, statistiques et le volet « Comprendre les calculs et les données » fermé. L’ouverture du volet autorise la croissance et le défilement de la page. Sa fermeture remet la vue entière en place. Le tracé SVG est recalculé en hauteur pour préserver la lisibilité des dates et des montants. Les vues de détail et comparatifs longs restent consultables sans couper leurs données.

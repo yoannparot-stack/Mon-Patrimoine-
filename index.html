@@ -281,6 +281,61 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
  body.io-dashboard-tight #dashboardGraph .io-caption,body.io-dashboard-tight #dashboardGraph .io-delta{font-size:10px;line-height:1.1}
  body.io-dashboard-tight #dashboardGraph .io-gauge small{font-size:8.5px}
 }
+
+/* Four analysis screens: the explanation stays visible while closed. */
+@media(max-width:749px){
+ #ioAnalysisOverlay.io-analysis-layout .io-analysis-panel{padding:8px 14px;min-height:var(--io-analysis-viewport,100dvh)}
+ #ioAnalysisOverlay.io-analysis-layout .io-analysis-header{min-height:40px;padding:0 0 4px;flex-shrink:0}
+ #ioAnalysisOverlay.io-analysis-layout #ioAnalysisBody{display:flex;flex-direction:column;gap:4px;min-height:0}
+ #ioAnalysisOverlay.io-analysis-layout #ioAnalysisBody> :not(.io-analysis-chart){flex-shrink:0;margin:0}
+ #ioAnalysisOverlay.io-analysis-layout .io-premium-tabs{min-height:32px;padding:2px}
+ #ioAnalysisOverlay.io-analysis-layout .io-premium-tabs button{padding:6px 4px}
+ #ioAnalysisOverlay.io-analysis-layout .io-premium-periods{min-height:28px;padding:2px}
+ #ioAnalysisOverlay.io-analysis-layout .io-premium-periods button{padding:5px 3px}
+ #ioAnalysisOverlay.io-analysis-layout .io-summary{padding:10px 11px 7px}
+ #ioAnalysisOverlay.io-analysis-layout .io-summary-hero{padding:0 0 6px}
+ #ioAnalysisOverlay.io-analysis-layout .io-summary-rows>div{min-height:24px}
+ #ioAnalysisOverlay.io-analysis-layout .io-premium-title{font-size:15px;line-height:20px}
+ #ioAnalysisOverlay.io-analysis-layout .io-analysis-legend{gap:5px;min-height:28px;align-items:center}
+ #ioAnalysisOverlay.io-analysis-layout .io-analysis-legend button{min-height:26px;padding:4px 6px}
+ #ioAnalysisOverlay.io-analysis-layout .io-provenance{font-size:10px;line-height:12px}
+ #ioAnalysisOverlay.io-analysis-layout .io-footer-stats{gap:6px}
+ #ioAnalysisOverlay.io-analysis-layout .io-footer-stats>div{padding:8px}
+ #ioAnalysisOverlay.io-analysis-layout .io-footer-stats .io-icon{width:19px;height:19px;margin-bottom:3px}
+ #ioAnalysisOverlay.io-analysis-layout .io-footer-stats b{font-size:14px;margin-bottom:3px}
+ #ioAnalysisOverlay.io-analysis-layout .io-footer-stats small{font-size:10px;line-height:1.2}
+ #ioAnalysisOverlay.io-analysis-layout .io-analysis-help{padding:9px 10px;font-size:11px;line-height:1.4}
+ #ioAnalysisOverlay.io-analysis-layout .io-analysis-help summary{line-height:16px}
+ #ioAnalysisOverlay.io-analysis-layout .io-analysis-chart{height:var(--io-analysis-chart-px,230px);display:flex;flex-direction:column;min-height:0;flex:none}
+ #ioAnalysisOverlay.io-analysis-layout .io-analysis-chart .io-analysis-plot{flex:1;width:100%;height:0;min-height:0;margin:0}
+ #ioAnalysisOverlay.io-analysis-layout .io-chart-tip{flex:none;min-height:12px;font-size:10px;line-height:12px;margin:0}
+ #ioAnalysisOverlay.io-analysis-fit .io-analysis-panel{height:var(--io-analysis-viewport,100dvh);min-height:0;display:flex;flex-direction:column}
+ #ioAnalysisOverlay.io-analysis-fit .io-analysis-header{position:static}
+ #ioAnalysisOverlay.io-analysis-fit #ioAnalysisBody{flex:1}
+ #ioAnalysisOverlay.io-analysis-fit .io-analysis-chart{flex:1;height:auto}
+ #ioAnalysisOverlay.io-analysis-compact .io-analysis-panel{padding:6px 12px}
+ #ioAnalysisOverlay.io-analysis-compact .io-analysis-header{min-height:34px;padding-bottom:3px}
+ #ioAnalysisOverlay.io-analysis-compact #ioAnalysisBody{gap:3px}
+ #ioAnalysisOverlay.io-analysis-compact .io-premium-tabs{min-height:28px}
+ #ioAnalysisOverlay.io-analysis-compact .io-premium-tabs button{padding:4px;font-size:10px}
+ #ioAnalysisOverlay.io-analysis-compact .io-premium-periods{min-height:24px}
+ #ioAnalysisOverlay.io-analysis-compact .io-premium-periods button{padding:3px;font-size:10px}
+ #ioAnalysisOverlay.io-analysis-compact .io-summary{padding:7px 9px}
+ #ioAnalysisOverlay.io-analysis-compact .io-summary-hero{padding-bottom:3px;gap:8px}
+ #ioAnalysisOverlay.io-analysis-compact .io-summary-hero strong{font-size:24px}
+ #ioAnalysisOverlay.io-analysis-compact .io-summary-hero span{font-size:12px}
+ #ioAnalysisOverlay.io-analysis-compact .io-summary-rows>div{min-height:19px}
+ #ioAnalysisOverlay.io-analysis-compact .io-summary-rows span,#ioAnalysisOverlay.io-analysis-compact .io-summary-rows b{font-size:11px}
+ #ioAnalysisOverlay.io-analysis-compact .io-badge{padding:6px;font-size:15px}
+ #ioAnalysisOverlay.io-analysis-compact .io-premium-title{font-size:14px;line-height:18px}
+ #ioAnalysisOverlay.io-analysis-compact .io-analysis-legend{min-height:24px}
+ #ioAnalysisOverlay.io-analysis-compact .io-analysis-legend button{min-height:23px;padding:3px 5px;font-size:9px}
+ #ioAnalysisOverlay.io-analysis-compact .io-footer-stats>div{display:grid;grid-template-columns:16px 1fr;gap:2px 3px;padding:5px 6px;align-items:center}
+ #ioAnalysisOverlay.io-analysis-compact .io-footer-stats .io-icon{width:16px;height:16px;margin:0}
+ #ioAnalysisOverlay.io-analysis-compact .io-footer-stats b{font-size:13px;margin:0}
+ #ioAnalysisOverlay.io-analysis-compact .io-footer-stats small{grid-column:1/-1;font-size:9px;line-height:1.15}
+ #ioAnalysisOverlay.io-analysis-compact .io-analysis-help{padding:7px 9px}
+}
 </style>
 </head>
 <body>
@@ -684,7 +739,7 @@ function immoptimaRenderGraph(t,consensus){
  const mini=bars.length?'<div class="io-spark" aria-label="Évolution du cash-flow">'+bars.map(p=>'<i style="height:'+Math.max(6,Math.abs(p.cashNet)/max*100)+'%;'+(p.cashNet<0?'background:#ef8888':'')+'"></i>').join('')+'</div>':'<div class="io-spark io-spark-empty">Historique<br>à compléter</div>';
  document.getElementById('dashboardGraph').innerHTML=tile('wealth','home','<div class="io-graph-row"><div><div class="io-caption">Patrimoine net</div><div class="io-hero" id="igNet">'+euro(t.net)+'</div><div class="io-delta">'+ioGainText(gain)+'</div></div><div class="io-gauge">'+ioGauge(ratio)+'</div></div>')+tile('income','coins','<div class="io-graph-row"><div><div class="io-caption">Cash-flow net / mois</div><div class="io-hero" id="igCash">'+euro(t.cashNet)+'</div><div class="io-delta">'+ioGainText(cashGain)+'</div></div>'+mini+'</div>')+tile('yield','percent','<div class="io-yield-pair"><div><div class="io-caption">Rendement brut</div><div class="io-hero" id="igGrossYield">'+pct(t.grossYield)+'</div>'+ioTrack(t.grossYield*10,'#8108dc')+'</div><div><div class="io-caption">Rendement net</div><div class="io-hero" id="igNetYield">'+pct(t.netYield)+'</div>'+ioTrack(t.netYield*10,'#9e43ed')+'</div></div>')+tile('diagnostic','chart','<div class="io-graph-row"><div><div class="io-caption">Capital remboursé</div><div class="io-hero">'+euro(stats.principal)+'</div><div class="io-caption">'+pct(stats.percent)+' du capital initial</div></div><div class="io-repay-track">'+ioTrack(stats.percent,'#f36414')+'</div></div>');
 }
-function immoptimaOpenAnalysis(kind){if(!IO_CONFIG[kind])return;ioReturnFocus=document.activeElement;ioAnalysisKind=kind;ioAnalysisTab=0;document.getElementById('ioAnalysisPeriod').value=document.getElementById('ioDashboardPeriod')?.value==='all'?'120':document.getElementById('ioDashboardPeriod')?.value||'120';ioAnalysisHidden=new Set();const overlay=document.getElementById('ioAnalysisOverlay');overlay.hidden=false;overlay.scrollTop=0;document.body.classList.add('io-modal-open');immoptimaRenderAnalysis();overlay.querySelector('[aria-label="Fermer l\'analyse"]').focus({preventScroll:true})}
+function immoptimaOpenAnalysis(kind){if(!IO_CONFIG[kind])return;ioReturnFocus=document.activeElement;ioAnalysisKind=kind;ioAnalysisTab=0;ioAnalysisHelpOpen=false;document.getElementById('ioAnalysisPeriod').value=document.getElementById('ioDashboardPeriod')?.value==='all'?'120':document.getElementById('ioDashboardPeriod')?.value||'120';ioAnalysisHidden=new Set();const overlay=document.getElementById('ioAnalysisOverlay');overlay.hidden=false;overlay.scrollTop=0;document.body.classList.add('io-modal-open');immoptimaRenderAnalysis();overlay.querySelector('[aria-label="Fermer l\'analyse"]').focus({preventScroll:true})}
 function immoptimaCloseAnalysis(){const el=document.getElementById('ioAnalysisOverlay');if(!el||el.hidden)return;el.hidden=true;document.body.classList.remove('io-modal-open');if(ioReturnFocus?.isConnected)ioReturnFocus.focus({preventScroll:true})}
 /* Standard fixed-rate amortization; current CRD anchors future estimates only.
    Reconstructed past balances are estimates, never presented as recorded history. */
@@ -730,18 +785,18 @@ function immoptimaEstimatedHistory(kind){return ioEstimatedRows(dashboardPropert
 function immoptimaHistoricalSeries(kind){return ioGetSeries(kind,document.getElementById('ioAnalysisPeriod')?.value||'all')}
 function immoptimaToggleCurve(key){if(ioAnalysisHidden.has(key))ioAnalysisHidden.delete(key);else ioAnalysisHidden.add(key);immoptimaRenderAnalysis()}
 function ioPoint(date,label,value){const tip=document.querySelector('.io-analysis-overlay:not([hidden]) .io-chart-tip');if(tip)tip.textContent=dateFR(date)+' · '+label+' : '+value}
-function ioChart(rows,keys,colors,labels,percent=false,hidden=new Set(),bars=false){
+function ioChart(rows,keys,colors,labels,percent=false,hidden=new Set(),bars=false,plotHeight=239){
  if(rows.length<2)return '<div class="io-analysis-empty">Les valeurs actuelles sont disponibles. Ajoutez les dates d’achat et les paramètres des crédits pour une reconstitution indicative, ou enregistrez des relevés à deux dates distinctes pour un historique réel.</div>';
  const active=keys.map((key,j)=>({key,j})).filter(o=>!hidden.has(o.key));
  if(!active.length)return '<div class="io-analysis-empty">Toutes les séries sont masquées. Touchez une légende pour les afficher.</div>';
  const values=rows.flatMap(r=>active.map(o=>Number(r[o.key]))).filter(Number.isFinite),min=Math.min(0,...values),max=Math.max(1,...values),span=Math.max(1,max-min),rawStep=span*1.12/4,power=Math.pow(10,Math.floor(Math.log10(rawStep))),step=[1,2,2.5,5,10].map(v=>v*power).find(v=>v>=rawStep)||power*10,low=Math.floor(min/step)*step,high=Math.max(low+step,Math.ceil((max+span*.06)/step)*step),tickCount=Math.round((high-low)/step);
  const chartId=document.getElementById('ioPropertyDetailOverlay')?.hidden===false?'ioPropertyFill':'ioAnalysisFill';
- const X=58,W=235,Y=24,H=177,last=rows.length-1,firstTime=+ioDate(rows[0].date),timeSpan=Math.max(1,+ioDate(rows[last].date)-firstTime),x=i=>X+(+ioDate(rows[i].date)-firstTime)/timeSpan*W,y=v=>Y+H-(v-low)/(high-low)*H,fmt=v=>percent?pct(v):euro(v);
- let svg='<svg class="io-analysis-plot" viewBox="0 0 350 239" role="img" aria-label="Évolution par date, '+(percent?'rendements en pourcentage':'montants en euros')+'"><defs>';
+ const X=58,W=235,Y=24,H=Math.max(40,plotHeight-62),last=rows.length-1,firstTime=+ioDate(rows[0].date),timeSpan=Math.max(1,+ioDate(rows[last].date)-firstTime),x=i=>X+(+ioDate(rows[i].date)-firstTime)/timeSpan*W,y=v=>Y+H-(v-low)/(high-low)*H,fmt=v=>percent?pct(v):euro(v);
+ let svg='<svg class="io-analysis-plot" viewBox="0 0 350 '+plotHeight+'" role="img" aria-label="Évolution par date, '+(percent?'rendements en pourcentage':'montants en euros')+'"><defs>';
  colors.forEach((c,j)=>svg+='<linearGradient id="'+chartId+j+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+c+'" stop-opacity=".22"/><stop offset="100%" stop-color="'+c+'" stop-opacity=".02"/></linearGradient>');svg+='</defs>';
  for(let i=0;i<=tickCount;i++){const v=high-i*step,Yv=Y+i*H/tickCount;svg+='<line x1="'+X+'" x2="'+(X+W)+'" y1="'+Yv+'" y2="'+Yv+'" stroke="#e8edf2"/><text x="51" y="'+(Yv+4)+'" text-anchor="end" font-size="10" fill="#657086">'+esc(percent?pct(v):euro(Math.round(v/10)*10))+'</text>'}
  const candidates=[...new Set([0,Math.round(last*.2),Math.round(last*.4),Math.round(last*.6),Math.round(last*.8),last])],ticks=[];for(const i of candidates){if(!ticks.length||x(i)-x(ticks[ticks.length-1])>=39)ticks.push(i);else if(i===last){if(ticks.length>1)ticks.pop();ticks.push(i)}}
- ticks.forEach(i=>{const sameYear=rows[0].date.slice(0,4)===rows[last].date.slice(0,4),sameMonth=rows[0].date.slice(0,7)===rows[last].date.slice(0,7),label=sameYear?new Date(rows[i].date+'T12:00:00').toLocaleDateString('fr-FR',sameMonth?{day:'numeric',month:'short'}:{month:'short'}):rows[i].date.slice(0,4);svg+='<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+Y+'" y2="'+(Y+H)+'" stroke="#f0f2f7"/><text x="'+x(i)+'" y="224" text-anchor="middle" font-size="10" fill="#657086">'+esc(label)+'</text>'});
+ ticks.forEach(i=>{const sameYear=rows[0].date.slice(0,4)===rows[last].date.slice(0,4),sameMonth=rows[0].date.slice(0,7)===rows[last].date.slice(0,7),label=sameYear?new Date(rows[i].date+'T12:00:00').toLocaleDateString('fr-FR',sameMonth?{day:'numeric',month:'short'}:{month:'short'}):rows[i].date.slice(0,4);svg+='<line x1="'+x(i)+'" x2="'+x(i)+'" y1="'+Y+'" y2="'+(Y+H)+'" stroke="#f0f2f7"/><text x="'+x(i)+'" y="'+(plotHeight-15)+'" text-anchor="middle" font-size="10" fill="#657086">'+esc(label)+'</text>'});
  active.forEach(({key,j})=>{
  const valid=rows.map((r,i)=>({r,i,v:Number(r[key])})).filter(o=>Number.isFinite(o.v));if(!valid.length)return;
  if(bars&&(key==='rent'||key==='charges')){const width=Math.min(12,Math.max(2,W/rows.length/2.8));valid.forEach(({i,v})=>{const zero=y(0),Yv=y(v),bx=x(i)+(key==='rent'?-width:1);svg+='<rect x="'+bx+'" y="'+Math.min(zero,Yv)+'" width="'+width+'" height="'+Math.max(.5,Math.abs(zero-Yv))+'" rx="2" fill="'+colors[j]+'" opacity=".72"/>'})}
@@ -752,7 +807,7 @@ function ioChart(rows,keys,colors,labels,percent=false,hidden=new Set(),bars=fal
  valid.forEach(({r,i,v})=>{const tip='ioPoint('+JSON.stringify(r.date)+','+JSON.stringify(labels[j])+','+JSON.stringify(fmt(v))+')';svg+='<g tabindex="0" role="button" aria-label="'+esc(dateFR(r.date)+' '+labels[j]+' '+fmt(v))+'" onclick="'+esc(tip)+'" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();'+esc(tip)+'}"><circle cx="'+x(i)+'" cy="'+y(v)+'" r="11" fill="transparent"/><circle cx="'+x(i)+'" cy="'+y(v)+'" r="4" fill="'+colors[j]+'" stroke="white" stroke-width="1"/><title>'+esc(dateFR(r.date)+' · '+labels[j]+' : '+fmt(v))+'</title></g>'});
  });
  const ends=active.filter(o=>!(bars&&['rent','charges'].includes(o.key))).map(o=>({...o,v:Number(rows[last][o.key]),Y:y(Number(rows[last][o.key]))})).filter(o=>Number.isFinite(o.v)).sort((a,b)=>a.Y-b.Y);
- ends.forEach((o,i)=>{o.labelY=Math.max(13,Math.min(193,o.Y-15));if(i&&o.labelY-ends[i-1].labelY<23)o.labelY=ends[i-1].labelY+23});if(ends.length&&ends[ends.length-1].labelY>193){const shift=ends[ends.length-1].labelY-193;ends.forEach(o=>o.labelY-=shift)}
+ ends.forEach((o,i)=>{o.labelY=Math.max(13,Math.min(plotHeight-46,o.Y-15));if(i&&o.labelY-ends[i-1].labelY<23)o.labelY=ends[i-1].labelY+23});if(ends.length&&ends[ends.length-1].labelY>plotHeight-46){const shift=ends[ends.length-1].labelY-(plotHeight-46);ends.forEach(o=>o.labelY-=shift)}
  ends.forEach(o=>{const val=fmt(o.v),w=Math.max(49,Math.min(100,val.length*6+12)),left=347-w;svg+='<line x1="'+x(last)+'" x2="'+left+'" y1="'+o.Y+'" y2="'+o.labelY+'" stroke="'+colors[o.j]+'"/><rect x="'+left+'" y="'+(o.labelY-11)+'" width="'+w+'" height="22" rx="5" fill="'+colors[o.j]+'"/><text x="'+(left+w/2)+'" y="'+(o.labelY+4)+'" text-anchor="middle" font-size="11" font-weight="700" fill="white">'+esc(val)+'</text>'});
  return svg+'</svg><div class="io-chart-tip"  aria-live="polite">Touchez un point pour lire sa valeur.</div>';
 }
@@ -766,7 +821,7 @@ function immoptimaAnalysisSection(i){ioAnalysisTab=i;ioAnalysisHidden=new Set();
 function immoptimaRenderAnalysis(){
  const overlay=document.getElementById('ioAnalysisOverlay'),body=document.getElementById('ioAnalysisBody');if(!body)return;
  const c=IO_CONFIG[ioAnalysisKind],props=dashboardProperties(),t=totalsFor(props),stats=ioLoanStats(props),series=immoptimaHistoricalSeries(ioAnalysisKind),gain=ioChange(series.points,'net',t.net),cashGain=ioChange(series.points,'cashNet',t.cashNet),period=ioPeriodBar();overlay.dataset.kind=ioAnalysisKind;
- const h=overlay.querySelector('.io-analysis-header');h.innerHTML='<button type="button" onclick="immoptimaCloseAnalysis()" aria-label="Fermer l\'analyse">'+ioIcon('back')+'</button><h2 id="ioAnalysisTitle"><span style="color:'+c.color+'">'+c.number+'</span> · '+c.title+'</h2><button type="button" onclick="document.querySelector(\'#ioAnalysisOverlay details\').open=!document.querySelector(\'#ioAnalysisOverlay details\').open;document.querySelector(\'#ioAnalysisOverlay details\').scrollIntoView({block:\'nearest\'})" aria-label="Aide sur les calculs">ⓘ</button>';
+ const h=overlay.querySelector('.io-analysis-header');h.innerHTML='<button type="button" onclick="immoptimaCloseAnalysis()" aria-label="Fermer l\'analyse">'+ioIcon('back')+'</button><h2 id="ioAnalysisTitle"><span style="color:'+c.color+'">'+c.number+'</span> · '+c.title+'</h2><button type="button" onclick="immoptimaToggleAnalysisHelp()" aria-label="Aide sur les calculs">ⓘ</button>';
  let summary='',footer='',rows=[],headline='',value='',badge='',icon='home';
  if(ioAnalysisKind==='wealth'){headline='Patrimoine net actuel';value=euro(t.net);badge=gain.pct===null?'—':ioSigned(gain.pct,true);rows=[['Valeur totale estimée',euro(t.gross),'shield'],['Capital restant dû',euro(t.debt),'wallet'],['Patrimoine net',euro(t.net),'building']];const cagr=ioAnnualGrowth(series.points,'net',t.net);footer=ioFooter([['home',gain.gain===null?'—':ioSigned(gain.gain),'Gain de valeur nette'],['arrow',gain.pct===null?'—':ioSigned(gain.pct,true),'Évolution'],['arrow',cagr===null?'—':pct(cagr),'Croissance / an']]);}
  else if(ioAnalysisKind==='income'){headline='Cash-flow net / mois';value=euro(t.cashNet);icon='coins';badge=cashGain.pct===null?'—':ioSigned(cashGain.pct,true);rows=[['Loyers mensuels (HC)',euro(t.rent),'home'],['Charges non récupérables',euro(t.charges),'wallet'],['Crédits avec assurance',euro(t.payments),'clock'],['Cash-flow net',euro(t.cashNet),'shield']];footer=ioFooter([['home',euro(t.rent*12),'Loyers annuels'],['coins',euro(t.charges*12),'Charges annuelles'],['arrow',cashGain.pct===null?'—':ioSigned(cashGain.pct,true),'Évolution du cash-flow']]);}
@@ -782,14 +837,42 @@ function immoptimaRenderAnalysis(){
  if(ioAnalysisKind==='diagnostic'&&ioAnalysisTab===1){keys=['repaid'];labels=['Capital remboursé estimé'];colors=['#f36414'];title='Évolution du capital remboursé';series.points=series.points.map(p=>({...p,repaid:Number.isFinite(Number(p.principal))?Number(p.principal):Math.max(0,stats.initial-p.debt),estimated:p.estimated||!Number.isFinite(Number(p.principal))}))}
  const detail=ioAnalysisTab===c.tabs.length-1&&c.tabs[c.tabs.length-1]==='Détail';
  const legend='<div class="io-analysis-legend">'+keys.map((k,i)=>'<button type="button" aria-pressed="'+!ioAnalysisHidden.has(k)+'" onclick="immoptimaToggleCurve(\''+k+'\')"><i style="background:'+colors[i]+';opacity:'+(ioAnalysisHidden.has(k)?'.25':'1')+'"></i>'+labels[i]+'</button>').join('')+'</div>';
- const chart=ioChart(series.points,keys,colors,labels,ioAnalysisKind==='yield',ioAnalysisHidden,ioAnalysisKind==='income'&&ioAnalysisTab===0);
+ ioAnalysisChartState={points:series.points,keys,colors,labels,percent:ioAnalysisKind==='yield',bars:ioAnalysisKind==='income'&&ioAnalysisTab===0};
+ const chart='<div class="io-analysis-chart">'+ioChart(series.points,keys,colors,labels,ioAnalysisKind==='yield',ioAnalysisHidden,ioAnalysisKind==='income'&&ioAnalysisTab===0)+'</div>';
  const provenance='<div class="io-provenance">'+(series.estimated?'┄ Historique estimé · ● Valeurs actuelles':'● Historique réel · valeurs saisies')+'</div>';
  const table=detail?'<div class="tablewrap io-detail-table"><table><thead><tr><th>Date</th>'+c.labels.map(l=>'<th>'+l+'</th>').join('')+'<th>Source</th></tr></thead><tbody>'+series.points.map(p=>'<tr><td>'+dateFR(p.date)+'</td>'+c.keys.map(k=>'<td>'+(ioAnalysisKind==='yield'?pct(p[k]):euro(p[k]))+'</td>').join('')+'<td>'+(p.current?'Actuel':p.estimated?'Estimé':'Relevé')+'</td></tr>').join('')+'</tbody></table></div>':'';
  body.innerHTML=ioSegments(c.tabs,ioAnalysisTab,'immoptimaAnalysisSection')+period+summary+'<h3 class="io-premium-title">'+title+' <span>ⓘ</span></h3>'+extra+legend+chart+provenance+footer+table+ioHelp(series);
+ const help=body.querySelector('details');help.open=ioAnalysisHelpOpen;
+ help.ontoggle=()=>{ioAnalysisHelpOpen=help.open;immoptimaScheduleAnalysisFit()};
+ immoptimaScheduleAnalysisFit();
 }
 function immoptimaMore(){let el=document.getElementById('ioMore');if(!el){el=document.createElement('div');el.id='ioMore';el.className='backup-choices';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Toutes les fonctionnalités');document.body.appendChild(el)}el.innerHTML='<div class="backup-choices-panel"><div class="section-title"><h2>Mon espace ImmOptima</h2><button class="secondary" onclick="immoptimaCloseMore()" aria-label="Fermer le menu">✕</button></div><div class="io-more-grid">'+pages.map(([id,label])=>'<button class="secondary" type="button" onclick="showPage(\''+id+'\')">'+label+'</button>').join('')+'</div><label for="ioMoreView">Affichage du tableau de bord</label><select id="ioMoreView" onchange="document.getElementById(\'dashboardViewMode\').value=this.value;immoptimaDashboardModeChange()"><option value="graph">Vue graphique</option><option value="compact">Vue chiffrée</option><option value="detailed">Détails complets</option></select><hr><div class="actions"><button class="primary" onclick="immoptimaCloseMore();openBackupOptions()">Sauvegarder</button><button class="secondary" onclick="document.getElementById(\'importFile\').click()">Importer</button></div></div>';el.hidden=false;el.querySelector('button').focus()}
 function immoptimaCloseMore(){const el=document.getElementById('ioMore');if(el)el.hidden=true}
 function immoptimaHandleBack(){for(const id of ['backupChoices','ioMore','ioPropertyDetailOverlay','ioAnalysisOverlay']){const el=document.getElementById(id);if(el&&!el.hidden){if(id==='ioAnalysisOverlay')immoptimaCloseAnalysis();else if(id==='ioPropertyDetailOverlay')immoptimaClosePropertyDetail();else el.hidden=true;return true}}const p=document.querySelector('.page.active');if(p&&p.id!=='dashboard'){showPage('dashboard');return true}return false}
+// Each analysis starts with the closed explanation visible in the first viewport.
+// The graph uses the remaining height; its coordinates are redrawn to keep text readable.
+let ioAnalysisHelpOpen=false,ioAnalysisChartState=null;
+function immoptimaToggleAnalysisHelp(){const help=document.querySelector('#ioAnalysisBody details');if(!help)return;help.open=!help.open;ioAnalysisHelpOpen=help.open;immoptimaScheduleAnalysisFit()}
+function immoptimaScheduleAnalysisFit(){requestAnimationFrame(immoptimaFitAnalysis)}
+function immoptimaFitAnalysis(){
+ const overlay=document.getElementById('ioAnalysisOverlay');if(!overlay||overlay.hidden)return;
+ const mobile=innerWidth<750,body=document.getElementById('ioAnalysisBody'),help=body.querySelector('details'),chart=body.querySelector('.io-analysis-chart');
+ overlay.classList.toggle('io-analysis-layout',mobile);
+ if(!mobile){overlay.classList.remove('io-analysis-fit','io-analysis-compact');return;}
+ const viewport=window.visualViewport?.height||innerHeight;
+ overlay.style.setProperty('--io-analysis-viewport',Math.floor(viewport)+'px');
+ overlay.classList.toggle('io-analysis-compact',viewport<760);
+ const fits=!help?.open&&!body.querySelector('.io-detail-table,.io-comparison');
+ overlay.classList.toggle('io-analysis-fit',fits);
+ if(fits)overlay.scrollTop=0;
+ if(!chart||!ioAnalysisChartState)return;
+ const svg=chart.querySelector('svg'),state=ioAnalysisChartState;if(!svg)return;
+ const width=chart.clientWidth,available=svg.getBoundingClientRect().height;
+ if(width<=0||available<=0)return;
+ overlay.style.setProperty('--io-analysis-chart-px',chart.getBoundingClientRect().height+'px');
+ const plotHeight=Math.max(100,Math.round(available*350/width));
+ if(state.plotHeight!==plotHeight){state.plotHeight=plotHeight;const tip=chart.querySelector('.io-chart-tip')?.textContent;chart.innerHTML=ioChart(state.points,state.keys,state.colors,state.labels,state.percent,ioAnalysisHidden,state.bars,plotHeight);if(tip)chart.querySelector('.io-chart-tip').textContent=tip;}
+}
 function immoptimaFitDashboard(){
  const graph=document.getElementById('dashboardGraph'),page=document.getElementById('dashboard');
  const active=page?.classList.contains('active')&&!graph.hidden&&innerWidth<750;
@@ -806,6 +889,7 @@ function immoptimaFitDashboard(){
 function immoptimaScheduleDashboardFit(){requestAnimationFrame(immoptimaFitDashboard)}
 function immoptimaInitializeUX(){
  // The detail dialog is outside sections so it remains visible when opened from any destination.
+ window.addEventListener('resize',immoptimaScheduleAnalysisFit);window.visualViewport?.addEventListener('resize',immoptimaScheduleAnalysisFit);
  window.addEventListener('resize',immoptimaScheduleDashboardFit);window.visualViewport?.addEventListener('resize',immoptimaScheduleDashboardFit);
  document.body.appendChild(document.getElementById('ioAnalysisOverlay'));document.querySelector('.io-account').innerHTML=ioIcon('user');showPage('dashboard');
  document.addEventListener('keydown',e=>{if(e.key==='Escape')immoptimaHandleBack();if(e.key!=='Tab')return;const modal=[...document.querySelectorAll('[role="dialog"]')].reverse().find(x=>!x.hidden&&x.getClientRects().length);if(!modal)return;const list=[...modal.querySelectorAll('button,select,input,summary,[tabindex="0"]')].filter(x=>x.getClientRects().length&&!x.disabled);if(!list.length)return;if(e.shiftKey&&document.activeElement===list[0]){e.preventDefault();list[list.length-1].focus()}else if(!e.shiftKey&&document.activeElement===list[list.length-1]){e.preventDefault();list[0].focus()}});
