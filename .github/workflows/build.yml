@@ -7,6 +7,8 @@ on:
       - 'Mon_Patrimoine_V1.3.2_ANDROID_PREVIEW_GITHUB.zip'
       - '.github/workflows/build.yml'
       - 'index.html'
+      - 'tests/**'
+      - 'android-ux-patch.py'
       - 'qa_android.js'
       - 'qa_google_drive_migration.js'
       - 'qa_firebase_preflight.js'
@@ -84,7 +86,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 7/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 8/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -104,6 +106,7 @@ jobs:
           python3 android-firebase-patch.py "$ROOT"
           python3 android-auth-patch.py "$ROOT"
           python3 android-cloud-sync-patch.py "$ROOT"
+          python3 android-ux-patch.py "$ROOT"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -125,6 +128,24 @@ jobs:
           node qa_firebase_preflight.js
           node qa_portfolio_sync.js
           node qa_cloud_sync_gate.js
+          node tests/finance.cjs
+
+      - name: Set up browser regression tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test actual mobile browser rendering and save screenshots
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node tests/ui.cjs
+      - name: Upload browser verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmOptima-Web-Verification
+          path: qa-out/
+          if-no-files-found: warn
 
       - name: Build debug APK
         run: |
@@ -181,3 +202,43 @@ jobs:
           name: ImmOptima-Firebase-Preview-TEST-APK
           path: apk-out/Mon-Patrimoine-V1.3.2-debug.apk
           if-no-files-found: error
+
+  android-ui:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: ImmOptima-Firebase-Preview-TEST-APK
+          path: installed-apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install QA transport
+        run: npm install --no-save --package-lock=false ws@8.18.0
+      - name: Verify installed APK and capture real Android screens
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: node tests/android-ui.cjs
+      - name: Upload Android screenshots and result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmOptima-Android-Verification
+          path: qa-out/android/
+          if-no-files-found: warn

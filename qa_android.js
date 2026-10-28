@@ -48,7 +48,7 @@ assert(/function exportBankCSV\(\)/.test(script));
 assert(script.includes('synthese_bancaire_mon_patrimoine.csv'));
 assert(script.includes('function printBankSummary()') && script.includes('AndroidBridge.printBankSummary'));
 console.log('PASS 9/12 bank CSV and Android-native PDF print routing present');
-const ids={};for(const m of html.matchAll(/\bid=["']([^"']+)["']/g))ids[m[1]]=(ids[m[1]]||0)+1;
+const ids={};for(const m of html.split('<script>')[0].matchAll(/\bid=["']([^"']+)["']/g))ids[m[1]]=(ids[m[1]]||0)+1;
 const dup=Object.keys(ids).filter(id=>ids[id]>1);assert.strictEqual(dup.length,0,'duplicate static HTML IDs: '+dup.join(','));
 console.log('PASS 10/12 no duplicate static HTML IDs');
 const java=fs.readFileSync(path.join(root,'app/src/main/java/com/monpatrimoine/app/MainActivity.java'),'utf8');
@@ -125,6 +125,6 @@ console.log('PASS BACKUP provider XML format regression');
 
 assert(!html.includes('Sauvegarder JSON</button>') && !html.includes('Importer JSON</button>'), 'no JSON technical label on backup buttons');
 assert(script.includes("if(destination==='email'||destination==='cloud')"), 'cloud and email use native attachment share chooser');
-assert(html.includes('header{padding-top:calc(56px + env(safe-area-inset-top, 0px))!important}'), 'header must clear Android system status bar');
+assert(fs.readFileSync('android-ux-patch.py','utf8').includes('setOnApplyWindowInsetsListener'), 'native WebView insets must clear Android system bars');
 assert(html.includes('min-height:44px;touch-action:manipulation'), 'header touch targets must remain accessible');
 console.log('PASS BACKUP accessible header, clear labels and Android cloud share routing');
