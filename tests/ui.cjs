@@ -14,6 +14,29 @@ const fixture=require('./fixture.cjs');
  await page.evaluate(data=>{db=data;localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll()},data);
  assert.equal(await page.locator('#igNet').textContent(),'124 500 €');
  fs.mkdirSync('qa-out/web',{recursive:true});const shot=async name=>{await page.waitForTimeout(120);await page.screenshot({path:'qa-out/web/'+name+'.png'});};await shot('01-dashboard');
+ // Validated list B: consecutive property cards, compact notice, live actions and all metrics retained.
+ await page.getByRole('button',{name:'Biens',exact:true}).click();
+ assert.equal(await page.locator('#ioPropertyCount').textContent(),'2 biens');
+ assert.equal(await page.locator('#properties .io-property-card').count(),2);
+ assert.equal(await page.locator('#immobilier .io-discovery').getAttribute('open'),null);
+ await page.locator('#immobilier .io-discovery summary').click();assert(await page.locator('#immobilier .io-discovery p').isVisible());await page.locator('#immobilier .io-discovery summary').click();
+ const firstCard=page.locator('#properties .io-property-card').first();
+ assert((await firstCard.locator('.io-list-cash').textContent()).includes('350'));assert((await firstCard.locator('.io-list-wealth').textContent()).includes('84'));
+ await firstCard.locator('.io-property-indicators summary').click();assert((await firstCard.locator('dl').textContent()).includes('125'));await firstCard.locator('.io-property-indicators summary').click();
+ await firstCard.locator('.io-property-menu summary').click();await firstCard.getByRole('button',{name:'Modifier',exact:true}).click();assert.equal(await page.locator('#propertyFormWrap input[name=name]').inputValue(),'Appartement – Tours Centre');await page.locator('#propertyFormWrap').getByRole('button',{name:'Fermer',exact:true}).click();
+ await firstCard.locator('.io-property-menu summary').click();assert(await page.evaluate(()=>immoptimaHandleBack()));assert.equal(await firstCard.locator('.io-property-menu').getAttribute('open'),null);assert(await page.locator('#immobilier').isVisible());
+ await firstCard.getByRole('button',{name:'Voir le bien',exact:false}).click();assert(await page.locator('#ioPropertyDetailOverlay').isVisible());await page.evaluate(()=>immoptimaClosePropertyDetail());
+ await page.evaluate(()=>{db.properties.push({...db.properties[1],id:'qa-list-third',name:'Studio · Validation liste',address:'Tours',surface:22});renderProperties()});
+ await page.setViewportSize({width:393,height:851});await page.evaluate(()=>window.scrollTo(0,0));await shot('10-biens-liste-b');
+ const cardsLayout=await page.locator('#properties .io-property-card').evaluateAll(cards=>cards.map(c=>({height:c.getBoundingClientRect().height,bottom:c.getBoundingClientRect().bottom})));
+ assert(cardsLayout[0].height<300,'property card remains compact');assert(cardsLayout[1].bottom<790,'two complete property cards on a normal phone');
+ for(const width of [320,360,393,430,800]){await page.setViewportSize({width,height:851});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'property list horizontal overflow '+width)}
+ // A long imported name/address and an apostrophe in ID remain safe and readable.
+ await page.evaluate(()=>{Object.assign(db.properties[2],{id:"qa-list-'quoted",name:'Appartement très long avec nom et adresse à vérifier '.repeat(3),holder:'Détenteur dont le nom est long',address:'Rue de validation très longue '.repeat(4),retainedValue:123456789012});renderProperties()});
+ await page.setViewportSize({width:320,height:740});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'long property fields cannot widen the page');
+ const thirdCard=page.locator('#properties .io-property-card').nth(2);await thirdCard.getByRole('button',{name:'Voir le bien',exact:false}).click();assert(await page.locator('#ioPropertyDetailOverlay').isVisible());await page.evaluate(()=>immoptimaClosePropertyDetail());
+ await thirdCard.locator('.io-property-menu summary').click();await thirdCard.getByRole('button',{name:'Supprimer',exact:true}).click();assert.equal(await page.locator('#ioPropertyCount').textContent(),'2 biens');
+ await page.setViewportSize({width:393,height:851});await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},data);
  for(const [kind,name] of [['wealth','02-richesse'],['income','03-revenus'],['yield','04-performance'],['diagnostic','05-diagnostic']]){
  await page.locator('#dashboardGraph article').nth(['wealth','income','yield','diagnostic'].indexOf(kind)).click();
  assert(await page.locator('#ioAnalysisOverlay').isVisible());assert(await page.locator('#ioAnalysisBody svg.io-analysis-plot').isVisible());

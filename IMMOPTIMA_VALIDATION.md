@@ -55,3 +55,9 @@ La croissance annuelle n’est calculée qu’à partir d’au moins un an calen
 ## Analyses sur une page — version 10
 
 Les quatre analyses (richesse, revenus, performance, diagnostic) adaptent la hauteur du graphique à l’espace restant pour afficher dès l’ouverture les onglets, indicateurs, graphique, statistiques et le volet « Comprendre les calculs et les données » fermé. L’ouverture du volet autorise la croissance et le défilement de la page. Sa fermeture remet la vue entière en place. Le tracé SVG est recalculé en hauteur pour préserver la lisibilité des dates et des montants. Les vues de détail et comparatifs longs restent consultables sans couper leurs données.
+
+## Liste Biens — version 12
+
+La liste B validée affiche plusieurs cartes successives avec valeur, patrimoine net, cash-flow brut/crédit/net, loyer HC et rendement net. Le coût d’acquisition, le CRD, le rendement brut, le consensus et la tendance de marché restent accessibles sous « Autres indicateurs ». La présentation ne change aucune formule ni aucun enregistrement. Le bandeau découverte se déplie pour conserver son texte complet.
+
+Le menu de chaque carte donne accès à Modifier et Supprimer ; le retour natif referme ce menu. « Voir le bien » et le nom ouvrent la fiche existante. Tests des actions, de la liste avec trois biens, des champs longs et des petites largeurs. La nouvelle apparence des analyses individuelles attend la validation des maquettes A/B/C ; elle n’est pas intégrée dans cette version.

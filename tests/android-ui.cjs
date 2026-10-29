@@ -39,6 +39,14 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
   const views=uiNodes().filter(n=>/class="android.webkit.WebView"/.test(n)).map(bounds).sort((a,b)=>(b[2]-b[0])*(b[3]-b[1])-(a[2]-a[0])*(a[3]-a[1]));assert(views.length,'native WebView bounds');const [left,top,right,bottom]=views[0],scale=(right-left)/r.w;
   adb('shell','input','tap',String(Math.round(left+r.x*scale)),String(Math.round(top+r.y*scale)));
  };
+ await evaluate("showPage('immobilier');db.properties.push({...db.properties[1],id:'qa-list-third',name:'Studio · Validation liste',address:'Tours',surface:22});renderProperties();true");
+ assert.equal(await evaluate('document.querySelectorAll("#properties .io-property-card").length'),3);
+ assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
+ await capture('08-biens-liste-b','immoptima');
+ await tap('#properties .io-property-card .io-property-menu summary');await waitFor('document.querySelector("#properties .io-property-menu").open');
+ adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#properties .io-property-menu").open');assert.equal(await evaluate('document.querySelector(".page.active").id'),'immobilier');
+ await tap('#properties .io-list-open');await waitFor('!document.getElementById("ioPropertyDetailOverlay").hidden');adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioPropertyDetailOverlay").hidden');
+ await evaluate("db.properties=db.properties.filter(p=>p.id!=='qa-list-third');renderProperties();showPage('dashboard');true");
  await tap('#dashboardGraph article');await waitFor('!document.getElementById("ioAnalysisOverlay").hidden');
  adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioAnalysisOverlay").hidden');
  // DOM click events verify handlers; Android Back is exercised natively below.
