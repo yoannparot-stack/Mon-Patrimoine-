@@ -61,3 +61,9 @@ Les quatre analyses (richesse, revenus, performance, diagnostic) adaptent la hau
 La liste B validée affiche plusieurs cartes successives avec valeur, patrimoine net, cash-flow brut/crédit/net, loyer HC et rendement net. Le coût d’acquisition, le CRD, le rendement brut, le consensus et la tendance de marché restent accessibles sous « Autres indicateurs ». La présentation ne change aucune formule ni aucun enregistrement. Le bandeau découverte se déplie pour conserver son texte complet.
 
 Le menu de chaque carte donne accès à Modifier et Supprimer ; le retour natif referme ce menu. « Voir le bien » et le nom ouvrent la fiche existante. Tests des actions, de la liste avec trois biens, des champs longs et des petites largeurs. La nouvelle apparence des analyses individuelles attend la validation des maquettes A/B/C ; elle n’est pas intégrée dans cette version.
+
+## Fiche individuelle A et libellés — version 13
+
+Photo compacte (ou pictogramme si absente), identité, valeur, indicateurs et graphique adaptatif. Les quatre onglets Vue globale / Financement / Loyers / Récap affichent le volet « Comprendre les calculs et les données » fermé dans le viewport. L’ouverture du volet autorise le défilement ; sa fermeture restaure l’écran initial. Les crédits liés et leurs boutons Modifier restent dans les explications de Financement ; les notes et métadonnées complètes restent accessibles dans les explications. Photo, sauvegardes et formules conservées.
+
+« Ma richesse » devient « Mon patrimoine net » sur le dashboard et son analyse. « Détail » devient « Récap » dans les analyses et la fiche bien. Tests des quatre onglets sur cinq viewports, courbes, périodes, points, cas sans dates, actions des prêts et comportement natif Android.

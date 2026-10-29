@@ -40,7 +40,7 @@ const fixture=require('./fixture.cjs');
  for(const [kind,name] of [['wealth','02-richesse'],['income','03-revenus'],['yield','04-performance'],['diagnostic','05-diagnostic']]){
  await page.locator('#dashboardGraph article').nth(['wealth','income','yield','diagnostic'].indexOf(kind)).click();
  assert(await page.locator('#ioAnalysisOverlay').isVisible());assert(await page.locator('#ioAnalysisBody svg.io-analysis-plot').isVisible());
- assert((await page.locator('#ioAnalysisTitle').textContent()).includes(({wealth:'Ma richesse',income:'Mes revenus',yield:'Ma performance',diagnostic:'Mon diagnostic'})[kind]));
+ assert((await page.locator('#ioAnalysisTitle').textContent()).includes(({wealth:'Mon patrimoine net',income:'Mes revenus',yield:'Ma performance',diagnostic:'Mon diagnostic'})[kind]));
  await shot(name);
  await page.locator('#ioAnalysisBody .io-premium-tabs button').nth(1).click();assert.equal(await page.locator('#ioAnalysisBody .io-premium-tabs button').nth(1).getAttribute('aria-pressed'),'true');
  const countBefore=await page.locator('#ioAnalysisBody svg circle').count();await page.locator('#ioAnalysisBody .io-analysis-legend button').first().click();assert((await page.locator('#ioAnalysisBody svg circle').count())<countBefore,'legend toggles data');
@@ -51,7 +51,7 @@ const fixture=require('./fixture.cjs');
  await page.evaluate(()=>{showPage('immobilier');immoptimaOpenPropertyDetail('qa-tours')});assert(await page.locator('#ioPropertyDetailOverlay').isVisible());await shot('06-bien');
  await page.locator('#ioPropertyDetailOverlay .io-premium-tabs').first().getByRole('button',{name:'Financement',exact:true}).click();assert((await page.locator('#ioPropertyDetailOverlay').textContent()).includes('450'));
  await page.locator('#ioPropertyDetailOverlay .io-premium-tabs').first().getByRole('button',{name:'Loyers',exact:true}).click();assert((await page.locator('#ioPropertyDetailOverlay').textContent()).includes('350'));
- await page.locator('#ioPropertyDetailOverlay .io-premium-tabs').first().getByRole('button',{name:'Détail',exact:true}).click();assert(await page.getByRole('button',{name:'Modifier le bien',exact:true}).isVisible());
+ await page.locator('#ioPropertyDetailOverlay .io-premium-tabs').first().getByRole('button',{name:'Récap',exact:true}).click();assert(await page.getByRole('button',{name:'Modifier le bien',exact:true}).isVisible());
  await page.evaluate(()=>immoptimaClosePropertyDetail());
  // Upload a real image through the file chooser, then retain it through edit/reload/export/import.
  await page.evaluate(()=>immoptimaOpenPropertyDetail('qa-tours'));const chooserPromise=page.waitForEvent('filechooser');await page.locator('.io-property-photo').click();const chooser=await chooserPromise;await chooser.setFiles({name:'photo.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=','base64')});await page.waitForFunction(()=>db.properties[0].photo?.startsWith('data:image/jpeg'));assert(await page.locator('.io-property-photo img').isVisible());await page.evaluate(()=>immoptimaClosePropertyDetail());
@@ -110,6 +110,33 @@ const fixture=require('./fixture.cjs');
  }
  await page.setViewportSize({width:393,height:740});
  for(const kind of ['wealth','income','yield','diagnostic']){await page.evaluate(kind=>immoptimaOpenAnalysis(kind),kind);await page.waitForTimeout(120);await shot('09-'+kind+'-une-page');await page.evaluate(()=>immoptimaCloseAnalysis());}
+ // Property mockup A: all four tabs fit, with only calculations help expanding the page.
+ await page.evaluate(data=>{db=data;renderAll();showPage('immobilier')},fixture());
+ for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
+  await page.setViewportSize({width,height});await page.evaluate(()=>immoptimaOpenPropertyDetail('qa-tours'));
+  for(let tab=0;tab<4;tab++){
+   await page.evaluate(tab=>ioPropertyTab(tab),tab);await page.waitForTimeout(120);
+   const geometry=await page.evaluate(()=>{const o=document.getElementById('ioPropertyDetailOverlay'),r=o.querySelector('.io-property-help summary').getBoundingClientRect(),photo=o.querySelector('.io-property-photo').getBoundingClientRect(),plot=o.querySelector('svg')?.getBoundingClientRect();return {width:o.scrollWidth,height:o.clientHeight,scroll:o.scrollHeight,helpBottom:r.bottom,helpTop:r.top,photoHeight:photo.height,chartHeight:o.querySelector('.io-property-chart svg')?.getBoundingClientRect().height}});
+   assert(geometry.scroll<=geometry.height+1,'property tab scroll '+tab+' '+width+'x'+height+': '+JSON.stringify(geometry));
+   assert(geometry.helpTop>=0&&geometry.helpBottom<=height,'property calculations help visible');assert(geometry.width<=width,'property width');
+   assert(geometry.photoHeight<=90,'photo stays discreet');if(tab!==3)assert(geometry.chartHeight>=70,'property chart remains readable '+JSON.stringify(geometry));
+   await page.locator('#ioPropertyDetailOverlay .io-property-help summary').click();await page.waitForTimeout(100);
+   assert(await page.evaluate(()=>{const o=document.getElementById('ioPropertyDetailOverlay');return o.scrollHeight>o.clientHeight+20}),'property help expands tab '+tab);
+   await page.locator('#ioPropertyDetailOverlay .io-property-help summary').click();await page.waitForTimeout(100);
+   assert(await page.evaluate(()=>{const o=document.getElementById('ioPropertyDetailOverlay');return o.scrollTop===0&&o.scrollHeight<=o.clientHeight+1}),'property help closes to one screen');
+  }
+  await page.evaluate(()=>immoptimaClosePropertyDetail());
+ }
+ await page.setViewportSize({width:393,height:851});await page.evaluate(()=>immoptimaOpenPropertyDetail('qa-tours'));await page.waitForTimeout(150);await shot('11-bien-maquette-a');
+ await page.locator('#ioPropertyDetailOverlay .io-property-chart g[role=button]').first().click();assert(!(await page.locator('#ioPropertyDetailOverlay .io-chart-tip').textContent()).includes('Touchez'));
+ for(let i=0;i<6;i++){await page.evaluate(i=>ioPropertyPeriodChoice(i),i);await page.waitForTimeout(80);assert.equal(await page.locator('#ioPropertyDetailOverlay .io-premium-periods button[aria-pressed=true]').count(),1)}
+ for(let i=0;i<5;i++){await page.evaluate(i=>ioPropertyCurveTab(i),i);await page.waitForTimeout(80);assert.equal(await page.locator('#ioPropertyDetailOverlay .io-premium-tabs').nth(1).locator('button[aria-pressed=true]').count(),1)}
+ await page.evaluate(()=>{ioPropertyTab(1)});await page.locator('#ioPropertyDetailOverlay .io-property-help summary').click();await page.locator('#ioPropertyDetailOverlay .io-comparison').getByRole('button',{name:'Modifier',exact:true}).click();assert(await page.locator('#loanFormWrap form').isVisible());await page.locator('#loanFormWrap').getByRole('button',{name:'Fermer',exact:true}).click();
+ // Empty/undated/negative cases keep the help visible and do not invent curves.
+ await page.evaluate(()=>{db.properties=[{id:'qa-empty-property',name:'Bien sans dates',holder:'Détenteur',retainedValue:90000,rentHC:0,ownerCharges:120}];db.loans=[];db.propertySnapshots=[];immoptimaOpenPropertyDetail('qa-empty-property')});await page.waitForTimeout(120);assert(await page.locator('#ioPropertyDetailOverlay .io-analysis-empty').isVisible());assert(await page.evaluate(()=>{const o=document.getElementById('ioPropertyDetailOverlay');return o.scrollHeight<=o.clientHeight+1}));await page.evaluate(()=>immoptimaClosePropertyDetail());
+ await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},fixture());
+ assert((await page.locator('#dashboardGraph .io-tile-title').first().textContent()).includes('MON PATRIMOINE NET'));
+ await page.evaluate(()=>immoptimaOpenAnalysis('wealth'));assert((await page.locator('#ioAnalysisTitle').textContent()).includes('Mon patrimoine net'));assert(await page.getByRole('button',{name:'Récap',exact:true}).isVisible());await page.evaluate(()=>immoptimaCloseAnalysis());
  assert.deepEqual(errors,[],'browser runtime errors');
  fs.writeFileSync('qa-out/ui-results.json',JSON.stringify({passed:true,viewportTests:[320,360,393,430,800],screenshots:'Synthetic QA portfolio; real Chromium rendering',checks:['empty launch','all four analyses','tabs','periods','legends','property tabs','property edit','photo upload and persistence','bank CSV','bank print layout','reload persistence','backup export','backup import','invalid import rollback','owner filter','point tooltip','unique IDs','responsive widths','four analyses fit with closed help','help expands and closing restores viewport'],runtimeErrors:errors},null,2));
  console.log('PASS mobile browser UI, interactions, storage, backup round-trip and responsive layouts');await browser.close();server.close();
