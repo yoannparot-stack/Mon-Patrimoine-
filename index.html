@@ -353,6 +353,8 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
 
 
 /* Fiche individuelle A : petite photo, chiffres et graphique dans le viewport. */
+@keyframes ioPropertyFade{from{opacity:.5}to{opacity:1}}
+#ioPropertyDetailOverlay.io-property-layout .io-analysis-panel{animation:ioPropertyFade .16s ease-out}
 #ioPropertyDetailOverlay.io-property-layout .io-property-body{display:flex;flex-direction:column;gap:6px;min-height:0}
 #ioPropertyDetailOverlay.io-property-layout .io-property-body>:not(.io-property-chart):not(.io-property-recap-space){flex-shrink:0;margin:0}
 #ioPropertyDetailOverlay.io-property-layout .io-property-hero{grid-template-columns:94px minmax(0,1fr);gap:12px;align-items:center;padding:3px 0}
