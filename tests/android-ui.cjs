@@ -35,7 +35,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  };
  assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);await capture('01-dashboard','immoptima');
  // Touch the actual dashboard tile using screen coordinates derived from the DOM.
- const tap=async selector=>{const r=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth}})()`);
+ const tap=async selector=>{await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))');const r=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth}})()`);
   const views=uiNodes().filter(n=>/class="android.webkit.WebView"/.test(n)).map(bounds).sort((a,b)=>(b[2]-b[0])*(b[3]-b[1])-(a[2]-a[0])*(a[3]-a[1]));assert(views.length,'native WebView bounds');const [left,top,right,bottom]=views[0],scale=(right-left)/r.w;
   adb('shell','input','tap',String(Math.round(left+r.x*scale)),String(Math.round(top+r.y*scale)));
  };
@@ -52,6 +52,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  await capture('10-banque-c-replie','immoptima');
  await tap('#bankMobile .io-bank-property summary');await waitFor('document.querySelector("#bankMobile .io-bank-property").open');await capture('11-banque-c-ouvert','immoptima');
  adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#bankMobile .io-bank-property").open');assert.equal(await evaluate('document.querySelector(".page.active").id'),'banque');
+ await waitFor('document.body.classList.contains("io-bank-fit")&&document.querySelector(".io-bank-help summary").getBoundingClientRect().bottom<=document.getElementById("nav").getBoundingClientRect().top');
  await tap('#bankMobile .io-bank-help summary');await waitFor('document.querySelector(".io-bank-help").open');adb('shell','input','keyevent','4');await waitFor('!document.querySelector(".io-bank-help").open');
  await evaluate("showPage('dashboard');true");
  await tap('#dashboardGraph article');await waitFor('!document.getElementById("ioAnalysisOverlay").hidden');
