@@ -408,6 +408,43 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
  #ioPropertyDetailOverlay.io-property-compact .io-premium-title{font-size:13px;line-height:17px}#ioPropertyDetailOverlay.io-property-compact .io-property-help{padding:7px 8px;font-size:10px}
 }
 
+
+/* Banque C : synthèse verticale, fiches dépliables, tableau réservé à l’impression. */
+#banque .bank-legacy-actions,#banque .bank-print-document{display:none}
+#bankMobile{display:flex;flex-direction:column;gap:9px;color:#101641;min-width:0}
+.io-bank-heading h2{font-size:23px;line-height:1.2;letter-spacing:-.5px;margin:2px 0}
+.io-bank-export{display:grid;grid-template-columns:1fr 1.5fr;gap:9px}.io-bank-export button{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 7px;font-size:13px;min-height:40px;border-radius:10px}.io-bank-export .io-icon{width:18px;height:18px}
+.io-bank-overview{display:grid;grid-template-columns:.8fr 1.2fr 1.2fr;gap:7px}.io-bank-stat{background:#edf5ff;border-radius:10px;padding:10px 8px;min-width:0}.io-bank-stat.wealth{background:#ebfaf3}.io-bank-stat.credit{background:#fff3e7}.io-bank-stat>.io-icon{width:21px;height:21px;color:#0863cf;display:block;margin-bottom:5px}.io-bank-stat.wealth>.io-icon{color:#099550}.io-bank-stat.credit>.io-icon{color:#e66b1c}.io-bank-stat span{display:block;font-size:10px;line-height:1.3;color:#576782}.io-bank-stat b{display:block;font-size:18px;line-height:1.2;margin-top:4px;overflow-wrap:anywhere}
+.io-bank-annual-total,.io-bank-total{display:flex;gap:10px;align-items:center;justify-content:space-between;background:#f1edff;border-radius:10px;padding:10px 12px}.io-bank-annual-total>span{font-size:12px;display:flex;gap:8px;align-items:center}.io-bank-annual-total .io-icon{width:21px;height:21px;color:#8050c4}.io-bank-annual-total>b{font-size:20px;overflow-wrap:anywhere;text-align:right}
+.io-bank-list-title{display:flex;gap:9px;align-items:center;justify-content:space-between}.io-bank-list-title h3{font-size:15px;margin:0}.io-bank-list-title>span{font-size:12px;color:#6a7890}
+.io-bank-list{display:flex;flex-direction:column;gap:8px;min-width:0;scrollbar-width:thin;scrollbar-color:#d2dce9 transparent;touch-action:pan-y}.io-bank-property{border:1px solid #dfe6f0;border-radius:12px;background:#fff;flex-shrink:0;min-width:0}
+.io-bank-property>summary{display:flex;align-items:center;gap:8px;list-style:none;cursor:pointer;padding:11px 10px;min-height:68px}.io-bank-property>summary::-webkit-details-marker{display:none}.io-bank-building{display:grid;place-items:center;background:#edf5ff;border-radius:8px;width:32px;height:38px;flex-shrink:0;color:#0a65d4}.io-bank-building .io-icon{width:23px;height:23px}.io-bank-property-name{min-width:0;flex:1;display:block}.io-bank-property-name strong{font-size:13px;line-height:1.25;display:block;overflow-wrap:anywhere}.io-bank-property-name>span{font-size:10px;color:#63718b;display:block;margin-top:4px;overflow-wrap:anywhere}.io-bank-property-name small{display:block;font-size:10px;color:#375779;line-height:1.3;margin-top:4px}.io-bank-chevron{flex-shrink:0;font-size:20px;color:#1165cb}.io-bank-property[open] .io-bank-chevron{transform:rotate(180deg)}
+.io-bank-property-body{padding:0 10px 10px}.io-bank-address{font-size:11px;color:#6a7890;line-height:1.4;display:flex;gap:5px;align-items:center;overflow-wrap:anywhere;margin:0 0 8px}.io-bank-address .io-icon{width:14px;height:14px}
+.io-bank-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:6px}.io-bank-breakdown .io-bank-stat{padding:8px 9px}.io-bank-breakdown .io-bank-stat .io-icon{display:none}.io-bank-breakdown .io-bank-stat b{font-size:17px}
+.io-bank-annual-pair{display:grid;grid-template-columns:1fr 1fr;background:#f2edff;border-radius:8px;margin:7px 0;padding:8px 0}.io-bank-annual-pair>div{padding:0 9px;min-width:0}.io-bank-annual-pair>div+div{border-left:1px solid #dcd1f1}.io-bank-annual-pair span{font-size:10px;color:#5b6281;display:block}.io-bank-annual-pair b{font-size:16px;display:block;margin-top:4px;overflow-wrap:anywhere}.io-bank-edit{width:100%;min-height:35px;font-size:12px;padding:7px}
+.io-bank-total{font-size:12px;padding:8px 12px}.io-bank-total>div{text-align:right;min-width:0}.io-bank-total small{display:block;font-size:9px;color:#606b85}.io-bank-total b{display:block;font-size:16px;overflow-wrap:anywhere;margin-top:2px}
+.io-bank-help{background:#f8faff;border:1px solid #e8edf5;border-radius:10px;font-size:12px;color:#596781;line-height:1.5}.io-bank-help>summary{padding:10px;cursor:pointer;min-height:36px;font-weight:550}.io-bank-help p{margin:0;padding:0 12px 12px;overflow-wrap:anywhere}
+.io-bank-editor{margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0}.io-bank-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.io-bank-edit-grid label{display:flex;flex-direction:column;font-size:11px;gap:5px;min-width:0;color:#4d607a}.io-bank-edit-grid input{min-width:0;padding:9px;font-size:13px;width:100%}.io-bank-form-hint{font-size:11px;line-height:1.5;color:#5c6e87}.io-bank-editor .actions>button{min-height:38px;font-size:13px}
+@media(max-width:749px){
+ body.io-bank-fit main{padding-bottom:calc(var(--io-bank-nav,64px) + 8px)}
+ body.io-bank-fit #bankMobile{height:var(--io-bank-height);gap:8px;min-height:0}
+ body.io-bank-fit #bankMobile>:not(.io-bank-list){flex-shrink:0}
+ body.io-bank-fit .io-bank-list{flex:1;min-height:70px;overflow-y:auto;overflow-x:hidden;padding-bottom:2px;overscroll-behavior:contain}
+ body.io-bank-tight #bankMobile{gap:5px}
+ body.io-bank-tight .io-bank-heading h2{font-size:20px;margin:0}
+ body.io-bank-tight .io-bank-export button{min-height:32px;padding:6px;font-size:11px}
+ body.io-bank-tight .io-bank-overview .io-bank-stat{padding:7px}.io-bank-tight .io-bank-overview .io-bank-stat>.io-icon{display:none}
+ body.io-bank-tight .io-bank-stat b{font-size:16px;margin-top:3px}
+ body.io-bank-tight .io-bank-annual-total{padding:7px 9px}.io-bank-tight .io-bank-annual-total>b{font-size:17px}.io-bank-tight .io-bank-annual-total>span{font-size:11px}
+ body.io-bank-tight .io-bank-list-title h3{font-size:13px}
+ body.io-bank-tight .io-bank-property>summary{padding:9px;min-height:64px}
+ body.io-bank-tight .io-bank-total{padding:6px 9px;font-size:11px}.io-bank-tight .io-bank-total b{font-size:14px}
+ body.io-bank-tight .io-bank-help>summary{padding:7px 9px;min-height:30px;font-size:11px}
+}
+@media print{
+ body.io-bank-fit main{padding:0}#bankMobile,#banque .bank-legacy-actions{display:none!important}#banque .bank-print-document{display:block!important}.bank-print-document .bank-print-title{display:block}.bank-table-card{overflow:visible}.bank-table-card .tablewrap{overflow:visible}.bank-table-card tr{break-inside:avoid}thead{display:table-header-group}
+}
+
 </style>
 </head>
 <body>
@@ -567,12 +604,13 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
 </section>
 
 <section id="banque" class="page">
-  <div class="section-title no-print"><h2>🏦 Synthèse bancaire</h2><div class="actions"><button class="secondary" onclick="exportBankCSV()">⬇️ Export CSV</button><button class="primary" onclick="printBankSummary()">🖨️ Imprimer / PDF</button></div></div>
-  <div class="bank-document">
+  <div id="bankMobile" class="no-print"></div>
+  <div class="section-title bank-legacy-actions no-print"><h2>🏦 Synthèse bancaire</h2><div class="actions"><button class="secondary" onclick="exportBankCSV()">⬇️ Export CSV</button><button class="primary" onclick="printBankSummary()">🖨️ Imprimer / PDF</button></div></div>
+  <div class="bank-document bank-print-document">
     <h2 class="bank-print-title">Synthèse du patrimoine locatif</h2>
     <p class="bank-subtitle">Récapitulatif des biens, loyers et crédits — document destiné à la présentation bancaire</p>
     <div id="bankKpis" class="bank-kpis"></div>
-    <div class="card bank-table-card"><div class="tablewrap"><table id="bankTable"><thead><tr><th>N°</th><th>Bien</th><th>Détenteur</th><th>Structure</th><th>Loyer HC<br>/ mois</th><th>Charges récup.<br>/ mois</th><th>Loyer CC<br>/ mois</th><th>Crédit<br>/ mois</th><th>Loyer annuel<br>HC</th><th>Loyer annuel<br>CC</th></tr></thead><tbody id="bankTableBody"></tbody></table></div><div class="bank-note">Document de synthèse basé sur les informations saisies dans Mon Patrimoine. « Loyer CC » = loyer HC + charges récupérables lorsque les deux données sont renseignées.</div></div>
+    <div class="card bank-table-card"><div class="tablewrap"><table id="bankTable"><thead><tr><th>N°</th><th>Bien</th><th>Détenteur</th><th>Structure</th><th>Loyer HC<br>/ mois</th><th>Charges récup.<br>/ mois</th><th>Loyer CC<br>/ mois</th><th>Crédit<br>/ mois</th><th>Loyer annuel<br>HC</th><th>Loyer annuel<br>CC</th></tr></thead><tbody id="bankTableBody"></tbody></table></div><div class="bank-note">Document de synthèse basé sur les informations saisies dans ImmOptima. « Loyer CC » = loyer HC + charges récupérables lorsque les deux données sont renseignées.</div></div>
   </div>
 </section>
 
@@ -630,7 +668,7 @@ const ioMainPages=[['dashboard','Dashboard','home'],['immobilier','Biens','build
 document.getElementById('nav').innerHTML=ioMainPages.map(([page,label,icon])=>`<button type="button" data-page="${page}" onclick="${page==='more'?'immoptimaMore()':"showPage('"+page+"')"}">${ioIcon(icon)}<span>${label}</span></button>`).join('');
 function dashboardGo(pageId){showPage(pageId);const page=document.getElementById(pageId);if(page){window.setTimeout(()=>page.scrollIntoView({behavior:'smooth',block:'start'}),30);}}
 function dashboardKey(event,pageId){if(event.key==='Enter'||event.key===' '){event.preventDefault();dashboardGo(pageId);}}
-function showPage(p){immoptimaScheduleDashboardFit();immoptimaCloseMore();immoptimaCloseAnalysis();immoptimaClosePropertyDetail();window.scrollTo(0,0);document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));if(p==='projection')renderProjection();if(p==='banque')renderBankSummary();if(p==='direction')renderDirection();if(p==='valorisation')renderMarketPage();if(p==='optimisation')renderOptimization();}
+function showPage(p){immoptimaScheduleBankFit();immoptimaScheduleDashboardFit();immoptimaCloseMore();immoptimaCloseAnalysis();immoptimaClosePropertyDetail();window.scrollTo(0,0);document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));if(p==='projection')renderProjection();if(p==='banque')renderBankSummary();if(p==='direction')renderDirection();if(p==='valorisation')renderMarketPage();if(p==='optimisation')renderOptimization();}
 
 
 function liquidAssets(){
@@ -920,7 +958,7 @@ function immoptimaRenderAnalysis(){
 }
 function immoptimaMore(){let el=document.getElementById('ioMore');if(!el){el=document.createElement('div');el.id='ioMore';el.className='backup-choices';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Toutes les fonctionnalités');document.body.appendChild(el)}el.innerHTML='<div class="backup-choices-panel"><div class="section-title"><h2>Mon espace ImmOptima</h2><button class="secondary" onclick="immoptimaCloseMore()" aria-label="Fermer le menu">✕</button></div><div class="io-more-grid">'+pages.map(([id,label])=>'<button class="secondary" type="button" onclick="showPage(\''+id+'\')">'+label+'</button>').join('')+'</div><label for="ioMoreView">Affichage du tableau de bord</label><select id="ioMoreView" onchange="document.getElementById(\'dashboardViewMode\').value=this.value;immoptimaDashboardModeChange()"><option value="graph">Vue graphique</option><option value="compact">Vue chiffrée</option><option value="detailed">Détails complets</option></select><hr><div class="actions"><button class="primary" onclick="immoptimaCloseMore();openBackupOptions()">Sauvegarder</button><button class="secondary" onclick="document.getElementById(\'importFile\').click()">Importer</button></div></div>';el.hidden=false;el.querySelector('button').focus()}
 function immoptimaCloseMore(){const el=document.getElementById('ioMore');if(el)el.hidden=true}
-function immoptimaHandleBack(){const propertyMenu=document.querySelector('#immobilier.active .io-property-menu[open]');if(propertyMenu){propertyMenu.open=false;return true}for(const id of ['backupChoices','ioMore','ioPropertyDetailOverlay','ioAnalysisOverlay']){const el=document.getElementById(id);if(el&&!el.hidden){if(id==='ioAnalysisOverlay')immoptimaCloseAnalysis();else if(id==='ioPropertyDetailOverlay')immoptimaClosePropertyDetail();else el.hidden=true;return true}}const p=document.querySelector('.page.active');if(p&&p.id!=='dashboard'){showPage('dashboard');return true}return false}
+function immoptimaHandleBack(){if(document.getElementById('banque')?.classList.contains('active')){if(ioBankEditorId){ioBankCancelEdit();return true}const bankOpen=document.querySelector('#bankMobile details[open]');if(bankOpen){bankOpen.open=false;return true}}const propertyMenu=document.querySelector('#immobilier.active .io-property-menu[open]');if(propertyMenu){propertyMenu.open=false;return true}for(const id of ['backupChoices','ioMore','ioPropertyDetailOverlay','ioAnalysisOverlay']){const el=document.getElementById(id);if(el&&!el.hidden){if(id==='ioAnalysisOverlay')immoptimaCloseAnalysis();else if(id==='ioPropertyDetailOverlay')immoptimaClosePropertyDetail();else el.hidden=true;return true}}const p=document.querySelector('.page.active');if(p&&p.id!=='dashboard'){showPage('dashboard');return true}return false}
 // Each analysis starts with the closed explanation visible in the first viewport.
 // The graph uses the remaining height; its coordinates are redrawn to keep text readable.
 let ioAnalysisHelpOpen=false,ioAnalysisChartState=null;
@@ -961,6 +999,7 @@ function immoptimaFitDashboard(){
 function immoptimaScheduleDashboardFit(){requestAnimationFrame(immoptimaFitDashboard)}
 function immoptimaInitializeUX(){
  // The detail dialog is outside sections so it remains visible when opened from any destination.
+ window.addEventListener('resize',immoptimaScheduleBankFit);window.visualViewport?.addEventListener('resize',immoptimaScheduleBankFit);
  window.addEventListener('resize',immoptimaSchedulePropertyFit);window.visualViewport?.addEventListener('resize',immoptimaSchedulePropertyFit);
  window.addEventListener('resize',immoptimaScheduleAnalysisFit);window.visualViewport?.addEventListener('resize',immoptimaScheduleAnalysisFit);
  window.addEventListener('resize',immoptimaScheduleDashboardFit);window.visualViewport?.addEventListener('resize',immoptimaScheduleDashboardFit);
@@ -1270,7 +1309,7 @@ function bankNumberInput(propertyId,field,value){return `<input type="number" mi
 function bankEditableNumber(value,onchange){const shown=bankPrintNumber(value);return `<input type="number" min="0" step="0.01" value="${Number(shown.replace(/\s/g,'').replace(',','.'))||0}" onchange="${onchange}" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${shown}</span>`}
 function renderBankSummary(){
  const body=document.getElementById('bankTableBody'),kpis=document.getElementById('bankKpis');if(!body)return;
- if(!db.properties.length){body.innerHTML='<tr><td colspan="10" class="muted">Aucun bien enregistré.</td></tr>';if(kpis)kpis.innerHTML='';return}
+ if(!db.properties.length){body.innerHTML='<tr><td colspan="10" class="muted">Aucun bien enregistré.</td></tr>';if(kpis)kpis.innerHTML='';renderBankMobile([], {hc:0,ch:0,cc:0,credit:0,annualHC:0,annualCC:0});return}
  const rows=db.properties.map((p,i)=>{const hc=bankValueHC(p),ch=bankCharges(p),cc=bankCC(p),credit=propertyLoanPayment(p);return{p,i,hc,ch,cc,credit,annualHC:hc===null?null:hc*12,annualCC:cc===null?null:cc*12}});
  const totalHC=rows.reduce((s,r)=>s+(r.hc||0),0),totalCh=rows.reduce((s,r)=>s+(r.ch||0),0),totalCC=rows.reduce((s,r)=>s+(r.cc||0),0),totalCredit=rows.reduce((s,r)=>s+r.credit,0),annualHC=totalHC*12,annualCC=totalCC*12;
  body.innerHTML=rows.map(r=>{
@@ -1287,7 +1326,54 @@ function renderBankSummary(){
    <td>${bankEditableNumber(r.annualCC,"updateBankAnnualCC('"+p.id+"',this.value)")}</td></tr>`
  }).join('')+`<tr class="bank-total"><td colspan="4">TOTAL</td><td>${euro(totalHC)}</td><td>${euro(totalCh)}</td><td>${euro(totalCC)}</td><td>${euro(totalCredit)}</td><td>${euro(annualHC)}</td><td>${euro(annualCC)}</td></tr>`;
  if(kpis)kpis.innerHTML=`<div class="bank-kpi"><div class="label">Nombre de biens</div><div class="metric">${db.properties.length}</div></div><div class="bank-kpi"><div class="label">Loyers mensuels HC</div><div class="metric">${euro(totalHC)}</div></div><div class="bank-kpi"><div class="label">Charges récupérables / mois</div><div class="metric">${euro(totalCh)}</div></div><div class="bank-kpi"><div class="label">Loyers mensuels CC</div><div class="metric">${euro(totalCC)}</div></div><div class="bank-kpi"><div class="label">Crédits mensuels</div><div class="metric">${euro(totalCredit)}</div></div><div class="bank-kpi"><div class="label">Loyer annuel CC</div><div class="metric">${euro(annualCC)}</div></div>`;
+ renderBankMobile(rows,{hc:totalHC,ch:totalCh,cc:totalCC,credit:totalCredit,annualHC,annualCC});
 }
+let ioBankOpenId=null,ioBankEditorId=null,ioBankHelpOpen=false;
+function immoptimaScheduleBankFit(){requestAnimationFrame(immoptimaFitBank)}
+function immoptimaFitBank(){
+ const page=document.getElementById('banque'),layout=document.getElementById('bankMobile');if(!page||!layout)return;
+ const active=page.classList.contains('active'),mobile=innerWidth<750,opened=!!layout.querySelector('details[open]');
+ document.body.classList.toggle('io-bank-fit',active&&mobile&&!opened);document.body.classList.remove('io-bank-tight');
+ if(!active||!mobile||opened)return;
+ window.scrollTo(0,0);const nav=document.getElementById('nav'),viewport=window.visualViewport?.height||innerHeight,bottom=Math.min(viewport,nav.getBoundingClientRect().top),available=Math.floor(bottom-layout.getBoundingClientRect().top-8);
+ document.body.style.setProperty('--io-bank-height',Math.max(220,available)+'px');document.body.style.setProperty('--io-bank-nav',nav.getBoundingClientRect().height+'px');document.body.classList.toggle('io-bank-tight',available<550);
+}
+function ioBankInput(label,name,value,type='number'){
+ return '<label>'+esc(label)+'<input name="'+name+'" type="'+type+'" '+(type==='number'?'min="0" step="any" inputmode="decimal"':'')+' value="'+esc(value??'')+'"></label>';
+}
+function ioBankEditForm(row){const p=row.p;return '<form class="io-bank-editor" data-property-id="'+esc(p.id)+'" onsubmit="ioBankSaveEdit(event)"><div class="io-bank-edit-grid">'+ioBankInput('Nom du bien','name',p.name,'text')+ioBankInput('Adresse','address',p.address,'text')+ioBankInput('Détenteur','holder',p.holder,'text')+ioBankInput('Structure','structure',p.structure||'Nom propre','text')+ioBankInput('Loyer HC / mois (€)','rentHC',row.hc||0)+ioBankInput('Charges récupérables / mois (€)','recoverable',row.ch||0)+ioBankInput('Loyer CC / mois (€)','cc',row.cc||0)+ioBankInput('Crédit / mois (€)','credit',row.credit)+ioBankInput('Loyer annuel HC (€)','annualHC',row.annualHC||0)+ioBankInput('Loyer annuel CC (€)','annualCC',row.annualCC||0)+'</div><p class="io-bank-form-hint">Les loyers mensuels et annuels se recalculent dans les deux sens. Le crédit inclut l’assurance.</p><div class="actions"><button class="primary" type="submit">Enregistrer</button><button class="secondary" type="button" onclick="ioBankCancelEdit()">Annuler</button></div></form>'}
+function ioBankSyncEditor(form,field){
+ const els=form.elements,n=name=>Math.max(0,Number(els.namedItem(name).value)||0);let hc=n('rentHC'),charges=n('recoverable');
+ if(field==='annualHC')hc=n('annualHC')/12;
+ if(field==='cc')charges=Math.max(0,n('cc')-hc);
+ if(field==='annualCC')charges=Math.max(0,n('annualCC')/12-hc);
+ els.namedItem('rentHC').value=hc;els.namedItem('recoverable').value=charges;els.namedItem('cc').value=hc+charges;els.namedItem('annualHC').value=hc*12;els.namedItem('annualCC').value=(hc+charges)*12;
+ const hint=form.querySelector('.io-bank-form-hint');hint.textContent=(['cc','annualCC'].includes(field)&&charges===0?'Le loyer CC ne peut pas être inférieur au loyer HC. ':'')+'Les loyers mensuels et annuels se recalculent dans les deux sens. Le crédit inclut l’assurance.';
+}
+function ioBankSaveEdit(event){
+ event.preventDefault();const form=event.target,p=db.properties.find(p=>p.id===form.dataset.propertyId);if(!p)return;
+ ioBankSyncEditor(form,form.dataset.lastField||'rentHC');const f=new FormData(form),credit=Math.max(0,Number(f.get('credit'))||0);
+ ['name','address','holder','structure'].forEach(key=>p[key]=String(f.get(key)||''));p.rentHC=Math.max(0,Number(f.get('rentHC'))||0);p.recoverable=Math.max(0,Number(f.get('recoverable'))||0);
+ ioBankEditorId=null;ioBankOpenId=p.id;if(Math.abs(credit-propertyLoanPayment(p))>1e-8)updateBankCredit(p.id,credit);else save();
+ const card=[...document.querySelectorAll('#bankMobile [data-bank-property]')].find(card=>card.dataset.bankProperty===p.id);card?.querySelector('[data-bank-edit]')?.focus({preventScroll:true});
+}
+function ioBankCancelEdit(){ioBankEditorId=null;renderBankSummary()}
+function renderBankMobile(rows,total){
+ const layout=document.getElementById('bankMobile');if(!layout)return;
+ if(ioBankOpenId&&!rows.some(r=>r.p.id===ioBankOpenId)){ioBankOpenId=null;ioBankEditorId=null;}
+ const metric=(icon,label,value,cls='')=>'<div class="io-bank-stat '+cls+'">'+ioIcon(icon)+'<span>'+label+'</span><b>'+value+'</b></div>';
+ const propertyCards=rows.map(row=>{const p=row.p,holder=p.holder||((p.structure==='SARL de famille')?'SARL':'À définir');return '<details class="io-bank-property" data-bank-property="'+esc(p.id)+'" '+(ioBankOpenId===p.id?'open':'')+'><summary><span class="io-bank-building">'+ioIcon('building')+'</span><span class="io-bank-property-name"><strong>'+esc(p.name||'Bien immobilier')+'</strong><span>'+esc(holder)+' · '+esc(p.structure||'Nom propre')+'</span><small>CC '+bankMoney(row.cc)+' / mois · crédit '+euro(row.credit)+'</small></span><span class="io-bank-chevron" aria-hidden="true">⌄</span></summary><div class="io-bank-property-body"><p class="io-bank-address">'+ioIcon('pin')+esc(p.address||'Adresse à renseigner')+'</p><div class="io-bank-breakdown">'+metric('home','Loyer HC / mois',bankMoney(row.hc),'income')+metric('coins','Charges récupérables / mois',euro(row.ch||0),'wealth')+metric('home','Loyer CC / mois',bankMoney(row.cc),'income')+metric('wallet','Crédit / mois',euro(row.credit),'credit')+'</div><div class="io-bank-annual-pair"><div><span>Loyer annuel HC</span><b>'+bankMoney(row.annualHC)+'</b></div><div><span>Loyer annuel CC</span><b>'+bankMoney(row.annualCC)+'</b></div></div><button class="secondary io-bank-edit" type="button" data-bank-edit="'+esc(p.id)+'">Modifier les données</button>'+(ioBankEditorId===p.id?ioBankEditForm(row):'')+'</div></details>'}).join('');
+ layout.innerHTML='<div class="io-bank-heading"><h2>Synthèse bancaire</h2></div><div class="io-bank-export"><button class="secondary" type="button" onclick="exportBankCSV()">'+ioIcon('wallet')+' Export CSV</button><button class="primary" type="button" onclick="printBankSummary()">'+ioIcon('bank')+' Imprimer / PDF</button></div><div class="io-bank-overview">'+metric('building','Biens',String(rows.length),'wealth')+metric('home','Loyers CC / mois',euro(total.cc),'income')+metric('wallet','Crédits / mois',euro(total.credit),'credit')+'</div><div class="io-bank-annual-total"><span>'+ioIcon('calendar')+' Loyers annuels CC</span><b>'+euro(total.annualCC)+'</b></div><div class="io-bank-list-title"><h3>Biens inclus</h3><span>'+rows.length+' '+(rows.length>1?'biens':'bien')+'</span></div><div class="io-bank-list" tabindex="0" aria-label="Liste des biens, défilement vertical">'+(propertyCards||'<div class="empty">Aucun bien enregistré. Ajoutez un bien dans l’onglet Biens pour préparer votre synthèse.</div>')+'</div><div class="io-bank-total"><span>Total · '+rows.length+' '+(rows.length>1?'biens':'bien')+'</span><div><small>Loyers annuels CC</small><b>'+euro(total.annualCC)+'</b></div></div><details class="io-bank-help" '+(ioBankHelpOpen?'open':'')+'><summary>Comprendre les montants</summary><p>HC = hors charges. CC = loyer HC + provisions pour charges récupérables. Ces provisions ne sont pas un bénéfice. Les crédits mensuels incluent l’assurance.</p><div class="io-bank-help-totals"><p>Loyers HC / mois : <b>'+euro(total.hc)+'</b><br>Charges récupérables / mois : <b>'+euro(total.ch)+'</b><br>Loyers annuels HC : <b>'+euro(total.annualHC)+'</b></p></div><p>Les exports contiennent tous les biens, les détenteurs, les structures et les loyers mensuels et annuels. Les informations proviennent de vos saisies ; la synthèse n’est pas une décision de financement.</p><p>Repliez les fiches pour retrouver la synthèse sur un écran. Si la liste est longue, faites-la défiler verticalement. Ouvrir une fiche ou ces explications permet à la page de s’allonger.</p></details>';
+ layout.querySelectorAll('.io-bank-property').forEach(card=>card.addEventListener('toggle',()=>{
+  if(card.open){ioBankOpenId=card.dataset.bankProperty;layout.querySelectorAll('.io-bank-property').forEach(other=>{if(other!==card)other.open=false})}else if(ioBankOpenId===card.dataset.bankProperty){ioBankOpenId=null;if(ioBankEditorId===card.dataset.bankProperty)ioBankEditorId=null;}
+  immoptimaScheduleBankFit();
+ }));
+ layout.querySelector('.io-bank-help').ontoggle=event=>{ioBankHelpOpen=event.target.open;immoptimaScheduleBankFit()};
+ layout.onclick=event=>{const button=event.target.closest('[data-bank-edit]');if(!button)return;ioBankEditorId=button.dataset.bankEdit;ioBankOpenId=ioBankEditorId;renderBankSummary();const form=layout.querySelector('.io-bank-editor');form?.scrollIntoView({behavior:'smooth',block:'center'});form?.querySelector('input')?.focus({preventScroll:true})};
+ layout.querySelector('.io-bank-editor')?.addEventListener('change',event=>{const form=event.currentTarget;if(['rentHC','recoverable','cc','annualHC','annualCC'].includes(event.target.name)){form.dataset.lastField=event.target.name;ioBankSyncEditor(form,event.target.name)}});
+ immoptimaScheduleBankFit();
+}
+
 function exportBankCSV(){
  const headers=['N°','Bien','Adresse','Détenteur','Structure','Loyer HC / mois (€)','Charges récupérables / mois (€)','Loyer CC / mois (€)','Crédit / mois (€)','Loyer annuel HC (€)','Loyer annuel CC (€)'];const lines=[headers];
  db.properties.forEach((p,i)=>{const hc=bankValueHC(p),ch=bankCharges(p),cc=bankCC(p),credit=propertyLoanPayment(p),holder=p.holder||((p.structure==='SARL de famille')?'SARL':'À définir');lines.push([i+1,p.name||'Bien',p.address||'',holder,p.structure||'Nom propre',hc??'',ch??'',cc??'',credit,hc===null?'':hc*12,cc===null?'':cc*12])});

@@ -67,3 +67,11 @@ Le menu de chaque carte donne accès à Modifier et Supprimer ; le retour natif 
 Photo compacte (ou pictogramme si absente), identité, valeur, indicateurs et graphique adaptatif. Les quatre onglets Vue globale / Financement / Loyers / Récap affichent le volet « Comprendre les calculs et les données » fermé dans le viewport. L’ouverture du volet autorise le défilement ; sa fermeture restaure l’écran initial. Les crédits liés et leurs boutons Modifier restent dans les explications de Financement ; les notes et métadonnées complètes restent accessibles dans les explications. Photo, sauvegardes et formules conservées.
 
 « Ma richesse » devient « Mon patrimoine net » sur le dashboard et son analyse. « Détail » devient « Récap » dans les analyses et la fiche bien. Tests des quatre onglets sur cinq viewports, courbes, périodes, points, cas sans dates, actions des prêts et comportement natif Android.
+
+## Banque C — version 14
+
+Synthèse pastel, fiches de biens dépliables et formulaire de modification avec loyers mensuels/annuels recalculés dans les deux sens. Les crédits incluent l’assurance. Modifier uniquement les métadonnées ne remplace pas une mensualité calculée par une mensualité forcée. Les saisies conservent leur précision.
+
+Fiches et explications fermées : synthèse, total et aide dans le viewport. Pour de nombreux biens, seule la liste centrale défile verticalement. Ouvrir une fiche ou les explications autorise l’allongement de la page. Aucun tableau horizontal à l’écran. Le tableau complet reste réservé à l’impression ; tous les biens figurent dans le CSV et le PDF.
+
+Vérifications : cinq viewports, état vide, 11 biens, noms et identifiants longs, édition et persistance, total des exports, impression A4 paysage, interactions tactiles et retour Android. Le dialogue final de sauvegarde PDF reste à confirmer sur le téléphone du propriétaire.
