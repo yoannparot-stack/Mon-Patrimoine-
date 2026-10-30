@@ -1335,7 +1335,7 @@ function immoptimaFitBank(){
  const active=page.classList.contains('active'),mobile=innerWidth<750,opened=!!layout.querySelector('details[open]');
  document.body.classList.toggle('io-bank-fit',active&&mobile&&!opened);document.body.classList.remove('io-bank-tight');
  if(!active||!mobile)return;
- if(opened){const anchor=ioBankToggleAnchor;ioBankToggleAnchor=null;if(anchor?.element?.isConnected)window.scrollBy(0,anchor.element.getBoundingClientRect().top-anchor.top);return;}
+ if(opened){const anchor=ioBankToggleAnchor;ioBankToggleAnchor=null;if(anchor?.element?.isConnected){const top=anchor.first?anchor.scrollY:window.scrollY+anchor.element.getBoundingClientRect().top-anchor.top;const restore=()=>{if(anchor.element.isConnected&&layout.querySelector('details[open]'))window.scrollTo({left:0,top,behavior:'instant'})};restore();requestAnimationFrame(restore);}return;}
  ioBankToggleAnchor=null;
  window.scrollTo(0,0);const nav=document.getElementById('nav'),viewport=window.visualViewport?.height||innerHeight,bottom=Math.min(viewport,nav.getBoundingClientRect().top),available=Math.floor(bottom-layout.getBoundingClientRect().top-8);
  document.body.style.setProperty('--io-bank-height',Math.max(220,available)+'px');document.body.style.setProperty('--io-bank-nav',nav.getBoundingClientRect().height+'px');document.body.classList.toggle('io-bank-tight',available<550);
@@ -1372,7 +1372,7 @@ function renderBankMobile(rows,total){
   immoptimaScheduleBankFit();
  }));
  layout.querySelector('.io-bank-help').ontoggle=event=>{if(!event.target.isConnected||!layout.contains(event.target))return;ioBankHelpOpen=event.target.open;immoptimaScheduleBankFit()};
- layout.onclick=event=>{const summary=event.target.closest('summary');if(summary&&layout.contains(summary))ioBankToggleAnchor={element:summary,top:summary.getBoundingClientRect().top};const button=event.target.closest('[data-bank-edit]');if(!button)return;ioBankEditorId=button.dataset.bankEdit;ioBankOpenId=ioBankEditorId;renderBankSummary();const form=layout.querySelector('.io-bank-editor');form?.scrollIntoView({behavior:'smooth',block:'center'});form?.querySelector('input')?.focus({preventScroll:true})};
+ layout.onclick=event=>{const summary=event.target.closest('summary');if(summary&&layout.contains(summary))ioBankToggleAnchor={element:summary,top:summary.getBoundingClientRect().top,scrollY:window.scrollY,first:summary.closest('.io-bank-property')===layout.querySelector('.io-bank-property')};const button=event.target.closest('[data-bank-edit]');if(!button)return;ioBankEditorId=button.dataset.bankEdit;ioBankOpenId=ioBankEditorId;renderBankSummary();const form=layout.querySelector('.io-bank-editor');form?.scrollIntoView({behavior:'smooth',block:'center'});form?.querySelector('input')?.focus({preventScroll:true})};
  layout.querySelector('.io-bank-editor')?.addEventListener('change',event=>{const form=event.currentTarget;if(['rentHC','recoverable','cc','annualHC','annualCC'].includes(event.target.name)){form.dataset.lastField=event.target.name;ioBankSyncEditor(form,event.target.name)}});
  immoptimaScheduleBankFit();
 }
