@@ -77,6 +77,7 @@ const fixture=require('./fixture.cjs');
  await bankInput('cc').fill('1000');await bankInput('cc').blur();assert.equal(await bankInput('recoverable').inputValue(),'75');
  await bankInput('annualCC').fill('12600');await bankInput('annualCC').blur();assert.equal(await bankInput('recoverable').inputValue(),'125');
  await bankInput('credit').fill('0');await page.locator('#bankMobile .io-bank-editor').getByRole('button',{name:'Enregistrer',exact:true}).click();assert.equal(await page.evaluate(()=>propertyLoanPayment(db.properties[0])),0);assert.equal(await page.evaluate(()=>db.properties[0].recoverable),125);
+ assert.equal(await bankCard().evaluate(card=>card.open),true,'saving preserves the expanded bank card');
  // Metadata-only edits do not override an automatically calculated loan payment.
  await page.evaluate(()=>{db.loans[0].payment=0;db.loans[0].paymentOverride=false;renderBankSummary()});
  await bankCard().getByRole('button',{name:'Modifier les données',exact:true}).click();await bankInput('name').fill('Appartement bancaire modifié');await page.locator('#bankMobile .io-bank-editor').getByRole('button',{name:'Enregistrer',exact:true}).click();assert.equal(await page.evaluate(()=>db.loans[0].paymentOverride),false);
