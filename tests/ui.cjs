@@ -65,7 +65,7 @@ const fixture=require('./fixture.cjs');
  // Bank export and print layout use real numbers, including thousands and cents.
  await page.evaluate(()=>{showPage('banque');renderBankSummary()});assert.equal(await page.locator('#bankTableBody tr').first().locator('td').nth(8).locator('input').inputValue(),'11100');
  const csvPromise=page.waitForEvent('download');await page.evaluate(()=>exportBankCSV());const csv=await csvPromise;await csv.saveAs('qa-out/bank-test.csv');assert(fs.readFileSync('qa-out/bank-test.csv','utf8').includes('11100'));
- await page.emulateMedia({media:'print'});assert(await page.locator('#bankTableBody input').first().isHidden());await page.pdf({path:'qa-out/bank-print-test.pdf',landscape:true,format:'A4'});await page.emulateMedia({media:'screen'});
+ await page.emulateMedia({media:'print'});assert(await page.locator('#bankTableBody input').first().isHidden());await page.pdf({path:'qa-out/bank-print-test.pdf',landscape:true,format:'A4',printBackground:true});await page.emulateMedia({media:'screen'});
  // Bank C: real editing, monthly/annual links, collapsed viewport, long lists, no horizontal table.
  assert(await page.locator('#bankMobile').isVisible());assert(await page.locator('#banque .bank-print-document').isHidden());
  const bankCard=()=>page.locator('#bankMobile .io-bank-property').first();
@@ -97,7 +97,7 @@ const fixture=require('./fixture.cjs');
  const lastBank=page.locator('#bankMobile .io-bank-property').last();await lastBank.locator('summary').click();await lastBank.getByRole('button',{name:'Modifier les données',exact:true}).click();assert.equal(await page.locator('#bankMobile .io-bank-editor').getAttribute('data-property-id'),"bank-quoted-'");await page.locator('#bankMobile .io-bank-editor').getByRole('button',{name:'Annuler',exact:true}).click();
  // Export still includes every property, regardless of collapsed state or vertical position.
  const manyCsvPromise=page.waitForEvent('download');await page.evaluate(()=>exportBankCSV());const manyCsv=await manyCsvPromise;await manyCsv.saveAs('qa-out/bank-11-properties.csv');assert(fs.readFileSync('qa-out/bank-11-properties.csv','utf8').includes('Appartement 10'));
- await page.emulateMedia({media:'print'});assert(await page.locator('#bankMobile').isHidden());assert(await page.locator('#banque .bank-print-document').isHidden());assert(await page.locator('#bankPdfReport').isVisible());assert.equal(await page.locator('#bankTableBody tr').count(),12);await page.pdf({path:'qa-out/bank-11-properties.pdf',landscape:true,format:'A4'});await page.emulateMedia({media:'screen'});
+ await page.emulateMedia({media:'print'});assert(await page.locator('#bankMobile').isHidden());assert(await page.locator('#banque .bank-print-document').isHidden());assert(await page.locator('#bankPdfReport').isVisible());assert.equal(await page.locator('#bankTableBody tr').count(),12);await page.pdf({path:'qa-out/bank-11-properties.pdf',landscape:true,format:'A4',printBackground:true});await page.emulateMedia({media:'screen'});
  await page.evaluate(()=>{db.properties=[];db.loans=[];ioBankOpenId=null;ioBankEditorId=null;ioBankHelpOpen=false;renderAll();showPage('banque')});await page.waitForTimeout(100);assert(await page.locator('#bankMobile .empty').isVisible());assert(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth),'empty bank fits');
  await page.evaluate(data=>{db=data;ioBankOpenId=null;ioBankEditorId=null;ioBankHelpOpen=false;renderAll();showPage('banque')},fixture());
  // Snapshot persistence, owner filtering, chart point interaction, no duplicate DOM IDs.
@@ -195,7 +195,7 @@ const fixture=require('./fixture.cjs');
   await page.locator('#bankMobile .io-bank-export').getByRole('button',{name:'Imprimer / PDF',exact:false}).click();assert(await page.getByRole('dialog',{name:'Choisir le contenu du PDF'}).isVisible());
   await page.getByRole('button',{name:label,exact:true}).click();await page.waitForTimeout(180);assert.equal(await page.locator('#bankPdfReport').getAttribute('data-mode'),mode);
   await page.emulateMedia({media:'print'});assert(await page.locator('#bankPdfReport').isVisible());assert.equal(await page.locator('#bankPdfReport .report-summary').count(),mode==='detail'?0:1);assert.equal(await page.locator('#bankPdfReport .report-detail').count(),mode==='summary'?0:1);
-  await page.pdf({path:'qa-out/bank-new-'+mode+'.pdf',landscape:true,format:'A4'});await page.emulateMedia({media:'screen'});
+  await page.pdf({path:'qa-out/bank-new-'+mode+'.pdf',landscape:true,format:'A4',printBackground:true});await page.emulateMedia({media:'screen'});
  }
  assert.equal(await page.evaluate(()=>window.__printed),3);
  // Missing data produces NR rather than a fictional zero or computed cash flow.

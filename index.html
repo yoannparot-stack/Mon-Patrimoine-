@@ -466,6 +466,15 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
  .report-annual{margin-top:3mm}.report-note{margin:3mm 0;padding:2.5mm;font-size:7.2pt}
 }
 
+
+@media print{
+ #bankPdfReport,#bankPdfReport *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ #bankPdfReport .report-detail h2{margin:3mm 0 1.5mm}
+ #bankPdfReport .report-detail th,#bankPdfReport .report-detail td{padding:1.3mm 2mm}
+ #bankPdfReport .report-detail .report-note{font-size:7pt;margin:2mm 0 0;padding:1.5mm}
+ #bankPdfReport .report-footer{position:static;bottom:auto;display:block!important;width:auto;margin:3mm 0 0;padding:2mm 0 0;border-top:1px solid #e0e6ef;break-inside:avoid;font-size:7pt;line-height:1.3}
+}
+
 </style>
 </head>
 <body>
@@ -1427,7 +1436,7 @@ function ioBuildBankReport(mode=ioBankPrintMode){
  if(!['summary','detail','both'].includes(mode))mode='summary';ioBankPrintMode=mode;const target=document.getElementById('bankPdfReport');if(!target)return;
  const props=db.properties,rows=props.map(p=>{const hc=bankValueHC(p),charges=bankReportCharges(p),credit=propertyLoanPayment(p),value=bankReportValue(p),debt=bankReportDebt(p);return {p,hc,ch:bankCharges(p)||0,cc:bankCC(p),charges,credit,value,debt,net:value!==null&&debt!==null?value-debt:null,cash:hc!==null&&charges!==null?hc-charges-credit:null}});
  const sum=key=>rows.every(r=>r[key]!==null)?rows.reduce((s,r)=>s+r[key],0):null,tot={hc:sum('hc'),ch:sum('ch'),cc:sum('cc'),charges:sum('charges'),credit:sum('credit'),value:sum('value'),debt:sum('debt'),net:sum('net'),cash:sum('cash')};
- const money=bankReportMoney,cell=v=>'<td class="report-money">'+money(v)+'</td>',identity=p=>'<b>'+esc(p.name||'Bien')+'</b><small>'+esc(p.address||'Adresse non renseignée')+'</small><small>'+esc(p.holder||'Détenteur à renseigner')+' · '+esc(p.structure||'Structure à renseigner')+'</small>';
+ const money=bankReportMoney,cell=v=>'<td class="report-money">'+money(v)+'</td>',identity=p=>'<b>'+esc(p.name||'Bien')+'</b><small>'+esc(p.address||'Adresse non renseignée')+'</small><small>'+[...new Set([p.holder||'Détenteur à renseigner',p.structure||'Structure à renseigner'])].map(esc).join(' · ')+'</small>';
  const date=new Date().toLocaleDateString('fr-FR'),demo=props.some(p=>p.demo||/\[d[ée]mo\]/i.test(p.name||''));
  const header=label=>'<header class="report-header"><div><div class="report-brand">Imm<span>Optima</span></div><p>Un seul outil pour tout votre patrimoine</p></div><div>Situation au '+date+'<br><b>'+label+'</b>'+(demo?'<em>Données de démonstration</em>':'')+'</div></header>';
  const metric=(label,v,note)=>'<div><span>'+label+'</span><b>'+v+'</b><small>'+note+'</small></div>';
