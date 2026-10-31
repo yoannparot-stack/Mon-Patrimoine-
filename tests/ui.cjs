@@ -199,6 +199,7 @@ const fixture=require('./fixture.cjs');
   await page.pdf({path:'qa-out/bank-new-'+mode+'.pdf',landscape:true,format:'A4',printBackground:true});await page.emulateMedia({media:'screen'});
  }
  assert.equal(await page.evaluate(()=>window.__printed),3);
+ await page.evaluate(()=>{db.properties=[{id:'zero-report',name:'Bien à loyers nuls',rentHC:0,recoverable:0,ownerCharges:0,tax:0,pno:0,otherMonthly:0,currentValue:1000}];db.loans=[];ioBuildBankReport('summary')});assert((await page.locator('#bankPdfReport tbody tr').first().locator('td').nth(1).textContent()).includes('0,00'),'explicit zero rent remains zero in PDF');
  // Missing data produces NR rather than a fictional zero or computed cash flow.
  await page.evaluate(()=>{db.properties=[{id:'missing',name:'Bien incomplet',rentHC:490,recoverable:35}];db.loans=[];ioBuildBankReport('both')});assert((await page.locator('#bankPdfReport').textContent()).includes('NR'));assert.equal(await page.evaluate(()=>bankReportCharges(db.properties[0])),null);
  await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},fixture());
