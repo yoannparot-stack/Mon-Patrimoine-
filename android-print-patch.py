@@ -34,8 +34,8 @@ print_method = """    private void beginPrint() {
                 .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
                 .build();
             printManager.print(
-                "Mon_Patrimoine_Synthese_Bancaire",
-                webView.createPrintDocumentAdapter("Mon Patrimoine - Synthèse bancaire"),
+                "ImmOptima_Dossier_Bancaire",
+                webView.createPrintDocumentAdapter("ImmOptima - Dossier bancaire"),
                 attributes
             );
         } catch (Exception e) {

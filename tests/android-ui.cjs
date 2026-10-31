@@ -54,6 +54,11 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#bankMobile .io-bank-property").open');assert.equal(await evaluate('document.querySelector(".page.active").id'),'banque');
  await waitFor('document.body.classList.contains("io-bank-fit")&&document.querySelector(".io-bank-help summary").getBoundingClientRect().bottom<=document.getElementById("nav").getBoundingClientRect().top');
  await tap('#bankMobile .io-bank-help summary');await waitFor('document.querySelector(".io-bank-help").open');adb('shell','input','keyevent','4');await waitFor('!document.querySelector(".io-bank-help").open');
+ await evaluate("showPage('financement');true");await waitFor('document.getElementById("bankFinancing").open');assert.equal(await evaluate('document.querySelector(".page.active").id'),'banque');assert.equal(await evaluate('pages.some(p=>p[0]==="financement")'),false);
+ await evaluate("document.getElementById('bankFinancing').scrollIntoView({block:'start'});true");await capture('12-financements-integres','financements');
+ await evaluate("openLoanForm('qa-credit-tours');true");assert.equal(await evaluate('document.querySelector("#loanFormWrap [name=bank]").value'),'Banque de démonstration');
+ adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#loanFormWrap form")');adb('shell','input','keyevent','4');await waitFor('!document.getElementById("bankFinancing").open');
+ await evaluate("printBankSummary();true");assert.equal(await evaluate('document.getElementById("bankExportOptions").hidden'),false);adb('shell','input','keyevent','4');await waitFor('document.getElementById("bankExportOptions").hidden');
  await evaluate("showPage('dashboard');true");
  await tap('#dashboardGraph article');await waitFor('!document.getElementById("ioAnalysisOverlay").hidden');
  adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioAnalysisOverlay").hidden');
@@ -79,7 +84,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  await evaluate("ioPropertyTab(2);true");assert((await evaluate('document.getElementById("ioPropertyDetailOverlay").textContent')).includes('350'));
  adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioPropertyDetailOverlay").hidden');
  await evaluate("db.properties[0].rentHC=925;save();true");await cmd('Page.reload');await wait(1200);assert.equal(await evaluate('db.properties[0].rentHC'),925,'WebView local data survives reload');
- await evaluate("showPage('dashboard');immoptimaMore();true");assert.equal(await evaluate('document.querySelectorAll("#ioMore .io-more-grid button").length'),11);adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioMore").hidden');
+ await evaluate("showPage('dashboard');immoptimaMore();true");assert.equal(await evaluate('document.querySelectorAll("#ioMore .io-more-grid button").length'),10);adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioMore").hidden');
  await evaluate("showPage('dashboard');immoptimaFitDashboard();true");
  const layout=await evaluate('({scrollHeight:document.documentElement.scrollHeight,height:innerHeight,tiles:[...document.querySelectorAll("#dashboardGraph article")].map(e=>e.getBoundingClientRect().bottom),navTop:document.getElementById("nav").getBoundingClientRect().top})');assert(layout.scrollHeight<=layout.height+1,'Android dashboard fits one screen');assert(Math.max(...layout.tiles)<=layout.navTop+1,'all cards above Android navigation');
  await evaluate(`const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);db.dashboardSnapshots=[{date:yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0'),holder:'Tous',net:45000,debt:45000,gross:90000}];db.properties=[{id:'short',name:'Bien de validation',retainedValue:90000,rentHC:500,holder:'Validation'}];db.loans=[{propertyId:'short',remaining:40000,initial:45000,payment:200}];document.getElementById('ioHolderFilter').value='Tous';immoptimaOpenAnalysis('wealth');true`);

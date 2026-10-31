@@ -75,3 +75,11 @@ Synthèse pastel, fiches de biens dépliables et formulaire de modification avec
 Fiches et explications fermées : synthèse, total et aide dans le viewport. Pour de nombreux biens, seule la liste centrale défile verticalement. Ouvrir une fiche ou les explications autorise l’allongement de la page. Aucun tableau horizontal à l’écran. Le tableau complet reste réservé à l’impression ; tous les biens figurent dans le CSV et le PDF.
 
 Vérifications : cinq viewports, état vide, 11 biens, noms et identifiants longs, édition et persistance, total des exports, impression A4 paysage, interactions tactiles et retour Android. Le dialogue final de sauvegarde PDF reste à confirmer sur le téléphone du propriétaire.
+
+## Banque / Financement et exports — version 15
+
+L’entrée Financement est retirée de Plus. Les anciens liens sont redirigés vers Banque et le bloc Financements. Les formulaires et enregistrements de crédits sont uniques ; plusieurs crédits par bien et les crédits non rattachés sont conservés. Présentation verticale des crédits, ajout/modification/suppression directement dans Banque.
+
+PDF : choix Synthèse, Détail ou Synthèse + détail. La synthèse présente les charges propriétaire et le cash-flow avant fiscalité ; le détail affiche taxe foncière annuelle, charges non récupérables mensuelles, PNO, autres dépenses, valeurs, CRD, assurances et échéances théoriques des prêts. NR distingue les champs absents de zéro. Les totaux locatifs excluent les crédits non rattachés, listés dans le détail. Montants à deux décimales.
+
+Tests : redirection des anciens accès, dix destinations dans Plus, CRUD des crédits et prêt à taux zéro, persistance, mise à jour croisée, formats PDF et données manquantes. Les dialogues finaux d’enregistrement/partage restent à confirmer sur le téléphone.
