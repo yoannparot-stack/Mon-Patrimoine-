@@ -1233,6 +1233,12 @@ function immoptimaOpenBankFinancing(){
  if(!document.getElementById('banque').classList.contains('active'))showPage('banque');
  document.getElementById('bankFinancing').open=true;immoptimaScheduleBankFit();
 }
+function ioBankOpenPropertyLoans(pid){
+ const loans=db.loans.filter(l=>l.propertyId===pid);immoptimaOpenBankFinancing();
+ if(loans.length===1){openLoanForm(loans[0].id);return;}
+ if(!loans.length){openLoanForm();document.querySelector('#loanFormWrap [name=propertyId]').value=pid;return;}
+ closeForm('loanFormWrap');renderLoans();requestAnimationFrame(()=>{const target=[...document.querySelectorAll('#loans [data-loan-id]')].find(el=>loans.some(l=>l.id===el.dataset.loanId));target?.scrollIntoView({behavior:'smooth',block:'start'})});
+}
 function renderLoans(){
  const wrap=document.getElementById('loans'),count=document.getElementById('bankLoanCount');if(count)count.textContent=db.loans.length+' '+(db.loans.length>1?'crédits':'crédit');
  if(!db.loans.length){wrap.innerHTML='<div class="empty">Aucun crédit enregistré.</div>';return}
@@ -1414,7 +1420,7 @@ function renderBankMobile(rows,total){
   immoptimaScheduleBankFit();
  }));
  layout.querySelector('.io-bank-help').ontoggle=event=>{if(!event.target.isConnected||!layout.contains(event.target))return;ioBankHelpOpen=event.target.open;immoptimaScheduleBankFit()};
- layout.onclick=event=>{const loanButton=event.target.closest('[data-bank-loans]');if(loanButton){immoptimaOpenBankFinancing();openLoanForm();document.querySelector('#loanFormWrap [name=propertyId]').value=loanButton.dataset.bankLoans;return;}const summary=event.target.closest('summary');if(summary&&layout.contains(summary))ioBankToggleAnchor={element:summary,top:summary.getBoundingClientRect().top,scrollY:window.scrollY,first:summary.closest('.io-bank-property')===layout.querySelector('.io-bank-property')};const button=event.target.closest('[data-bank-edit]');if(!button)return;ioBankEditorId=button.dataset.bankEdit;ioBankOpenId=ioBankEditorId;renderBankSummary();const form=layout.querySelector('.io-bank-editor');form?.scrollIntoView({behavior:'smooth',block:'center'});form?.querySelector('input')?.focus({preventScroll:true})};
+ layout.onclick=event=>{const loanButton=event.target.closest('[data-bank-loans]');if(loanButton){ioBankOpenPropertyLoans(loanButton.dataset.bankLoans);return;}const summary=event.target.closest('summary');if(summary&&layout.contains(summary))ioBankToggleAnchor={element:summary,top:summary.getBoundingClientRect().top,scrollY:window.scrollY,first:summary.closest('.io-bank-property')===layout.querySelector('.io-bank-property')};const button=event.target.closest('[data-bank-edit]');if(!button)return;ioBankEditorId=button.dataset.bankEdit;ioBankOpenId=ioBankEditorId;renderBankSummary();const form=layout.querySelector('.io-bank-editor');form?.scrollIntoView({behavior:'smooth',block:'center'});form?.querySelector('input')?.focus({preventScroll:true})};
  layout.querySelector('.io-bank-editor')?.addEventListener('change',event=>{const form=event.currentTarget;if(['rentHC','recoverable','cc','annualHC','annualCC'].includes(event.target.name)){form.dataset.lastField=event.target.name;ioBankSyncEditor(form,event.target.name)}});
  immoptimaScheduleBankFit();
 }
