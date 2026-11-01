@@ -26,6 +26,16 @@ require('firebase/compat/firestore');
   await assertSucceeds(doc.set({...create,revision:2}));
   await assertFails(doc.delete());
   await assertFails(owner.doc('users/owner/portfolios/other').set(create));
+  // Paid collection must never be enabled or its quotas reset by an APK client.
+  for(const adminPath of ['rentalService/config','rentalAccess/owner','rentalQuota/global-2026-11-01']){
+   await env.withSecurityRulesDisabled(async context=>context.firestore().doc(adminPath).set({enabled:true,calls:4}));
+   for(const client of [owner,intruder,anon]){
+    await assertFails(client.doc(adminPath).get());
+    await assertFails(client.doc(adminPath).set({enabled:true,calls:0}));
+    await assertFails(client.doc(adminPath).delete());
+   }
+  }
   console.log('PASS Firestore emulator: owner isolation, sequential revision, deletion guard');
+  console.log('PASS Firestore emulator: rental service activation, entitlements and quota counters are admin-only');
  }finally{await env.cleanup()}
 })().catch(e=>{console.error(e);process.exit(1)});
