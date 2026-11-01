@@ -12,6 +12,9 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  // from this unrelated launcher; this emulator is discarded after the job.
  adb('shell','pm','disable-user','--user','0','com.android.launcher3');
  adb('shell','am','force-stop','com.android.launcher3');
+ // Disabling the launcher can leave the activity visible but without focus or
+ // frame callbacks in the headless image. Bring the tested activity forward.
+ adb('shell','am','start','-n','com.immoptima.app/com.monpatrimoine.app.MainActivity');
  // API-35 can recreate WebView while installing its first provider/configuration.
  // Reconnect only during startup; once user-interaction assertions begin, errors fail normally.
  let ws,seq=0;const pending=new Map();
@@ -24,7 +27,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
   socket.on('close',()=>{if(socket!==ws)return;for(const {j,t} of pending.values()){clearTimeout(t);j(Error('CDP connection closed'))}pending.clear()});
  };
  const cmd=(method,params={})=>new Promise((r,j)=>{const id=++seq,t=setTimeout(()=>{pending.delete(id);j(Error('CDP timeout: '+method))},15000);pending.set(id,{r,j,t});ws.send(JSON.stringify({id,method,params}),err=>{if(err){clearTimeout(t);pending.delete(id);j(err)}})});
- const evaluate=async expression=>{const v=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(v.exceptionDetails)throw Error(JSON.stringify(v.exceptionDetails));return v.result.value};
+ const evaluate=async expression=>{fs.writeFileSync(out+'/last-evaluation.txt',expression.slice(0,300));try{const v=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(v.exceptionDetails)throw Error(JSON.stringify(v.exceptionDetails));return v.result.value}catch(e){throw Error(e.message+' [evaluation: '+expression.slice(0,140)+']')}};
  let ready,initialized=false;
  for(let attempt=0;attempt<3&&!initialized;attempt++){
   try{
@@ -43,7 +46,9 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  const dismissLauncherAnr=async()=>{const nodes=uiNodes();if(!nodes.some(n=>/Quickstep/.test(n)))return;const button=nodes.find(n=>/resource-id="android:id\/aerr_wait"|text="Wait"/.test(n));assert(button,'known launcher Wait button');const [l,t,r,b]=bounds(button);adb('shell','input','tap',String(Math.round((l+r)/2)),String(Math.round((t+b)/2)));await wait(500)};
  const capture=async(name,expected,allowBrandInBody=false)=>{
   // Let Android's compositor present the frame; validate its actual pixels with OCR.
-  await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))');
+  // RAF may be throttled by the headless compositor. This is only a bounded
+  // presentation wait: the framebuffer OCR below must still prove the screen.
+  await evaluate('new Promise(resolve=>{const done=()=>resolve(true);setTimeout(done,750);requestAnimationFrame(()=>requestAnimationFrame(done))})');
   for(let attempt=0;attempt<5;attempt++){
    await wait(1000);cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/'+name+'.png','w'),'inherit']});
    const ocr=cp.execFileSync('tesseract',[out+'/'+name+'.png','stdout'],{encoding:'utf8',stdio:['ignore','pipe','ignore']});fs.writeFileSync(out+'/'+name+'-ocr.txt',ocr);
@@ -54,7 +59,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  };
  assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);await capture('01-dashboard','immoptima');
  // Touch the actual dashboard tile using screen coordinates derived from the DOM.
- const tap=async selector=>{await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))');const r=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth}})()`);
+ const tap=async selector=>{await evaluate('new Promise(resolve=>{const done=()=>resolve(true);setTimeout(done,750);requestAnimationFrame(()=>requestAnimationFrame(done))})');const r=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth}})()`);
   const views=uiNodes().filter(n=>/class="android.webkit.WebView"/.test(n)).map(bounds).sort((a,b)=>(b[2]-b[0])*(b[3]-b[1])-(a[2]-a[0])*(a[3]-a[1]));assert(views.length,'native WebView bounds');const [left,top,right,bottom]=views[0],scale=(right-left)/r.w;
   adb('shell','input','tap',String(Math.round(left+r.x*scale)),String(Math.round(top+r.y*scale)));
  };
