@@ -1,0 +1,75 @@
+name: Check free rental API access
+on:
+  workflow_dispatch:
+    inputs:
+      collect_sample:
+        description: 'Collect a small sample (up to 8 new items from the free quota)'
+        type: boolean
+        default: false
+      professional_use_confirmed:
+        description: 'Professional account and API reuse conditions reviewed for ImmOptima'
+        type: boolean
+        default: false
+      city:
+        description: 'City'
+        default: 'Tours'
+        type: string
+      postcode:
+        description: 'Postal code'
+        default: '37000'
+        type: string
+      commune_code:
+        description: 'INSEE commune code'
+        default: '37261'
+        type: string
+      surface:
+        description: 'Surface in square metres'
+        default: '30'
+        type: string
+      rooms:
+        description: 'Number of rooms'
+        default: '1'
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: immoptima-free-rental-api-probe
+  cancel-in-progress: false
+jobs:
+  check:
+    if: github.ref == 'refs/heads/feature/immoptima-step3-brand-ux'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+        working-directory: rental-public
+      - name: Check access or collect explicitly requested sample
+        working-directory: rental-public
+        env:
+          IMMOPTIMA_CT_API_KEY: ${{ secrets.IMMOPTIMA_CT_API_KEY }}
+          IO_COLLECT: ${{ inputs.collect_sample }}
+          IO_PRO: ${{ inputs.professional_use_confirmed }}
+          IO_CITY: ${{ inputs.city }}
+          IO_POSTCODE: ${{ inputs.postcode }}
+          IO_COMMUNE: ${{ inputs.commune_code }}
+          IO_SURFACE: ${{ inputs.surface }}
+          IO_ROOMS: ${{ inputs.rooms }}
+        run: |
+          node <<'JS'
+          const api=require('./cherchertrouver.cjs');
+          (async()=>{
+            const key=process.env.IMMOPTIMA_CT_API_KEY;
+            if(process.env.IO_COLLECT!=='true'){
+              console.log(JSON.stringify(await api.probe(key),null,2));return;
+            }
+            const q={city:process.env.IO_CITY,postcode:process.env.IO_POSTCODE,communeCode:process.env.IO_COMMUNE,surface:Number(process.env.IO_SURFACE),rooms:Number(process.env.IO_ROOMS),family:'appartement'};
+            const result=await api.collect(q,{key,professionalUseConfirmed:process.env.IO_PRO==='true'});
+            // Public logs contain counts and calculated indicators only, never
+            // the key, descriptions, contacts, individual URLs or full listings.
+            console.log(JSON.stringify({provider:result.provider,checkedAt:result.checkedAt,examined:result.examined,partial:result.partial,quota:result.quota,rejected:result.rejected,modes:Object.fromEntries(Object.entries(result.modes).map(([mode,r])=>[mode,{status:r.status,count:r.count,sourceCount:r.sourceCount,target:r.target,low:r.low,high:r.high,rejected:r.rejected}]))},null,2));
+          })().catch(e=>{console.error('API check failed: '+(/^[A-Z_]+$/.test(e.code||'')?e.code:'SERVICE_UNAVAILABLE'));process.exitCode=1});
+          JS

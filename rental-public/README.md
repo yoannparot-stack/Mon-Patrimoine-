@@ -1,5 +1,9 @@
 # Collecte gratuite : moteur multi-source et validation des éditeurs
 
+## Nouvelle piste sans agence partenaire
+
+Un accès API gratuit sous quota a été identifié et son adaptateur est développé : voir [le pilote ChercherTrouver](CHERCHERTROUVER.md). Il exige un compte/une clé gratuits et un essai authentifié encore à réaliser ; il ne constitue pas une collecte client déjà active. Le registre conserve toutes les sources désactivées jusqu’à validation réelle.
+
 ## État réel
 
 **Moteur de collecte et de comparaison développé et testé ; aucune source client activée.** Ce module est indépendant de Yanport, de Firebase Functions et de tout abonnement fournisseur. Il s’exécute avec Node 22 ; il n’est pas encore branché au bouton de collecte de l’APK V19. La V19 conserve ses fonctions et son connecteur existants.

@@ -1,31 +1,67 @@
 [
   {
-    "id": "citya", "label": "Citya", "state": "restricted", "enabled": false,
+    "id": "citya",
+    "label": "Citya",
+    "state": "restricted",
+    "enabled": false,
     "policyUrl": "https://www.citya.com/conditions-generales-utilisation",
-    "reviewedAt": "2026-11-01", "reason": "Usage personnel et privé dans les CGU ; accord éditeur nécessaire pour l’intégration commerciale."
+    "reviewedAt": "2026-11-01",
+    "reason": "Usage personnel et privé dans les CGU ; accord éditeur nécessaire pour l’intégration commerciale."
   },
   {
-    "id": "pap", "label": "PAP", "state": "restricted", "enabled": false,
+    "id": "pap",
+    "label": "PAP",
+    "state": "restricted",
+    "enabled": false,
     "policyUrl": "https://www.pap.fr/groupe/cgu",
-    "reviewedAt": "2026-11-01", "reason": "Extraction et réutilisation hors usage strictement personnel exclues par les CGU."
+    "reviewedAt": "2026-11-01",
+    "reason": "Extraction et réutilisation hors usage strictement personnel exclues par les CGU."
   },
   {
-    "id": "leboncoin", "label": "leboncoin", "state": "restricted", "enabled": false,
+    "id": "leboncoin",
+    "label": "leboncoin",
+    "state": "restricted",
+    "enabled": false,
     "policyUrl": "https://www.leboncoin.fr/dc/cgv_pro",
-    "reviewedAt": "2026-11-01", "reason": "Collecte robotisée conditionnée à une autorisation préalable."
+    "reviewedAt": "2026-11-01",
+    "reason": "Collecte robotisée conditionnée à une autorisation préalable."
   },
   {
-    "id": "lucilia", "label": "Lucilia B. Immobilier", "state": "assessment", "enabled": false,
+    "id": "lucilia",
+    "label": "Lucilia B. Immobilier",
+    "state": "assessment",
+    "enabled": false,
     "feedUrl": "https://www.lucilia-b-immobilier.fr/rss.xml",
     "policyUrl": "https://www.lucilia-b-immobilier.fr/asp/contact.asp",
-    "reviewedAt": "2026-11-01", "reason": "Flux RSS publié par l’agence. Fraîcheur et droit de réutilisation commerciale à confirmer avant activation.",
-    "hosts": ["www.lucilia-b-immobilier.fr"], "assessmentAllowed": true
+    "reviewedAt": "2026-11-01",
+    "reason": "Flux RSS publié par l’agence. Fraîcheur et droit de réutilisation commerciale à confirmer avant activation.",
+    "hosts": [
+      "www.lucilia-b-immobilier.fr"
+    ],
+    "assessmentAllowed": true
   },
   {
-    "id": "passetonannonce", "label": "Passetonannonce", "state": "assessment", "enabled": false,
+    "id": "passetonannonce",
+    "label": "Passetonannonce",
+    "state": "assessment",
+    "enabled": false,
     "feedUrl": "https://www.passetonannonce.com/rss-immobilier-a-louer.html",
     "policyUrl": "https://www.passetonannonce.com/rss.html",
-    "reviewedAt": "2026-11-01", "reason": "Syndication proposée par l’éditeur ; qualité et fraîcheur du flux à contrôler. Pas de source client activée.",
-    "hosts": ["www.passetonannonce.com"], "assessmentAllowed": true
+    "reviewedAt": "2026-11-01",
+    "reason": "Syndication proposée par l’éditeur ; qualité et fraîcheur du flux à contrôler. Pas de source client activée.",
+    "hosts": [
+      "www.passetonannonce.com"
+    ],
+    "assessmentAllowed": true
+  },
+  {
+    "id": "cherchertrouver",
+    "label": "ChercherTrouver API",
+    "state": "api_key_required",
+    "enabled": false,
+    "apiUrl": "https://cherchertrouver.immo/api/v1",
+    "policyUrl": "https://cherchertrouver.immo/cgv",
+    "reviewedAt": "2026-11-01",
+    "reason": "Offre Découverte annoncée à 0 €, sans carte bancaire, 50 annonces sur 30 jours. Adaptateur testé, compte/clé et essai réel encore nécessaires. Usage professionnel et liens d’origine requis pour l’application."
   }
 ]

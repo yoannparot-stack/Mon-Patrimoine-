@@ -94,7 +94,7 @@ function normalizeComparable(x,source,q,now){
  // Conservative fallback merges identical rent/surface/room/commune profiles.
  // It may undercount separate dwellings; it never claims verified uniqueness.
  const fingerprint=digest(JSON.stringify([q.mode,q.communeCode,x.rooms,Math.round(x.surface*2),Math.round(hc/5)]));
- return {sourceId:source.id,source:source.label,url,mode:x.mode,family:x.family,communeCode:x.communeCode,rooms:x.rooms,surface:x.surface,rentHC:Math.round(hc*100)/100,basis,datePublished:new Date(stamp).toISOString().slice(0,10),observedAt:new Date(observed).toISOString(),fingerprint};
+ return {sourceId:source.id,source:source.label,url,mode:x.mode,family:x.family,communeCode:x.communeCode,rooms:x.rooms,surface:x.surface,rentHC:Math.round(hc*100)/100,basis,datePublished:new Date(stamp).toISOString().slice(0,10),observedAt:new Date(observed).toISOString(),...(Number.isFinite(Date.parse(x.providerObservedAt))?{providerObservedAt:new Date(x.providerObservedAt).toISOString()}:{}),fingerprint};
 }
 function compare(records,sources,q,{now=Date.now()}={}){
  validateQuery(q);if(!Array.isArray(records)||records.length>1000)error('TOO_MANY_RECORDS');
