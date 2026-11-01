@@ -92,3 +92,7 @@ Un enregistrement technique fictif :
 Après accord et validation : ajouter la source au registre avec son format, URL, domaines et `permission` (`status: approved`, référence de l’accord dans `evidence`, date `reviewedAt`), puis passer `state` à `approved` et `enabled` à `true`. Vérifier manuellement les annonces retenues et les rejets sur une collecte réelle Nu et Meublé avant de brancher le moteur dans une prochaine version Android. Une entrée de test ne doit jamais être activée en production.
 
 L’intégration Android pourra lire ces flux approuvés sans compte Yanport ni Firebase Blaze ; ce branchement reste à réaliser et à tester une fois le premier flux utilisable obtenu. Aucune promesse d’accès automatique à tous les sites ou de couverture nationale n’est faite.
+
+## Validation de cette livraison
+
+Neuf groupes de tests réussis avec Node 22 dans [GitHub Actions, exécution 41342886982](https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/41342886982). Les vérifications locales des calculs financiers, du comparatif locatif, du connecteur V19 et des callbacks/sauvegardes ont également réussi. Le code Android et son APK ne sont pas modifiés par cette livraison ; aucune nouvelle compilation Android n’est revendiquée.

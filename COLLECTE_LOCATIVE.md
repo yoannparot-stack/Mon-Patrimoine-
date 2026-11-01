@@ -1,5 +1,7 @@
 # Collecte locative Nu / Meublé — V19
 
+**Orientation du 1er novembre 2026 après la V19 :** recherche d’une collecte sans fournisseur payant. Un moteur indépendant, ses tests et le contrôle réel des premières sources sont disponibles dans [`rental-public/README.md`](rental-public/README.md). Aucune source gratuite client n’est encore activée ; ce moteur n’est pas encore raccordé au bouton Android. Les instructions Yanport ci-dessous décrivent le connecteur V19 conservé et ne constituent pas une demande de souscription.
+
 ## État et périmètre
 
 Le code de collecte est intégré à l’APK et le service Firebase est fourni dans `functions/`. **La collecte réelle n’est pas activée tant qu’un accès fournisseur Yanport autorisé et le service déployé ne sont pas disponibles.** L’APK signale cet état et ne simule pas des annonces réelles. Les bases publiques ANIL/OLL et les références personnelles restent utilisables.
