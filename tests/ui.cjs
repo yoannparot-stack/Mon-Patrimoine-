@@ -172,7 +172,9 @@ const fixture=require('./fixture.cjs'),marketFixture=require('./market-fixture.c
  assert((await page.locator('#dashboardGraph .io-tile-title').first().textContent()).includes('MON PATRIMOINE NET'));
  await page.evaluate(()=>immoptimaOpenAnalysis('wealth'));assert((await page.locator('#ioAnalysisTitle').textContent()).includes('Mon patrimoine net'));assert(await page.getByRole('button',{name:'Récap',exact:true}).isVisible());await page.evaluate(()=>immoptimaCloseAnalysis());
  // Market C keeps matched financial scope, a vertical portfolio list and explicit unknown/error states.
- await page.evaluate(data=>{db=data;ioMarketOpenId=null;marketSave({checkedAt:new Date().toISOString(),results:{}});marketStatus('');renderAll();showPage('valorisation')},marketFixture(fixture()));
+ await page.evaluate(()=>{db.properties=[];marketStatus('Aucun bien à analyser.','warn')});
+ await page.evaluate(data=>{db=data;ioMarketOpenId=null;marketSave({checkedAt:new Date().toISOString(),results:{}});renderAll();showPage('valorisation')},marketFixture(fixture()));
+ assert(await page.locator('#marketStatus').isHidden(),'empty-portfolio status clears when properties are added');
  assert((await page.locator('#marketOverview').textContent()).includes('+15 %'));assert((await page.locator('#marketOverview').textContent()).includes('230'));
  const marketCard=()=>page.locator('#marketTable .io-market-property').first();
  for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
