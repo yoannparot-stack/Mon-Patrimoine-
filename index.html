@@ -1237,7 +1237,7 @@ function openLoanForm(editId=null){
  <div class="grid3"><div class="field"><label>Capital restant dû (€) *</label><input name="remaining" type="number" step="1" value="${l.remaining??''}"></div><div class="field"><label>Capital déjà remboursé</label><input value="${euro(principalRepaid(l))}" disabled></div><div class="field"><label>Note</label><input name="notes" value="${esc(l.notes)}"></div></div>
  <div class="io-curve-readiness" style="background:#f1f8f6;border:1px solid #d6e9e1;border-radius:12px;padding:12px;margin:14px 0" aria-live="polite"></div><div class="actions"><button class="primary">${editId?'Enregistrer les modifications':'Ajouter le crédit'}</button></div></form></div>`;
  immoptimaWireCurveReadiness('loanFormWrap','loan');
- immoptimaScheduleBankFit();requestAnimationFrame(()=>document.getElementById('loanFormWrap').scrollIntoView({block:'start',behavior:'smooth'}));
+ immoptimaScheduleBankFit();requestAnimationFrame(()=>{const form=document.getElementById('loanFormWrap');if(ioBankView==='finance'&&form.querySelector('form'))form.scrollIntoView({block:'start',behavior:'instant'})});
 }
 function saveLoan(e,editId){e.preventDefault();const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'].forEach(k=>o[k]=Number(o[k])||0);o.paymentOverride=f.get('payment')!=='';if(editId)db.loans[db.loans.findIndex(x=>x.id===editId)]={...db.loans.find(x=>x.id===editId),...o};else db.loans.push(o);closeForm('loanFormWrap');save()}
 function immoptimaOpenBankFinancing(){
@@ -1393,7 +1393,7 @@ function ioBankSetView(view){
  ioBankView=view==='finance'?'finance':'summary';
  document.getElementById('bankMobile').hidden=ioBankView!=='summary';document.getElementById('bankFinanceMount').hidden=ioBankView!=='finance';
  for(const [id,selected] of [['bankSummaryTab',ioBankView==='summary'],['bankFinanceTab',ioBankView==='finance']]){const button=document.getElementById(id);button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
- ioBankToggleAnchor=null;window.scrollTo(0,0);immoptimaScheduleBankFit();
+ ioBankToggleAnchor=null;window.scrollTo({top:0,left:0,behavior:'instant'});immoptimaScheduleBankFit();
 }
 function immoptimaScheduleBankFit(){requestAnimationFrame(immoptimaFitBank)}
 function immoptimaFitBank(){
@@ -1402,7 +1402,7 @@ function immoptimaFitBank(){
  document.body.classList.toggle('io-bank-fit',active&&mobile&&!opened);document.body.classList.remove('io-bank-tight');
  if(!active||!mobile)return;
  if(opened){const anchor=ioBankToggleAnchor;ioBankToggleAnchor=null;if(anchor?.element?.isConnected){const top=anchor.first?anchor.scrollY:window.scrollY+anchor.element.getBoundingClientRect().top-anchor.top;const restore=()=>{if(anchor.element.isConnected&&summary.querySelector('details[open]'))window.scrollTo({left:0,top,behavior:'instant'})};restore();requestAnimationFrame(restore);}return;}
- ioBankToggleAnchor=null;window.scrollTo(0,0);
+ ioBankToggleAnchor=null;window.scrollTo({top:0,left:0,behavior:'instant'});
  const nav=document.getElementById('nav'),viewport=window.visualViewport?.height||innerHeight,bottom=Math.min(viewport,nav.getBoundingClientRect().top);
  document.body.classList.toggle('io-bank-tight',bottom-layout.getBoundingClientRect().top<550);
  const available=Math.floor(bottom-layout.getBoundingClientRect().top-8);
