@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-01T20:50:28.514693+00:00",
+  "status": "preflight_only",
+  "accountLoginPerformed": false,
+  "advertisementDataRetrieved": false,
+  "billingSubscriptionCreated": false,
+  "metadata": {
+    "issuer": "https://cherchertrouver.immo",
+    "resource": "https://cherchertrouver.immo/api/v1/mcp",
+    "codeChallengeMethod": "S256",
+    "publicClientAuthentication": "none"
+  },
+  "registration": {
+    "httpStatus": 201,
+    "clientId": "ctc_cxxXd_pzH9Noq1bhkKH88LPV",
+    "redirectUris": [
+      "http://127.0.0.1:53682/oauth/callback"
+    ],
+    "tokenEndpointAuthMethod": "none"
+  },
+  "pending": [
+    "User agreement to additional provider account/connection",
+    "Real end-user authorization and token exchange",
+    "Provider acceptance of intended private per-client usage",
+    "Authenticated tool schemas and bare/furnished/HC data quality",
+    "Android connection implementation and testing"
+  ]
+}

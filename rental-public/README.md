@@ -2,7 +2,7 @@
 
 ## Nouvelle piste sans agence partenaire
 
-Un accès API gratuit sous quota a été identifié et son adaptateur est développé : voir [le pilote ChercherTrouver](CHERCHERTROUVER.md). Il exige un compte/une clé gratuits et un essai authentifié encore à réaliser ; il ne constitue pas une collecte client déjà active. Le registre conserve toutes les sources désactivées jusqu’à validation réelle.
+La clé API commune ChercherTrouver est écartée pour la production : son quota gratuit est partagé entre tous les utilisateurs. Le [connecteur de test](CHERCHERTROUVER.md) est conservé, sans activation. La piste examinée est désormais une [connexion personnelle par client](PER_CLIENT_ACCESS.md), avec compte et quota fournisseur propres à chacun. Elle ajoute une connexion externe au parcours et doit encore être validée sur Android et sur de vraies données. Toutes les sources restent désactivées.
 
 ## État réel
 

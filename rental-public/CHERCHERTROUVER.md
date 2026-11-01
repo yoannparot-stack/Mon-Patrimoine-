@@ -1,4 +1,6 @@
-# Débloquer un pilote gratuit sans agence partenaire
+# Connecteur de test : offre gratuite à quota partagé
+
+**Décision du 1er novembre 2026 : cette architecture à clé API commune est écartée pour la production.** Ses 50 annonces sur 30 jours appartiennent au compte fournisseur entier et non à chaque client ImmOptima. Ne pas demander de créer une clé commune pour résoudre l’accès de tous les clients. Le connecteur et les commandes ci-dessous restent des outils de test, désactivés par défaut. Une connexion individuelle distincte est étudiée dans [PER_CLIENT_ACCESS.md](PER_CLIENT_ACCESS.md), sans être encore validée de bout en bout.
 
 ## Offre identifiée le 1er novembre 2026
 
