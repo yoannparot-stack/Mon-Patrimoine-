@@ -18,6 +18,19 @@ test('furnished and bare are explicit; negation and ambiguity do not become a fu
  assert.equal(api.furnishing('Studio non meublé'),'nu');assert.equal(api.furnishing('Location nue'),'nu');assert.equal(api.furnishing('Studio meublé'),'meuble');
  assert.throws(()=>api.furnishing('Studio avec cuisine équipée'));assert.throws(()=>api.furnishing('Meublé en titre, non meublé dans le texte'));
 });
+test('CC-only evidence is opt-in, does not invent HC and does not relax contradictory data',()=>{
+ assert.throws(()=>api.rentEvidence('Loyer mensuel : 550 € charges comprises'),/HC_UNKNOWN/);
+ assert.deepEqual(api.rentEvidence('Loyer mensuel : 550 € charges comprises',{allowCCOnly:true}),{rentCC:550,basis:'CC explicite',chargesScope:'unknown'});
+ assert.equal(api.rentEvidence('Loyer CC : 550 €. Tout inclus.',{allowCCOnly:true}).chargesScope,'all-inclusive');
+ for(const text of ['550 € par mois','Loyer CC : 550 € ou loyer CC : 650 €','Loyer HC : 500 € Loyer CC : 900 € charges : 40 €'])assert.throws(()=>api.rentEvidence(text,{allowCCOnly:true}));
+});
+test('provider CC-only advertisements yield a separate first-opinion range, never an HC target',async()=>{
+ const items=[0,1,2].map(i=>({...listing(i),description:'Location annuelle. Loyer mensuel : '+(500+i*20)+' € charges comprises.'}));
+ const x=await api.collect(q,{key,professionalUseConfirmed:true,now,wait:async()=>{},fetchImpl:async url=>url.endsWith('/ping')?json(ping()):json({items,has_more:false})});
+ assert.equal(x.modes.meuble.target,null);assert.equal(x.modes.meuble.count,0);
+ const g=x.modes.meuble.advertised.ranges[0];assert.equal(g.basis,'CC');assert.equal(g.median,520);assert.equal(g.usableAsHCTarget,false);
+ assert.equal(x.modes.nu.advertised.status,'insufficient');assert(!JSON.stringify(x).includes('Location annuelle'));
+});
 test('documented filtered search, small sample and no unsupported furnished/source filter',()=>{
  const u=new URL('https://cherchertrouver.immo/api/v1'+api.searchPath(q,{now,pageSize:200}));
  assert.equal(u.searchParams.get('transaction'),'location');assert.equal(u.searchParams.get('ville'),'Tours');assert.equal(u.searchParams.get('page_size'),'8');assert.equal(u.searchParams.get('fresh'),'true');assert.equal(u.searchParams.get('updated_since'),'2026-10-30T12:00:00.000Z');assert(!u.searchParams.has('furnished'));assert(!u.searchParams.has('sources'));

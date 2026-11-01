@@ -1,14 +1,14 @@
 'use strict';
 // Documented API v1 adapter, https://cherchertrouver.immo/api/docs.
 // This module runs ONLY on an operator/server. The API key must never enter an APK.
-const {compare,canonical,validateQuery,publishedAt}=require('./core.cjs');
+const {compare,compareAdvertised,canonical,validateQuery,publishedAt}=require('./core.cjs');
 const DAY=86400000,ROOT='https://cherchertrouver.immo/api/v1';
 const fail=code=>{throw Object.assign(new Error(code),{code})};
 const plain=v=>String(v||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&euro;|&#8364;/gi,'€').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u00a0\u202f]/g,' ').toLowerCase().replace(/\s+/g,' ').trim();
 const money=s=>Number(s.replace(/\s/g,'').replace(',','.'));
 const AMOUNT='([0-9]+(?:[ \\u00a0\\u202f][0-9]{3})*(?:[,.][0-9]{1,2})?)\\s*(?:€|euros?)';
 function uniqueAmounts(text,pattern){return [...new Set([...text.matchAll(new RegExp(pattern,'g'))].map(m=>money(m[1])).filter(Number.isFinite))]}
-function rentEvidence(text){
+function rentEvidence(text,{allowCCOnly=false}={}){
  const t=plain(text);if(t.length>30000)fail('DESCRIPTION_TOO_LARGE');
  // Multiple conflicting amounts remain unknown; the API's generic `price`
  // is never silently treated as HC and absent charges never become zero.
@@ -20,6 +20,7 @@ function rentEvidence(text){
  if(hc.length>1||cc.length>1||charges.length>1)fail('RENT_AMBIGUOUS');
  if(hc.length===1){if(cc.length&&charges.length&&Math.abs(cc[0]-charges[0]-hc[0])>.02)fail('CHARGES_INCONSISTENT');return {rentHC:hc[0],...(cc.length?{rentCC:cc[0]}:{}),...(charges.length?{charges:charges[0]}:{}),basis:'HC explicite'}}
  if(cc.length===1&&charges.length===1&&cc[0]>charges[0])return {rentCC:cc[0],charges:charges[0],basis:'CC moins charges explicites'};
+ if(allowCCOnly&&cc.length===1&&charges.length===0&&cc[0]>0)return {rentCC:cc[0],basis:'CC explicite',chargesScope:/\btout (?:compris|inclus)\b/.test(t)?'all-inclusive':'unknown'};
  fail('HC_UNKNOWN');
 }
 function furnishing(text){
@@ -50,7 +51,7 @@ function searchPath(q,{now=Date.now(),pageSize=8}={}){
  const params={transaction:'location',type:q.family==='maison'?'Maison':'Appartement',ville:q.city,cp:q.postcode,surface_min:String(q.surface*.75),surface_max:String(q.surface*1.25),pieces_min:String(q.rooms),fresh:'true',updated_since:new Date(now-2*DAY).toISOString(),sort:'recent',page_size:String(Math.min(8,Math.max(1,Math.floor(pageSize))))};
  return '/annonces?'+new URLSearchParams(params);
 }
-function mapListing(x,{now=Date.now()}={}){
+function mapListing(x,{now=Date.now(),allowCCOnly=false}={}){
  if(!x||x.transaction_type!=='location'||x.nature!=null||x.price_to_verify!=null||!['Appartement','Maison'].includes(x.type))fail('NOT_STANDARD_RENTAL');
  const updated=Date.parse(x.updated_at),published=publishedAt(x.published_at);
  if(!Number.isFinite(updated)||updated>now+60000||now-updated>2*DAY)fail('PROVIDER_OBSERVATION_OLD');
@@ -59,7 +60,7 @@ function mapListing(x,{now=Date.now()}={}){
  const text=plain(x.title+' '+x.description+' '+(x.price_label||''));
  if(/\b(?:saisonnier[es]*|vacances|tourisme|colocation|colocataire|bail mobilite|bail etudiant|9 mois|par nuit|a la nuit|par semaine|courte duree)\b/.test(text))fail('SHORT_TERM_OR_SHARED');
  if(!/loyer mensuel|par mois|\/mois|longue duree|location annuelle|bail (?:de |d.)?(?:un an|1 an|trois ans|3 ans)|residence principale/.test(text))fail('MONTHLY_TERM_UNKNOWN');
- const mode=furnishing(text),rents=rentEvidence(x.description+' '+(x.legal_info||''));
+ const mode=furnishing(text),rents=rentEvidence(x.description+' '+(x.legal_info||''),{allowCCOnly});
  let url,host;try{url=x.external_url||x.link;host=new URL(url).hostname}catch{fail('SOURCE_URL_UNKNOWN')}
  if(!canonical(url,[host]))fail('SOURCE_URL_UNKNOWN');
  // Only facts needed for the calculation leave the adapter: no description,
@@ -76,12 +77,12 @@ async function collect(q,{key,professionalUseConfirmed=false,fetchImpl=fetch,now
  if(!Array.isArray(body.items)||body.items.length>pageSize||body.degraded===true)fail(body.degraded?'SEARCH_DEGRADED':'PROVIDER_SCHEMA');
  const records=[],registry=new Map(),seenGroups=new Set(),rejected={};
  for(const raw of body.items){try{
-  const r=mapListing(raw,{now});if(r.dedupKey&&seenGroups.has(r.dedupKey))fail('PROVIDER_DUPLICATE');if(r.dedupKey)seenGroups.add(r.dedupKey);
+  const r=mapListing(raw,{now,allowCCOnly:true});if(r.dedupKey&&seenGroups.has(r.dedupKey))fail('PROVIDER_DUPLICATE');if(r.dedupKey)seenGroups.add(r.dedupKey);
   const host=new URL(r.url).hostname;let source=registry.get(r.sourceId);
   if(!source){source={id:r.sourceId,label:'ChercherTrouver · '+String(raw.source||host).slice(0,100),state:'approved',enabled:true,hosts:[],permission:{status:'approved',evidence:'Operator confirms professional API use under provider CGV articles 2–3; minimum factual data, attribution and original links only',reviewedAt:new Date(now).toISOString().slice(0,10)}};registry.set(source.id,source)}
   if(!source.hosts.includes(host))source.hosts.push(host);records.push(r);
  }catch(e){const code=e.code||'MALFORMED_LISTING';rejected[code]=(rejected[code]||0)+1}}
- const sources=[...registry.values()],modes={};for(const mode of ['nu','meuble'])modes[mode]=compare(records.filter(r=>r.mode===mode),sources,{...q,mode},{now});
+ const sources=[...registry.values()],modes={};for(const mode of ['nu','meuble']){const rows=records.filter(r=>r.mode===mode);modes[mode]={...compare(rows,sources,{...q,mode},{now}),advertised:compareAdvertised(rows,sources,{...q,mode},{now})};}
  const remaining=headers.get('X-Quota-Mois-Remaining');
  return {provider:'cherchertrouver',checkedAt:new Date(now).toISOString(),examined:body.items.length,partial:body.has_more===true,rejected,modes,quota:{...quota,remaining:remaining!==null&&/^\d+$/.test(remaining)?Number(remaining):null},coverage:'Petit échantillon de la commune et du code postal, annonces revues par le fournisseur depuis moins de 48 h. Disponibilité à vérifier. Pas de couverture exhaustive ni de garantie de loyers signés.'};
 }

@@ -79,7 +79,7 @@ async function inspectSource(source,{fetchImpl=fetch,now=Date.now()}={}){
 function validateQuery(q){
  if(!q||!['nu','meuble'].includes(q.mode)||!finite(q.surface)||q.surface<9||q.surface>1000||!Number.isInteger(q.rooms)||q.rooms<1||q.rooms>20||!['appartement','maison'].includes(q.family)||!/^\d[A-Z\d]{4}$/.test(q.communeCode||''))error('INVALID_QUERY');return q;
 }
-function normalizeComparable(x,source,q,now){
+function validateRentalFacts(x,source,q,now){
  if(!x||source.state!=='approved'||source.enabled!==true||source.permission?.status!=='approved'||!source.permission.evidence||!Number.isFinite(publishedAt(source.permission.reviewedAt)))error('SOURCE_NOT_APPROVED');
  const url=canonical(x.url,source.hosts||[]);if(!url)error('INVALID_URL');
  if(x.active!==true||x.transaction!=='rent'||x.period!=='month'||x.currency!=='EUR')error('NOT_MONTHLY_ACTIVE_RENTAL');
@@ -87,9 +87,14 @@ function normalizeComparable(x,source,q,now){
  if(x.communeCode!==q.communeCode||x.rooms!==q.rooms||!finite(x.surface)||x.surface<q.surface*.75||x.surface>q.surface*1.25)error('NOT_COMPARABLE');
  const stamp=publishedAt(x.datePublished),observed=Date.parse(x.observedAt);if(!Number.isFinite(stamp)||stamp>now||now-stamp>90*DAY)error('OLD_OR_UNKNOWN_PUBLICATION');
  if(!Number.isFinite(observed)||observed>now+60000||now-observed>DAY)error('OBSERVATION_NOT_CURRENT');
+ return {url,stamp,observed};
+}
+function normalizeComparable(x,source,q,now){
+ const {url,stamp,observed}=validateRentalFacts(x,source,q,now);
  let hc=finite(x.rentHC)?x.rentHC:null,basis='HC explicite';
  if(hc===null&&finite(x.rentCC)&&finite(x.charges)&&x.charges>=0){hc=x.rentCC-x.charges;basis='CC moins charges explicites'}
  if(hc===null||hc<=0||hc>20000)error('HC_UNKNOWN');
+ if(finite(x.rentCC)&&hc>x.rentCC)error('CHARGES_INCONSISTENT');
  if(finite(x.rentCC)&&finite(x.charges)&&(x.charges<0||Math.abs(x.rentCC-x.charges-hc)>.02))error('CHARGES_INCONSISTENT');
  // Conservative fallback merges identical rent/surface/room/commune profiles.
  // It may undercount separate dwellings; it never claims verified uniqueness.
@@ -105,6 +110,56 @@ function compare(records,sources,q,{now=Date.now()}={}){
  const retained=rows.filter(r=>Math.abs(r.rentHC/r.surface-center)<=threshold);if(rows.length!==retained.length)rejected.OUTLIER=rows.length-retained.length;
  const pp=retained.map(r=>r.rentHC/r.surface).sort((a,b)=>a-b),enough=pp.length>=3,round=v=>Math.round(v/5)*5;
  return {checkedAt:new Date(now).toISOString(),status:enough?'indicative':'insufficient',count:retained.length,sourceCount:new Set(retained.map(r=>r.sourceId)).size,target:enough?round(median(pp)*q.surface):null,low:enough?round(pp[0]*q.surface):null,high:enough?round(pp.at(-1)*q.surface):null,rejected,references:retained.map(({fingerprint,...r})=>r),locationScope:'commune',basis:'Loyers annoncés HC, pas loyers signés',coverage:'Sources activées seulement, échantillon non exhaustif'};
+}
+// A first market snapshot may retain an explicitly advertised CC amount even
+// when HC cannot be established. It must NEVER feed an HC financial target.
+// Ranges with different service bundles remain separate, including unknown
+// bundles. A page found in a search index is not proof of current observation.
+function compareAdvertised(records,sources,q,{now=Date.now()}={}){
+ validateQuery(q);if(!Array.isArray(records)||records.length>MAX_ITEMS)error('TOO_MANY_RECORDS');
+ const registry=new Map(sources.map(s=>[s.id,s])),groups=new Map(),rejected={};
+ const reject=code=>{rejected[code]=(rejected[code]||0)+1};
+ for(const x of records){try{
+  const source=registry.get(x?.sourceId);if(!source)error('UNKNOWN_SOURCE');
+  const {url,stamp,observed}=validateRentalFacts(x,source,q,now);
+  const supplied=v=>v!==undefined&&v!==null;
+  for(const key of ['rentHC','rentCC','charges'])if(supplied(x[key])&&(!finite(x[key])||x[key]<0||x[key]>20000))error('INVALID_RENT');
+  if(supplied(x.charges)&&supplied(x.rentCC)&&x.charges>=x.rentCC)error('CHARGES_INCONSISTENT');
+  if(supplied(x.rentHC)&&supplied(x.rentCC)&&x.rentHC>x.rentCC)error('CHARGES_INCONSISTENT');
+  if(supplied(x.rentHC)&&supplied(x.rentCC)&&supplied(x.charges)&&Math.abs(x.rentCC-x.charges-x.rentHC)>.02)error('CHARGES_INCONSISTENT');
+  const scope=x.chargesScope??'unknown';if(!['recoverable','all-inclusive','unknown'].includes(scope))error('CHARGES_SCOPE_UNKNOWN');
+  const hc=supplied(x.rentHC)?x.rentHC:supplied(x.rentCC)&&supplied(x.charges)?x.rentCC-x.charges:null;
+  const offers=[];if(hc>0)offers.push({basis:'HC',bundle:'excluding-charges',amount:hc});
+  if(x.rentCC>0)offers.push({basis:'CC',bundle:scope,amount:x.rentCC});
+  if(!offers.length)error('RENT_BASIS_UNKNOWN');
+  for(const offer of offers){
+   const key=offer.basis+':'+offer.bundle;
+   if(!groups.has(key))groups.set(key,{...offer,rows:[],seen:new Set()});
+   const group=groups.get(key),profile=digest(JSON.stringify([q.mode,q.communeCode,x.rooms,Math.round(x.surface*2),Math.round(offer.amount/5)]));
+   if(group.seen.has(url)||group.seen.has(profile)){reject('DUPLICATE_'+offer.basis);continue}
+   group.seen.add(url);group.seen.add(profile);
+   group.rows.push({url,source:source.label,sourceId:source.id,domain:new URL(url).hostname.replace(/^www\./,''),surface:x.surface,amount:offer.amount,perM2:offer.amount/x.surface,datePublished:new Date(stamp).toISOString().slice(0,10),observedAt:new Date(observed).toISOString()});
+  }
+ }catch(e){reject(e.code||'INVALID_RECORD')}}
+ const median=a=>{const s=[...a].sort((a,b)=>a-b),i=Math.floor(s.length/2);return s.length?s.length%2?s[i]:(s[i-1]+s[i])/2:null};
+ const quantile=(a,p)=>{const at=(a.length-1)*p,i=Math.floor(at);return a[i]+(a[Math.ceil(at)]-a[i])*(at-i)},round=v=>Math.round(v/5)*5;
+ const ranges=[...groups.values()].map(g=>{
+  const middle=median(g.rows.map(r=>r.perM2)),mad=median(g.rows.map(r=>Math.abs(r.perM2-middle))),threshold=Math.max(middle*.3,3*mad);
+  const rows=g.rows.filter(r=>Math.abs(r.perM2-middle)<=threshold),discarded=g.rows.length-rows.length;
+  const values=rows.map(r=>r.perM2).sort((a,b)=>a-b),enough=rows.length>=3,dates=rows.map(r=>r.datePublished).sort(),domains=[...new Set(rows.map(r=>r.domain))].sort();
+  const central=rows.length>=5,uncertainBundle=g.basis==='CC'&&g.bundle==='unknown';
+  return {basis:g.basis,chargesScope:g.bundle,status:enough?'indicative':'insufficient',count:rows.length,sourceCount:domains.length,sourceDomains:domains,
+   low:enough?round((central?quantile(values,.2):values[0])*q.surface):null,
+   median:enough?round(median(values)*q.surface):null,
+   high:enough?round((central?quantile(values,.8):values.at(-1))*q.surface):null,
+   spread:central?'central_60_percent':'observed_min_max',
+   evidenceLevel:!enough?'insufficient':rows.length<5||uncertainBundle?'limited':'indicative',
+   period:dates.length?[dates[0],dates.at(-1)]:[],outliers:discarded,
+   usableAsHCTarget:enough&&g.basis==='HC',
+   caveat:uncertainBundle?'Périmètre des charges non précisé : repère CC limité.':g.bundle==='all-inclusive'?'Services inclus : ne pas comparer directement à un loyer HC.':'Loyers annoncés, pas loyers signés.',
+   references:rows.map(({perM2,domain,...r})=>r)};
+ });
+ return {checkedAt:new Date(now).toISOString(),mode:q.mode,examined:records.length,status:ranges.some(r=>r.status==='indicative')?'indicative':'insufficient',ranges,rejected,countsNotAdditive:true,coverage:'Sources activées seulement ; échantillon non exhaustif. Les plages HC et CC peuvent concerner les mêmes logements.'};
 }
 async function collectApproved(q,sources,{fetchImpl=fetch,now=Date.now()}={}){
  validateQuery(q);const records=[],sourceResults=[];
@@ -122,6 +177,6 @@ async function collectApproved(q,sources,{fetchImpl=fetch,now=Date.now()}={}){
    sourceResults.push({id:source.id,status:'consulted',items:body.records.length});
   }catch(e){sourceResults.push({id:source.id,status:'unavailable',reason:/^[A-Z_0-9]+$/.test(e.code||'')?e.code:'NETWORK_OR_PARSE_ERROR'})}
  }
- return {...compare(records,sources,q,{now}),sourceResults,consultedSources:sourceResults.filter(s=>s.status==='consulted').length};
+ return {...compare(records,sources,q,{now}),advertised:compareAdvertised(records,sources,q,{now}),sourceResults,consultedSources:sourceResults.filter(s=>s.status==='consulted').length};
 }
-module.exports={parseFeed,inspectFeed,inspectSource,robotsAllowed,readPublic,publishedAt,canonical,compare,validateQuery,collectApproved};
+module.exports={parseFeed,inspectFeed,inspectSource,robotsAllowed,readPublic,publishedAt,canonical,compare,compareAdvertised,validateQuery,collectApproved};

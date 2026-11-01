@@ -6,6 +6,14 @@ La clé API commune gratuite ChercherTrouver est écartée pour la production : 
 
 ## État réel
 
+### Fourchettes de loyers annoncés : développement commencé
+
+`compareAdvertised` complète le calcul HC existant : elle conserve une plage CC explicite lorsque les charges ne sont pas détaillées, sans la transformer en cible HC. Les plages HC, CC avec charges récupérables, CC tout compris et CC au périmètre inconnu restent séparées. Le calcul retire les doublons et valeurs atypiques, exige trois références comparables par plage et distingue les dates de publication des observations réelles. À partir de cinq références retenues, la plage présente les quantiles 20–80 %, identifiés comme étendue centrale descriptive et non comme intervalle de confiance. Le niveau d’information reste limité pour un périmètre de charges inconnu.
+
+Le collecteur de flux approuvés et le connecteur de test ChercherTrouver renvoient ce résultat sous `advertised`. Le moteur financier continue d’accepter seulement du HC établi. Les tests utilisent des données synthétiques : ils ne prouvent pas l’accès aux annonces réelles. L’interface Android ne consomme pas encore ce nouveau résultat ; aucune collecte Leboncoin n’est activée et aucun nouvel APK n’est livré au titre de ce développement serveur.
+
+Contrôle Leboncoin : le `robots.txt` et l’article 10.2 des CGU réservent la collecte automatisée à une autorisation. Studissimo, également examiné, limite la réutilisation des contenus au cadre privé dans l’article 4 de ses CGU. Ces sources restent désactivées. La recherche ponctuelle menée dans la conversation ne doit pas être déclarée comme un accès de production depuis ImmOptima.
+
 Dernière vérification : `source-access-review-2026-11-01.json`. La nouvelle piste FlatBay expose une documentation publique de recherche mais l’appel réel sur Tours renvoie 404 ; Deveras autorise un accès gratuit mais couvre le Mexique. Ces deux pistes ne sont pas activées. Un appel réel à la base ANIL a en revanche retrouvé le segment T1/T2 de Tours (INSEE 37261, millésime 2025) ; c’est un repère statistique nu CC, pas une preuve de collecte d’annonces du jour ni de meublé.
 
 **Moteur de collecte et de comparaison développé et testé ; aucune source client activée.** Ce module est indépendant de Yanport, de Firebase Functions et de tout abonnement fournisseur. Il s’exécute avec Node 22 ; il n’est pas encore branché au bouton de collecte de l’APK V19. La V19 conserve ses fonctions et son connecteur existants.

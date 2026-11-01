@@ -22,9 +22,10 @@
     "label": "leboncoin",
     "state": "restricted",
     "enabled": false,
-    "policyUrl": "https://www.leboncoin.fr/dc/cgv_pro",
+    "policyUrl": "https://www.leboncoin.fr/dc/cgu",
     "reviewedAt": "2026-11-01",
-    "reason": "Collecte robotisée conditionnée à une autorisation préalable."
+    "reason": "Article 10.2 des CGU et en-tête robots.txt : collecte automatisée subordonnée à une autorisation expresse. Aucun accès de production ni source client activée ; les exemples de recherche ponctuelle ne constituent pas un connecteur.",
+    "robotsUrl": "https://www.leboncoin.fr/robots.txt"
   },
   {
     "id": "lucilia",
@@ -84,5 +85,14 @@
     "documentationUrl": "https://www.deveras.app/fr/developers",
     "reviewedAt": "2026-11-01",
     "reason": "API gratuite et réutilisation commerciale documentées, mais plateforme située au Quintana Roo (Mexique), sans couverture française vérifiée. Non interrogée pour alimenter un comparatif français."
+  },
+  {
+    "id": "studissimo",
+    "label": "Studissimo",
+    "state": "restricted",
+    "enabled": false,
+    "policyUrl": "https://www.studissimo.fr/cgu",
+    "reviewedAt": "2026-11-01",
+    "reason": "Article 4 : réutilisation dans un cadre privé ; utilisation commerciale interdite sans autorisation. Pas de source activée."
   }
 ]
