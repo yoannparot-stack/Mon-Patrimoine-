@@ -1,5 +1,7 @@
 # Étude d’un accès individuel, sans quota API commun
 
+**Option abandonnée le 1er novembre 2026 à la demande de l’utilisateur.** Aucun compte fournisseur ni connexion supplémentaire ne doit être imposé aux clients ImmOptima. Le précontrôle ci-dessous est conservé comme historique technique, sans poursuite de cette architecture. Voir `CLIENT_MARKET_OPTIONS.md` pour les solutions centralisées examinées ensuite.
+
 ## Contrainte utilisateur
 
 Le quota gratuit de 50 annonces sur 30 jours de ChercherTrouver porte sur tout le compte fournisseur. Une clé ImmOptima commune ne convient donc pas à l’ensemble des clients. Cette piste de production est écartée ; il ne faut plus demander à l’utilisateur de créer une clé commune pour cet objectif.

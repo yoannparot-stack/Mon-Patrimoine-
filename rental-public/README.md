@@ -2,7 +2,7 @@
 
 ## Nouvelle piste sans agence partenaire
 
-La clé API commune ChercherTrouver est écartée pour la production : son quota gratuit est partagé entre tous les utilisateurs. Le [connecteur de test](CHERCHERTROUVER.md) est conservé, sans activation. La piste examinée est désormais une [connexion personnelle par client](PER_CLIENT_ACCESS.md), avec compte et quota fournisseur propres à chacun. Elle ajoute une connexion externe au parcours et doit encore être validée sur Android et sur de vraies données. Toutes les sources restent désactivées.
+La clé API commune gratuite ChercherTrouver est écartée pour la production : son quota est partagé entre tous les utilisateurs. Le [connecteur de test](CHERCHERTROUVER.md) est conservé, sans activation. La [connexion personnelle par client](PER_CLIENT_ACCESS.md) est également abandonnée : l’utilisateur refuse à juste titre une inscription externe imposée aux clients. Les [solutions centralisées examinées](CLIENT_MARKET_OPTIONS.md) comprennent Stream Estate à l’usage, une offre professionnelle ChercherTrouver dimensionnée et les repères publics gratuits. Aucune offre payante n’est souscrite, aucune source n’est activée et aucun nouveau fournisseur n’est intégré dans l’APK.
 
 ## État réel
 

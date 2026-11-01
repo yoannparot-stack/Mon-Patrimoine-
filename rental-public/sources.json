@@ -57,11 +57,11 @@
   {
     "id": "cherchertrouver",
     "label": "ChercherTrouver API",
-    "state": "shared_key_rejected_for_production",
+    "state": "free_shared_quota_rejected_paid_offer_under_assessment",
     "enabled": false,
     "apiUrl": "https://cherchertrouver.immo/api/v1",
     "policyUrl": "https://cherchertrouver.immo/cgv",
     "reviewedAt": "2026-11-01",
-    "reason": "Clé commune écartée : quota de 50 annonces sur 30 jours partagé par tout le compte fournisseur, insuffisant pour les clients. Connexion individuelle OAuth/MCP à l’étude, non validée de bout en bout et non activée."
+    "reason": "Quota gratuit commun insuffisant ; inscription fournisseur par client également refusée. Offre professionnelle centralisée payante seulement à l’étude, non souscrite ni activée."
   }
 ]
