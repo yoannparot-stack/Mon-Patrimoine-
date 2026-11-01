@@ -1,0 +1,19 @@
+name: Validate public rental source engine
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'rental-public/**'
+      - '.github/workflows/rental-public-test.yml'
+jobs:
+  public-rental:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+        working-directory: rental-public
+      - run: npm test
+        working-directory: rental-public

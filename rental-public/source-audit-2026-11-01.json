@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-11-01T19:39:01.106Z",
+  "scope": "Source assessment, not a market valuation",
+  "clientReady": false,
+  "activeSources": 0,
+  "results": [
+    {
+      "id": "citya",
+      "label": "Citya",
+      "checkedAt": "2026-11-01T19:39:01.107Z",
+      "clientEnabled": false,
+      "status": "not_fetched",
+      "reason": "Usage personnel et privé dans les CGU ; accord éditeur nécessaire pour l’intégration commerciale."
+    },
+    {
+      "id": "pap",
+      "label": "PAP",
+      "checkedAt": "2026-11-01T19:39:01.107Z",
+      "clientEnabled": false,
+      "status": "not_fetched",
+      "reason": "Extraction et réutilisation hors usage strictement personnel exclues par les CGU."
+    },
+    {
+      "id": "leboncoin",
+      "label": "leboncoin",
+      "checkedAt": "2026-11-01T19:39:01.107Z",
+      "clientEnabled": false,
+      "status": "not_fetched",
+      "reason": "Collecte robotisée conditionnée à une autorisation préalable."
+    },
+    {
+      "id": "lucilia",
+      "label": "Lucilia B. Immobilier",
+      "checkedAt": "2026-11-01T19:39:01.107Z",
+      "clientEnabled": false,
+      "status": "no_recent_rentals",
+      "items": 982,
+      "recentItems": 0,
+      "rentalItems": 347,
+      "recentRentalItems": 0,
+      "invalidDates": 0,
+      "publicationPeriod": [
+        "2025-11-08",
+        "2025-11-08"
+      ]
+    },
+    {
+      "id": "passetonannonce",
+      "label": "Passetonannonce",
+      "checkedAt": "2026-11-01T19:39:05.619Z",
+      "clientEnabled": false,
+      "status": "no_recent_rentals",
+      "items": 15,
+      "recentItems": 0,
+      "rentalItems": 1,
+      "recentRentalItems": 0,
+      "invalidDates": 0,
+      "publicationPeriod": [
+        "1999-11-29",
+        "1999-11-29"
+      ]
+    }
+  ]
+}
