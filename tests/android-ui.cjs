@@ -1,6 +1,7 @@
 // Captures come from Android's framebuffer after rendering the installed APK.
 const fs=require('fs'),cp=require('child_process'),assert=require('assert/strict'),WebSocket=require('ws');
 const fixture=require('./fixture.cjs'),marketFixture=require('./market-fixture.cjs'),rentalFixture=require('./rental-fixture.cjs'),out='qa-out/android';fs.mkdirSync(out,{recursive:true});
+const advertisedFixture=require('./rental-advertised-fixture.cjs');
 const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
  assert.equal(adb('shell','getprop','ro.kernel.qemu'),'1','QA requires a disposable Android emulator');
@@ -104,6 +105,12 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  assert((await evaluate('db.properties[0].optimization.collectionError.message')).includes('Connectez votre compte'));
  await evaluate('document.querySelector("[data-opt-collect]").scrollIntoView({block:"center"});true');await capture('17-collecte-non-connectee','collecte',true);
 
+ const advertisedResponse=await advertisedFixture(rentalFixture().properties[0]);
+ await evaluate(`immoptimaAuthState={status:'signed_in',uid:'qa-android'};db.properties[0].optimization.references=[];db.properties[0].optimization.scenarios.meuble.target=null;db.properties[0].optimization.collection={...${JSON.stringify(advertisedResponse)},ownerUid:'qa-android',signature:ioOptCollectionSignature(db.properties[0])};ioOptSave();ioOptOpenCompare(db.properties[0].id);document.querySelector('.io-opt-current').textContent+=' · Données de test';true`);
+ assert.equal(await evaluate('ioOptObservedRange(db.properties[0],"meuble").basis'),'CC');assert.equal(await evaluate('ioOptScenario(db.properties[0],"meuble").net'),null);assert.equal(await evaluate('db.properties[0].rentHC'),450);
+ assert(await evaluate('(()=>{const o=document.getElementById("ioOptCompare");return o.scrollWidth<=o.clientWidth&&o.scrollHeight<=o.clientHeight+1})()'),'closed CC comparison fits Android');
+ await capture('18-comparatif-cc-test','studio');
+ await tap('#ioOptReferences summary');await waitFor('document.getElementById("ioOptReferences").open');assert((await evaluate('document.getElementById("ioOptReferences").textContent')).includes('Charges inconnues'));adb('shell','input','keyevent','4');await waitFor('!document.getElementById("ioOptReferences").open');
  adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioOptCompare").hidden');assert.equal(await evaluate('document.querySelector(".page.active").id'),'optimisation');adb('shell','input','keyevent','4');await waitFor('!document.querySelector(".io-opt-property").open');
  await tap('#optimizationHelp summary');await waitFor('document.getElementById("optimizationHelp").open');adb('shell','input','keyevent','4');await waitFor('!document.getElementById("optimizationHelp").open');
  await evaluate(`db=${JSON.stringify(fixture())};renderAll();showPage('dashboard');true`);await tap('#dashboardGraph article');await waitFor('!document.getElementById("ioAnalysisOverlay").hidden');adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioAnalysisOverlay").hidden');

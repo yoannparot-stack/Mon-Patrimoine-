@@ -37,4 +37,17 @@ test('caps paid calls and pagination; no silent retries or invented success',asy
  await assert.rejects(core.collect(q,{now}),/NOT_CONFIGURED/);
  assert.equal(core.summarize([core.normalizeProperty(listing('a'),q,'meuble',now)],q).target,null);
 });
+test('CC-only supplier results reach the descriptive snapshot without entering HC financial references',async()=>{
+ const x=await core.collect(q,{token:'test-only',now,fetchImpl:async u=>{
+  const mode=u.searchParams.get('furnished')==='true'?'meuble':'nu';
+  const hits=[0,1,2].map(i=>{const a=listing('cc-'+i,mode);delete a.marketing.priceHC;a.marketing.priceCC=500+i*20;return a});
+  return new Response(JSON.stringify({total:hits.length,hits}));
+ }});
+ for(const mode of ['nu','meuble']){
+  assert.equal(x.modes[mode].target,null);assert.equal(x.modes[mode].references.length,0);
+  const range=x.modes[mode].advertised.ranges[0];assert.equal(range.basis,'CC');assert.equal(range.median,520);assert.equal(range.usableAsHCTarget,false);
+  assert(range.references.every(r=>r.mode===mode&&r.communeCode==='37261'&&r.propertyId&&r.distanceM===0));
+ }
+ const bad=listing('bad');bad.marketing.priceCC=500;assert.throws(()=>core.normalizeProperty(bad,q,'meuble',now),/inconsistent_charges/);
+});
 module.exports={listing,q,now};

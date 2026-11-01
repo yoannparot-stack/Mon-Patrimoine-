@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'rental-public/**'
+      - 'functions/advertised-ranges.cjs'
       - '.github/workflows/rental-public-test.yml'
 jobs:
   public-rental:
@@ -17,3 +18,16 @@ jobs:
         working-directory: rental-public
       - run: npm test
         working-directory: rental-public
+      - name: Verify operator access without collecting advertisements or spending quota
+        working-directory: rental-public
+        env:
+          IMMOPTIMA_CT_API_KEY: ${{ secrets.IMMOPTIMA_CT_API_KEY }}
+        run: |
+          node <<'JS'
+          (async()=>{
+            const key=process.env.IMMOPTIMA_CT_API_KEY;
+            if(!key){console.log('PROVIDER_ACCESS: NOT_CONFIGURED (no operator credential; no provider request made)');return;}
+            try{const x=await require('./cherchertrouver.cjs').probe(key);console.log('PROVIDER_ACCESS: FREE_PING_OK; remaining='+x.remaining+'; no advertisements collected; production source remains disabled');}
+            catch(e){console.log('PROVIDER_ACCESS: '+(/^[A-Z_]+$/.test(e.code||'')?e.code:'UNAVAILABLE')+'; no advertisements collected; production source remains disabled');}
+          })();
+          JS

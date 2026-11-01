@@ -1,6 +1,7 @@
 const fs=require('node:fs'),http=require('node:http'),assert=require('node:assert/strict'),path=require('node:path');
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright':'playwright');
 const fixture=require('./fixture.cjs'),marketFixture=require('./market-fixture.cjs'),rentalFixture=require('./rental-fixture.cjs');
+const advertisedFixture=require('./rental-advertised-fixture.cjs');
 (async()=>{
  const server=http.createServer((req,res)=>{const js=req.url==='/rental-optimization.js';res.setHeader('Content-Type',js?'application/javascript; charset=utf-8':'text/html; charset=utf-8');res.end(fs.readFileSync(js?'rental-optimization.js':'index.html'))});await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:393,height:851},deviceScaleFactor:2,isMobile:true,hasTouch:true}),errors=[],dialogs=[];
@@ -288,6 +289,14 @@ const fixture=require('./fixture.cjs'),marketFixture=require('./market-fixture.c
  assert((await page.locator('#ioOptReferences').textContent()).includes('Collecte non activée'));assert.equal(await page.evaluate(()=>ioOptEvidence(db.properties[0],'meuble').target),550,'valid prior collection retained after outage');
  await page.reload();await page.waitForTimeout(300);await page.evaluate(()=>{immoptimaAuthState={status:'signed_in',uid:'qa-browser'};showPage('optimisation');ioOptOpenCompare(db.properties[0].id,true)});assert.equal(await page.evaluate(()=>ioOptEvidence(db.properties[0],'meuble').target),550,'automatic references survive reload');
  await page.evaluate(()=>{immoptimaAuthState={status:'signed_in',uid:'another-account'};ioOptOpenCompare(db.properties[0].id,true)});assert.equal(await page.evaluate(()=>ioOptEvidence(db.properties[0],'meuble').target),null,'references from another account never feed a target');assert(!(await page.locator('#ioOptReferences').textContent()).includes('Données de test · annonces.example'));
+ const advertisedResponse=await advertisedFixture(rentalFixture().properties[0]);
+ assert(await page.evaluate(async result=>{immoptimaAuthState={status:'signed_in',uid:'qa-browser'};const p=db.properties[0];p.optimization.references=[];p.optimization.scenarios.meuble.target=null;delete p.optimizationTargetRent;window.AndroidBridge={immoptimaRentalCollect(requestId){window.immoptimaNativeRentalResult({requestId,uid:'qa-browser',result})}};const ok=await ioOptCollect(p);ioOptSave();ioOptOpenCompare(p.id);return ok},advertisedResponse));
+ assert((await page.locator('.io-opt-column.meuble').textContent()).includes('Fourchette CC observée'));assert.equal(await page.evaluate(()=>ioOptScenario(db.properties[0],'meuble').net),null);assert.equal(await page.evaluate(()=>db.properties[0].rentHC),actualValues.rent);
+ for(const [width,height] of [[360,740],[393,851]]){await page.setViewportSize({width,height});await page.waitForTimeout(100);assert(await page.evaluate(()=>{const o=document.getElementById('ioOptCompare');return o.scrollWidth<=o.clientWidth&&o.scrollHeight<=o.clientHeight+1}),'closed CC comparison fits '+width);}
+ await page.evaluate(()=>document.querySelector('.io-opt-current').textContent+=' · Données de test');await shot('24-comparatif-cc-test');
+ await page.locator('#ioOptSettings summary').click();await page.locator('#ioOptSettingsForm [name=target_meuble]').fill('999');await page.locator('[data-opt-refresh]').click();assert((await page.locator('#ioOptModalStatus').textContent()).includes('Enregistrez'));
+ await page.evaluate(()=>ioOptOpenCompare(db.properties[0].id));await page.locator('[data-opt-refresh]').click();await page.waitForFunction(()=>!ioOptBusy&&document.getElementById('ioOptModalStatus').textContent.includes('actualisé'),{},{timeout:15000});assert.equal(await page.evaluate(()=>db.properties[0].rentHC),actualValues.rent);
+ await page.locator('#ioOptCompare [data-opt-close]').click();await page.reload();await page.waitForTimeout(300);await page.evaluate(()=>{immoptimaAuthState={status:'signed_in',uid:'qa-browser'};showPage('optimisation');ioOptOpenCompare(db.properties[0].id)});assert.equal(await page.evaluate(()=>ioOptObservedRange(db.properties[0],'meuble').basis),'CC');
  await page.evaluate(data=>{db=data;ioOptCloseCompare();ioOptOpenId=null;ioOptState('');renderAll();showPage('dashboard')},fixture());
 
  assert.deepEqual(errors,[],'browser runtime errors');

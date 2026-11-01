@@ -2,6 +2,7 @@
 // Adapter based on yanport/yanport-api-doc: /properties, Property, Marketing,
 // Features, Address and AdRef. Never infer HC from an ambiguous `price`.
 const {createHash}=require('node:crypto');
+const {summarizeAdvertisedGroups}=require('./advertised-ranges.cjs');
 const DAY=86400000, PAGE=50, MAX_PAGES=2;
 const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const num=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
@@ -21,7 +22,7 @@ function providerUrl(q,mode,offset,now){
  const p={source:'AD',active:'true',marketingTypes:'RENT',propertyTypes:q.family==='maison'?'HOUSE':'APARTMENT',furnished:String(mode==='meuble'),zipCodes:q.postcode,surfaceMin:String(q.surface*.75),surfaceMax:String(q.surface*1.25),roomCounts:String(q.rooms),publicationDateMin:new Date(now-90*DAY).toISOString().slice(0,10),sort:`address.location:geo:${q.lat}:${q.lon}`,from:String(offset),size:String(PAGE)};
  u.search=new URLSearchParams(p).toString();return u;
 }
-function normalizeProperty(x,q,mode,now){
+function normalizeProperty(x,q,mode,now,{allowCCOnly=false}={}){
  const m=x.marketing||{},g=x.features?.geometry||{},d=x.features?.descriptive||{},a=x.address||{},f=d.equipments?.FURNITURE;
  if(x.source!=='AD'||m.type!=='RENT'||m.active!==true)fail('inactive_or_not_rental');
  if(x.type!==(q.family==='maison'?'HOUSE':'APARTMENT')||f!==(mode==='meuble'))fail('type_or_furniture_unknown');
@@ -35,13 +36,24 @@ function normalizeProperty(x,q,mode,now){
  if(!date||stamp>now+DAY||now-stamp>90*DAY)fail('date_unknown_or_old');
  let hc=num(m.priceHC),basis='HC explicite';
  if(hc===null&&num(m.priceCC)!==null&&num(m.rentalExpenses)!==null&&m.rentalExpenses>=0){hc=m.priceCC-m.rentalExpenses;basis='CC moins charges explicites'}
- if(hc===null||hc<=0||hc>20000)fail('charges_or_hc_unknown');
- if(num(m.priceCC)!==null&&num(m.rentalExpenses)!==null&&Math.abs(m.priceCC-m.rentalExpenses-hc)>2)fail('inconsistent_charges');
+ const cc=num(m.priceCC),expenses=num(m.rentalExpenses);
+ if(expenses!==null&&expenses<0||cc!==null&&(cc<=0||cc>20000)||hc!==null&&(hc<=0||hc>20000))fail('inconsistent_charges');
+ if(hc===null&&(!allowCCOnly||cc===null))fail('charges_or_hc_unknown');
+ if(cc!==null&&hc!==null&&hc>cc||cc!==null&&expenses!==null&&expenses>=cc)fail('inconsistent_charges');
+ if(cc!==null&&expenses!==null&&hc!==null&&Math.abs(cc-expenses-hc)>.02)fail('inconsistent_charges');
  const urls=[...new Set((Array.isArray(x.ads)?x.ads.slice(0,20):[]).map(v=>safeUrl(v.url)).filter(Boolean))].sort();
  if(!urls.length||typeof x.id!=='string'||!x.id||x.id.length>100)fail('source_unknown');
  const address=a.street&&a.streetNumber?norm(a.streetNumber+' '+a.street):`${Math.round(a.location.lat*5000)},${Math.round(a.location.lon*5000)}`;
- const fingerprint=createHash('sha256').update([norm(a.city),address,g.roomCount,Math.round(g.surface*2),round(hc)].join('|')).digest('hex');
- return {id:'yanport:'+x.id,aggregateId:String(x.aggregatePropertyId||x.id),fingerprint,mode,source:'Yanport · '+new URL(urls[0]).hostname,url:urls[0],urls,date,rentHC:hc,surface:g.surface,rooms:g.roomCount,communeCode:q.communeCode,family:q.family,distanceM:Math.round(dist),basis,provenance:'provider',verified:false};
+ const fingerprint=createHash('sha256').update([norm(a.city),address,g.roomCount,Math.round(g.surface*2),hc===null?'CC':'HC',round(hc??cc)].join('|')).digest('hex');
+ return {id:'yanport:'+x.id,aggregateId:String(x.aggregatePropertyId||x.id),fingerprint,mode,source:'Yanport · '+new URL(urls[0]).hostname,url:urls[0],urls,date,...(hc!==null?{rentHC:hc}:{}),...(cc!==null?{rentCC:cc}:{}),chargesScope:/tout (?:compris|inclus)/.test(text)?'all-inclusive':'unknown',surface:g.surface,rooms:g.roomCount,communeCode:q.communeCode,family:q.family,distanceM:Math.round(dist),basis:hc===null?'CC explicite':basis,provenance:'provider',verified:false};
+}
+function advertised(rows,q,mode,now){
+ const groups=new Map();
+ for(const r of rows){const offers=[];if(num(r.rentHC)!==null)offers.push({basis:'HC',bundle:'excluding-charges',amount:r.rentHC});if(num(r.rentCC)!==null)offers.push({basis:'CC',bundle:r.chargesScope,amount:r.rentCC});
+  for(const offer of offers){const key=offer.basis+':'+offer.bundle;if(!groups.has(key))groups.set(key,{...offer,rows:[]});groups.get(key).rows.push({url:r.url,source:r.source,sourceId:'yanport',propertyId:r.aggregateId,domain:new URL(r.url).hostname.replace(/^www\./,''),mode:r.mode,family:r.family,communeCode:r.communeCode,rooms:r.rooms,distanceM:r.distanceM,surface:r.surface,amount:offer.amount,perM2:offer.amount/r.surface,datePublished:r.date,observedAt:new Date(now).toISOString()});}
+ }
+ const ranges=summarizeAdvertisedGroups([...groups.values()],q.surface);
+ return {checkedAt:new Date(now).toISOString(),mode,examined:rows.length,status:ranges.some(g=>g.status==='indicative')?'indicative':'insufficient',ranges,countsNotAdditive:true};
 }
 function summarize(rows,q){
  if(rows.length<3)return {target:null,low:null,high:null,count:rows.length,confidence:'insufficient'};
@@ -65,10 +77,10 @@ async function collect(q,{token,fetchImpl=fetch,now=Date.now()}={}){
    if(!truncated||!body.hits.length)break;
   }
   const rejected={},seen=new Set(),rows=[];
-  for(const x of raw){try{const r=normalizeProperty(x,q,mode,now),keys=[r.id,'aggregate:'+r.aggregateId,'fingerprint:'+r.fingerprint,...r.urls];const duplicate=keys.some(k=>seen.has(k));keys.forEach(k=>seen.add(k));if(duplicate)fail('duplicate');rows.push(r)}catch(e){const k=e.code||'malformed';rejected[k]=(rejected[k]||0)+1}}
-  const center=median(rows.map(r=>r.rentHC/r.surface)),mad=median(rows.map(r=>Math.abs(r.rentHC/r.surface-center))),threshold=Math.max(center*.3,3*(mad||0));
-  const retained=rows.filter(r=>Math.abs(r.rentHC/r.surface-center)<=threshold);if(rows.length!==retained.length)rejected.outlier=rows.length-retained.length;
-  result.modes[mode]={...summarize(retained,q),references:retained.map(({fingerprint,aggregateId,...r})=>({...r,urls:r.urls.slice(0,2)})),examined:raw.length,rejected,truncated,period:retained.length?[...retained.map(r=>r.date)].sort().filter((_,i,a)=>i===0||i===a.length-1):[]};
+  for(const x of raw){try{const r=normalizeProperty(x,q,mode,now,{allowCCOnly:true}),keys=[r.id,'aggregate:'+r.aggregateId,'fingerprint:'+r.fingerprint,...r.urls];const duplicate=keys.some(k=>seen.has(k));keys.forEach(k=>seen.add(k));if(duplicate)fail('duplicate');rows.push(r)}catch(e){const k=e.code||'malformed';rejected[k]=(rejected[k]||0)+1}}
+  const hcRows=rows.filter(r=>num(r.rentHC)!==null),center=median(hcRows.map(r=>r.rentHC/r.surface)),mad=median(hcRows.map(r=>Math.abs(r.rentHC/r.surface-center))),threshold=Math.max(center*.3,3*(mad||0));
+  const retained=hcRows.filter(r=>Math.abs(r.rentHC/r.surface-center)<=threshold);if(hcRows.length!==retained.length)rejected.outlier=hcRows.length-retained.length;
+  result.modes[mode]={...summarize(retained,q),advertised:advertised(rows,q,mode,now),references:retained.map(({fingerprint,aggregateId,...r})=>({...r,urls:r.urls.slice(0,2)})),examined:raw.length,rejected,truncated,period:retained.length?[...retained.map(r=>r.date)].sort().filter((_,i,a)=>i===0||i===a.length-1):[]};
  }
  return result;
 }
