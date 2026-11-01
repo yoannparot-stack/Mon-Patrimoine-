@@ -63,5 +63,26 @@
     "policyUrl": "https://cherchertrouver.immo/cgv",
     "reviewedAt": "2026-11-01",
     "reason": "Quota gratuit commun insuffisant ; inscription fournisseur par client également refusée. Offre professionnelle centralisée payante seulement à l’étude, non souscrite ni activée."
+  },
+  {
+    "id": "flatbay",
+    "label": "FlatBay public search API",
+    "state": "unavailable_and_reuse_unconfirmed",
+    "enabled": false,
+    "apiUrl": "https://flatbay.fr/api/search",
+    "policyUrl": "https://flatbay.fr/fr/cgu",
+    "documentationUrl": "https://flatbay.fr/fr/procedure/show?file=api.md",
+    "reviewedAt": "2026-11-01",
+    "reason": "Route de recherche sans authentification documentée, mais appel réel filtré sur Tours : HTTP 404. Robots accessible (HTTP 200). Les CGU ne constituent pas une licence générale de réutilisation commerciale. Aucun détail de propriété ni donnée de candidat consulté."
+  },
+  {
+    "id": "deveras",
+    "label": "Deveras open listings API",
+    "state": "outside_france",
+    "enabled": false,
+    "apiUrl": "https://www.deveras.app/api/v1/listings",
+    "documentationUrl": "https://www.deveras.app/fr/developers",
+    "reviewedAt": "2026-11-01",
+    "reason": "API gratuite et réutilisation commerciale documentées, mais plateforme située au Quintana Roo (Mexique), sans couverture française vérifiée. Non interrogée pour alimenter un comparatif français."
   }
 ]

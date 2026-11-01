@@ -1,0 +1,42 @@
+{
+  "reviewedAt": "2026-11-01T21:09:59.914349+00:00",
+  "scope": "Premier avis locatif automatique nu/meuble sans compte fournisseur client",
+  "activeNewClientSources": 0,
+  "newClientCollectionOperational": false,
+  "apkChanged": false,
+  "paidSubscriptionCreated": false,
+  "checks": [
+    {
+      "source": "FlatBay",
+      "kind": "live_public_documented_endpoint",
+      "robotsHttpStatus": 200,
+      "searchHttpStatus": 404,
+      "query": {
+        "city": "Tours",
+        "transaction": "rent"
+      },
+      "rawAdvertisementsStored": false
+    },
+    {
+      "source": "Deveras",
+      "kind": "primary_documentation_review",
+      "apiFree": true,
+      "commercialReuseDocumented": true,
+      "advertisedGeography": "Quintana Roo, Mexico",
+      "frenchCoverageVerified": false
+    },
+    {
+      "source": "ANIL/OLL",
+      "kind": "existing_open_statistical_reference",
+      "furnishedCurrentAdvertisements": false
+    },
+    {
+      "source": "Stream Estate",
+      "kind": "public_schema_and_commercial_terms_review",
+      "authenticatedRealListingsTested": false,
+      "operatorAccountRequired": true,
+      "customerExternalAccountRequired": false
+    }
+  ],
+  "remainingBlocker": "Aucune source d’annonces françaises actuelles nu et meublé validée de bout en bout sous un accès disponible pour ImmOptima. Accès opérateur nécessaire pour tester un agrégateur ; aucune activation payante autorisée par cette étude."
+}

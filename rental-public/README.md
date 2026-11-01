@@ -6,6 +6,8 @@ La clé API commune gratuite ChercherTrouver est écartée pour la production : 
 
 ## État réel
 
+Dernière vérification : `source-access-review-2026-11-01.json`. La nouvelle piste FlatBay expose une documentation publique de recherche mais l’appel réel sur Tours renvoie 404 ; Deveras autorise un accès gratuit mais couvre le Mexique. Ces deux pistes ne sont pas activées. Un appel réel à la base ANIL a en revanche retrouvé le segment T1/T2 de Tours (INSEE 37261, millésime 2025) ; c’est un repère statistique nu CC, pas une preuve de collecte d’annonces du jour ni de meublé.
+
 **Moteur de collecte et de comparaison développé et testé ; aucune source client activée.** Ce module est indépendant de Yanport, de Firebase Functions et de tout abonnement fournisseur. Il s’exécute avec Node 22 ; il n’est pas encore branché au bouton de collecte de l’APK V19. La V19 conserve ses fonctions et son connecteur existants.
 
 Le manque actuel est une source d’annonces à la fois récente, suffisamment documentée et réutilisable dans l’application. Une page publique, un résultat de moteur de recherche ou un `robots.txt` permissif ne constitue pas à lui seul une autorisation de réutilisation commerciale.
