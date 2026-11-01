@@ -83,3 +83,19 @@ L’entrée Financement est retirée de Plus. Les anciens liens sont redirigés 
 PDF : choix Synthèse, Détail ou Synthèse + détail. La synthèse présente les charges propriétaire et le cash-flow avant fiscalité ; le détail affiche taxe foncière annuelle, charges non récupérables mensuelles, PNO, autres dépenses, valeurs, CRD, assurances et échéances théoriques des prêts. NR distingue les champs absents de zéro. Les totaux locatifs excluent les crédits non rattachés, listés dans le détail. Montants à deux décimales.
 
 Tests : redirection des anciens accès, dix destinations dans Plus, CRUD des crédits et prêt à taux zéro, persistance, mise à jour croisée, formats PDF et données manquantes. Les dialogues finaux d’enregistrement/partage restent à confirmer sur le téléphone.
+
+
+## V19 — Collecte locative automatique Nu / Meublé (1er novembre 2026)
+
+- Connecteur Yanport documenté, filtrage HC/CC, durée longue, mobilier explicite, commune/rayon, pièces/surface, date, doublons et loyers atypiques ; aucun supplément meublé forfaitaire.
+- Service Firebase authentifié, accès par compte, quotas transactionnels, bornes de pagination et secret fournisseur exclusivement côté serveur. Le code et le guide d’activation sont livrés ; le service et le contrat fournisseur ne sont pas activés.
+- Android transporte le jeton Firebase sans l’exposer à JavaScript. Callback isolé par compte, délais et taille plafonnés, endpoint HTTPS fixe, redirections refusées.
+- Références automatiques séparées des références personnelles, conservation après erreur jusqu’à expiration, invalidation après 24 h/changement de compte/caractéristiques, sauvegarde JSON testée. Les loyers et crédits réels restent inchangés.
+- Tests locaux : calculs financiers existants, comparatif locatif, callbacks natifs simulés et 6 groupes de tests backend/contrôle d’accès réussis. Les tests fournisseur utilisent des réponses de test conformes à la documentation ; aucun appel fournisseur authentifié réel n’a été effectué.
+- CI navigateur et compilation/signature Android : succès, [exécution 41326617993](https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/41326617993). Aucun incident JavaScript dans les 32 groupes de contrôles navigateur.
+- APK installé et testé sur émulateur Android API 35, écran 1080 × 2400 : navigation, tactile, bouton collecte, refus natif sans authentification, retour arrière, analyses, Banque, Marché et rechargement local réussis. Captures issues du framebuffer de l’APK avec portefeuille synthétique de validation, pas d’annonces réellement collectées.
+- Les contrôles Firestore de refus des lectures/écritures/suppressions clientes sur activation, accès et quotas ont réussi : [exécution 41326445429](https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/41326445429).
+- APK : package `com.immoptima.app`, versionCode `19`, versionName `1.3.2-preview`. SHA-256 `96afe0c8733622e7954922b4571ef792b17c99b227909321fdbc19fb1c60305b`. Les fichiers HTML/JS intégrés correspondent exactement aux sources validées. Certificat identique à la V18 : SHA-256 `fed154b7a4201230dabe6c08d1365d471d62464dbbc596ca37c383479cbbee35`.
+- Sauvegarde d’origine contrôlée intacte : `c4fab83a5895dba8ebc3a6d4bc76ee2f8a302a87`.
+
+Restent avant ouverture de la collecte réelle : accès et droits de restitution/conservation Yanport, déploiement Firebase administrateur, activation nominative et essai de bout en bout avec les réponses fournisseur réelles, leurs filtres et la facturation. La couverture de tous les sites n’est pas promise. Voir `COLLECTE_LOCATIVE.md`.
