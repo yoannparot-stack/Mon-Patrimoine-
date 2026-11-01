@@ -11,13 +11,31 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  // from this unrelated launcher; this emulator is discarded after the job.
  adb('shell','pm','disable-user','--user','0','com.android.launcher3');
  adb('shell','am','force-stop','com.android.launcher3');
- let targets;for(let i=0;i<40;i++){await wait(500);try{const pid=adb('shell','pidof','com.immoptima.app');adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid);targets=await fetch('http://127.0.0.1:9222/json').then(r=>r.json());if(targets.some(t=>t.url.includes('appassets')))break}catch{}}
- const target=targets?.find(t=>t.url.includes('appassets'));assert(target,'WebView debugging target unavailable');
- const ws=new WebSocket(target.webSocketDebuggerUrl);await new Promise((r,j)=>{ws.on('open',r);ws.on('error',j)});let seq=0;const pending=new Map();ws.on('message',d=>{const msg=JSON.parse(d);if(msg.id&&pending.has(msg.id)){const {r,j,t}=pending.get(msg.id);clearTimeout(t);pending.delete(msg.id);msg.error?j(Error(msg.error.message)):r(msg.result)}});
- const cmd=(method,params={})=>new Promise((r,j)=>{const id=++seq,t=setTimeout(()=>{pending.delete(id);j(Error('CDP timeout: '+method))},15000);pending.set(id,{r,j,t});ws.send(JSON.stringify({id,method,params}))});
+ // API-35 can recreate WebView while installing its first provider/configuration.
+ // Reconnect only during startup; once user-interaction assertions begin, errors fail normally.
+ let ws,seq=0;const pending=new Map();
+ const connect=async()=>{
+  ws?.close();let target;
+  for(let i=0;i<40;i++){await wait(500);try{const pid=adb('shell','pidof','com.immoptima.app');adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid);const targets=await fetch('http://127.0.0.1:9222/json').then(r=>r.json());target=targets.find(t=>t.url.includes('appassets'));if(target)break}catch{}}
+  assert(target,'WebView debugging target unavailable');const socket=new WebSocket(target.webSocketDebuggerUrl);ws=socket;
+  await new Promise((r,j)=>{socket.once('open',r);socket.once('error',j)});
+  socket.on('message',d=>{const msg=JSON.parse(d);if(msg.id&&pending.has(msg.id)){const {r,j,t}=pending.get(msg.id);clearTimeout(t);pending.delete(msg.id);msg.error?j(Error(msg.error.message)):r(msg.result)}});
+  socket.on('close',()=>{if(socket!==ws)return;for(const {j,t} of pending.values()){clearTimeout(t);j(Error('CDP connection closed'))}pending.clear()});
+ };
+ const cmd=(method,params={})=>new Promise((r,j)=>{const id=++seq,t=setTimeout(()=>{pending.delete(id);j(Error('CDP timeout: '+method))},15000);pending.set(id,{r,j,t});ws.send(JSON.stringify({id,method,params}),err=>{if(err){clearTimeout(t);pending.delete(id);j(err)}})});
  const evaluate=async expression=>{const v=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(v.exceptionDetails)throw Error(JSON.stringify(v.exceptionDetails));return v.result.value};
- let ready;for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}fs.writeFileSync(out+'/webview-ready.json',JSON.stringify(ready,null,2));assert.equal(ready.save,'function','application document must finish loading before data injection');
- await evaluate(`localStorage.setItem('immoptima_welcome_v1','seen');document.getElementById('immoptimaWelcome')?.remove();db=(${fixture.toString()})();localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll();showPage('dashboard');true`);
+ let ready,initialized=false;
+ for(let attempt=0;attempt<3&&!initialized;attempt++){
+  try{
+   await connect();
+   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}
+   fs.writeFileSync(out+'/webview-ready.json',JSON.stringify(ready,null,2));assert.equal(ready.state,'complete','wait for the full application document before injecting data');assert.equal(ready.save,'function');
+   await evaluate(`localStorage.setItem('immoptima_welcome_v1','seen');document.getElementById('immoptimaWelcome')?.remove();db=(${fixture.toString()})();localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll();showPage('dashboard');true`);
+   // A second response confirms that the renderer survived startup/recreation.
+   assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);initialized=true;
+  }catch(error){if(!/CDP timeout|CDP connection closed|WebSocket.*not open|Execution context.*destroyed/.test(error.message)||attempt===2)throw error;console.log('Startup WebView reconnected after provider/configuration recreation');}
+ }
+ assert(initialized,'stable Android WebView startup');
  const waitFor=async expression=>{for(let i=0;i<24;i++){if(await evaluate(expression))return;await wait(250)}throw Error('Android condition not reached: '+expression)};
  const uiNodes=()=>{try{adb('shell','uiautomator','dump','/sdcard/immoptima-qa-window.xml')}catch(e){if(e.status!==137||!String(e.stdout).includes('dumped to:'))throw e;}return adb('shell','cat','/sdcard/immoptima-qa-window.xml').match(/<node\b[^>]*>/g)||[]};
  const bounds=node=>{const m=node.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);assert(m,'native bounds');return m.slice(1).map(Number)};
