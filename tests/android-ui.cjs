@@ -66,12 +66,12 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  await tap('#properties .io-list-open');await waitFor('!document.getElementById("ioPropertyDetailOverlay").hidden');adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioPropertyDetailOverlay").hidden');
  await evaluate("db.properties=db.properties.filter(p=>p.id!=='qa-list-third');renderProperties();showPage('dashboard');true");
  await evaluate("showPage('banque');true");await waitFor('document.body.classList.contains("io-bank-fit")');
- assert(await evaluate('(()=>{const h=document.querySelector(".io-bank-help summary").getBoundingClientRect(),n=document.getElementById("nav").getBoundingClientRect();return document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth&&h.bottom<=n.top})()'),'bank C fits the Android screen');
+ assert(await evaluate('(()=>{const h=document.querySelector("#bankMobile .io-bank-help summary").getBoundingClientRect(),n=document.getElementById("nav").getBoundingClientRect();return document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth&&h.bottom<=n.top})()'),'bank C fits the Android screen');
  await capture('10-banque-c-replie','immoptima');
  await tap('#bankMobile .io-bank-property summary');await waitFor('document.querySelector("#bankMobile .io-bank-property").open');await capture('11-banque-c-ouvert','immoptima');
  adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#bankMobile .io-bank-property").open');assert.equal(await evaluate('document.querySelector(".page.active").id'),'banque');
- await waitFor('document.body.classList.contains("io-bank-fit")&&document.querySelector(".io-bank-help summary").getBoundingClientRect().bottom<=document.getElementById("nav").getBoundingClientRect().top');
- await tap('#bankMobile .io-bank-help summary');await waitFor('document.querySelector(".io-bank-help").open');adb('shell','input','keyevent','4');await waitFor('!document.querySelector(".io-bank-help").open');
+ await waitFor('document.body.classList.contains("io-bank-fit")&&document.querySelector("#bankMobile .io-bank-help summary").getBoundingClientRect().bottom<=document.getElementById("nav").getBoundingClientRect().top');
+ await tap('#bankMobile .io-bank-help summary');await waitFor('document.querySelector("#bankMobile .io-bank-help").open');adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#bankMobile .io-bank-help").open');
  await evaluate("showPage('financement');true");await waitFor('!document.getElementById("bankFinanceMount").hidden');assert.equal(await evaluate('document.querySelector(".page.active").id'),'banque');assert.equal(await evaluate('pages.some(p=>p[0]==="financement")'),false);
  await capture('12-financements-integres','immoptima');
  await evaluate("openLoanForm('qa-credit-tours');true");assert.equal(await evaluate('document.querySelector("#loanFormWrap [name=bank]").value'),'Banque de démonstration');
