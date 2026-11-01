@@ -1,0 +1,9 @@
+node_modules/
+functions/.env*
+!functions/.env.example
+*service-account*.json
+*private-key*.json
+.firebase/
+firebase-debug.log
+functions/firebase-debug.log
+__pycache__/

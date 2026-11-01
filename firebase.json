@@ -10,5 +10,19 @@
     "ui": {
       "enabled": false
     }
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "rental",
+      "runtime": "nodejs22",
+      "ignore": [
+        "node_modules",
+        ".env*",
+        "test",
+        ".git",
+        "*-debug.log"
+      ]
+    }
+  ]
 }

@@ -8,6 +8,9 @@ on:
       - '.github/workflows/build.yml'
       - 'index.html'
       - 'rental-optimization.js'
+      - 'functions/**'
+      - 'android-rental-patch.py'
+      - 'firebase.json'
       - 'tests/**'
       - 'android-ux-patch.py'
       - 'qa_android.js'
@@ -88,7 +91,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 18/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 19/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -108,6 +111,7 @@ jobs:
           python3 android-firebase-patch.py "$ROOT"
           python3 android-auth-patch.py "$ROOT"
           python3 android-cloud-sync-patch.py "$ROOT"
+          python3 android-rental-patch.py "$ROOT"
           python3 android-ux-patch.py "$ROOT"
 
       - name: Set up Java
@@ -132,6 +136,8 @@ jobs:
           node qa_cloud_sync_gate.js
           node tests/finance.cjs
           node tests/rental.cjs
+          node tests/rental-collection.cjs
+          node --test functions/test/*.test.cjs
 
       - name: Set up browser regression tests
         uses: actions/setup-node@v4
