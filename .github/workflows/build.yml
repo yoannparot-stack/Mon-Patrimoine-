@@ -7,6 +7,7 @@ on:
       - 'Mon_Patrimoine_V1.3.2_ANDROID_PREVIEW_GITHUB.zip'
       - '.github/workflows/build.yml'
       - 'index.html'
+      - 'rental-optimization.js'
       - 'tests/**'
       - 'android-ux-patch.py'
       - 'qa_android.js'
@@ -77,6 +78,7 @@ jobs:
           mkdir -p "$(dirname "$ASSET_FILE")"
           test -f index.html
           cp index.html "$ASSET_FILE"
+          cp rental-optimization.js "$(dirname "$ASSET_FILE")/rental-optimization.js"
           test -s "$ASSET_FILE"
           echo "HTML Android mis à jour : $ASSET_FILE"
           wc -c "$ASSET_FILE"
@@ -86,7 +88,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 17/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 18/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -129,6 +131,7 @@ jobs:
           node qa_portfolio_sync.js
           node qa_cloud_sync_gate.js
           node tests/finance.cjs
+          node tests/rental.cjs
 
       - name: Set up browser regression tests
         uses: actions/setup-node@v4

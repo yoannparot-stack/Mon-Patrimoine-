@@ -1,0 +1,14 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const fixture=require('./rental-fixture.cjs');
+const ctx={URL,URLSearchParams,Map,Set,Date,Math,Number,JSON,console,AbortController,setTimeout,clearTimeout,ioToday:()=>new Date().toISOString().slice(0,10),ioDate:d=>/^\d{4}-\d{2}-\d{2}$/.test(d||'')&&!Number.isNaN(new Date(d+'T00:00:00').getTime())?new Date(d+'T00:00:00'):null};vm.createContext(ctx);vm.runInContext(fs.readFileSync('rental-optimization.js','utf8'),ctx);const run=s=>vm.runInContext(s,ctx),near=(a,b)=>assert(Math.abs(a-b)<1e-7,`${a} != ${b}`);ctx.p=fixture().properties[0];
+let s=run("ioOptScenario(p,'meuble')");near(s.target,520);near(s.gross,70);near(s.net,50);near(s.annual,600);near(s.payback,24);assert(s.actionable);assert.equal(s.evidence.count,3);
+run("p.optimization.scenarios.meuble.extraMonthly=null");assert.equal(run("ioOptScenario(p,'meuble').net"),null);
+ctx.p=fixture().properties[0];run("p.optimization.scenarios.meuble.vacancy=10");near(run("ioOptScenario(p,'meuble').net"),-2);assert(!run("ioOptScenario(p,'meuble').actionable"));
+ctx.p=fixture().properties[0];run("p.dpe='F'");assert(!run("ioOptScenario(p,'meuble').actionable"));run("p.optimization.usage='residence'");assert(run("ioOptScenario(p,'meuble').excluded"));
+ctx.p=fixture().properties[0];run('p.rentHC=0');near(run("ioOptScenario(p,'meuble').net"),500);
+ctx.p=fixture().properties[0];run("p.optimization.references.forEach(x=>x.date='2020-01-01')");assert.equal(run("ioOptEvidence(p,'meuble').target"),null);
+ctx.p=fixture().properties[0];run("p.optimization.references.forEach(x=>x.communeCode='75056')");assert.equal(run("ioOptEvidence(p,'meuble').count"),0);
+ctx.p=fixture().properties[0];run("p.optimization.references.forEach(x=>x.url='https://exemple.test/same')");assert.equal(run("ioOptEvidence(p,'meuble').count"),1);
+ctx.p=fixture().properties[0];const before=JSON.stringify(ctx.p);assert.throws(()=>run("ioOptAddReferences(p,[{mode:'nu'}])"));assert.equal(JSON.stringify(ctx.p),before,'bad imports are atomic');
+ctx.p=fixture().properties[0];run('p.optimization.references=[];p.optimization.analysis={signature:ioOptSignature(p),sources:[{family:"anil",year:new Date().getFullYear()-1,referenceSurface:37,point:15,low:13,high:18,r2:.7,observations:100}]}');near(run("ioOptEvidence(p,'nu').target"),415);assert.equal(run("ioOptEvidence(p,'meuble').target"),null,'no furnished premium invented from ANIL');run('p.surface=15;p.optimization.analysis.signature=ioOptSignature(p)');assert.equal(run("ioOptEvidence(p,'nu').target"),null,'small dwelling not treated as the reference property');
+console.log('PASS rental comparison: real evidence filters/deduplication, HC/CC separation, signed gains, costs/vacancy/payback, blocked/excluded/unknown and atomic imports');
