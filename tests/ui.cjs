@@ -1,6 +1,6 @@
 const fs=require('node:fs'),http=require('node:http'),assert=require('node:assert/strict'),path=require('node:path');
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright':'playwright');
-const fixture=require('./fixture.cjs');
+const fixture=require('./fixture.cjs'),marketFixture=require('./market-fixture.cjs');
 (async()=>{
  const server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(fs.readFileSync('index.html'))});await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:393,height:851},deviceScaleFactor:2,isMobile:true,hasTouch:true}),errors=[],dialogs=[];
@@ -171,6 +171,41 @@ const fixture=require('./fixture.cjs');
  await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},fixture());
  assert((await page.locator('#dashboardGraph .io-tile-title').first().textContent()).includes('MON PATRIMOINE NET'));
  await page.evaluate(()=>immoptimaOpenAnalysis('wealth'));assert((await page.locator('#ioAnalysisTitle').textContent()).includes('Mon patrimoine net'));assert(await page.getByRole('button',{name:'Récap',exact:true}).isVisible());await page.evaluate(()=>immoptimaCloseAnalysis());
+ // Market C keeps matched financial scope, a vertical portfolio list and explicit unknown/error states.
+ await page.evaluate(data=>{db=data;ioMarketOpenId=null;marketSave({checkedAt:new Date().toISOString(),results:{}});marketStatus('');renderAll();showPage('valorisation')},marketFixture(fixture()));
+ assert((await page.locator('#marketOverview').textContent()).includes('+15 %'));assert((await page.locator('#marketOverview').textContent()).includes('230'));
+ const marketCard=()=>page.locator('#marketTable .io-market-property').first();
+ for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
+  await page.setViewportSize({width,height});await page.waitForTimeout(100);
+  assert(await page.evaluate(()=>{const h=document.querySelector('#marketHelp summary').getBoundingClientRect(),nav=document.getElementById('nav').getBoundingClientRect();return document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth&&h.bottom<=nav.top}),'Market C fits '+width);
+  await marketCard().locator('summary').click();assert(await marketCard().locator('.io-market-grid').isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'market details width');await marketCard().locator('summary').click();
+  await page.locator('#marketHelp summary').click();assert(await page.locator('#marketSummaryDetails').isVisible());await page.locator('#marketHelp summary').click();
+ }
+ await page.setViewportSize({width:393,height:851});await page.waitForTimeout(100);await shot('16-marche-c-replie');await marketCard().locator('summary').click();await shot('17-marche-c-ouvert');await marketCard().locator('summary').click();
+ await page.evaluate(()=>{const p=db.properties[0];db.properties=Array.from({length:11},(_,i)=>({...p,id:'market-many-'+i,name:'Bien '+i}));db.properties[10].id="market-quote-'";db.properties[10].name='Bien au nom très long '.repeat(7);renderMarketPage()});await page.waitForTimeout(100);assert(await page.evaluate(()=>{const list=document.getElementById('marketTable');return list.scrollHeight>list.clientHeight&&document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth}),'large market list scrolls vertically');
+ await page.locator('#marketTable .io-market-property').last().locator('summary').click();assert.equal(await page.locator('#marketTable details[open]').getAttribute('data-market-property'),"market-quote-'");await page.locator('#marketTable .io-market-property').last().locator('summary').click();
+ await page.evaluate(()=>{db.properties=[];ioMarketOpenId=null;renderMarketPage()});assert(await page.locator('#marketTable .empty').isVisible());assert((await page.locator('#marketOverview').textContent()).includes('Écart non disponible'));
+ // Exercise the original full geocoding/cadastre/DVF pipeline through the real buttons, using deterministic public-service fixtures.
+ const sent=[];
+ const geocoder=async route=>{sent.push(route.request().url());await route.fulfill({json:{features:[{geometry:{coordinates:[.68,47.394]},properties:{citycode:'37261',label:'Adresse fictive de validation'}}]}})};
+ await page.route('https://data.geopf.fr/**',geocoder);
+ await page.route('https://cadastre.data.gouv.fr/**',async route=>{sent.push(route.request().url());await route.fulfill({json:{features:[{properties:{prefixe:'000',code:'AB'},geometry:{type:'Polygon',coordinates:[[[.67,47.38],[.70,47.38],[.70,47.41],[.67,47.41],[.67,47.38]]]}}]}})});
+ await page.route('https://dvf-api.data.gouv.fr/**',async route=>{sent.push(route.request().url());await route.fulfill({json:{data:Array.from({length:19},(_,i)=>({valeur_fonciere:i<12?125000:105000,surface_reelle_bati:i<12?45:30,latitude:47.394,longitude:.68,date_mutation:'2026-07-01',type_local:'Appartement',nature_mutation:'Vente',id_parcelle:'QA-'+i}))}})});
+ await page.evaluate(data=>{db=data;db.properties.forEach(p=>delete p.marketAnalysis);marketSave({results:{}});ioMarketOpenId=null;marketStatus('');renderAll()},marketFixture(fixture()));
+ const retained=await page.evaluate(()=>db.properties.map(p=>p.retainedValue));
+ await page.locator('#marketRefreshAll').click();await page.waitForFunction(()=>!ioMarketAllBusy&&ioMarketSummary(db.properties).count===2,{},{timeout:20000});
+ assert.equal(await page.evaluate(()=>Math.round(ioMarketSummary(db.properties).percent)),15);assert.equal(await page.evaluate(()=>db.properties[0].marketAnalysis.comparables),12);assert.equal(await page.evaluate(()=>db.properties[1].marketAnalysis.comparables),7);
+ assert.deepEqual(await page.evaluate(()=>db.properties.map(p=>p.retainedValue)),retained,'DVF does not overwrite retained asset values');
+ assert(sent.some(x=>x.startsWith('https://dvf-api.data.gouv.fr/')));assert(sent.every(x=>!x.includes('SARL')&&!x.includes('rentHC')&&!x.includes('remaining')&&!x.includes('holder')),'no financial or ownership data sent to public services');
+ await marketCard().locator('summary').click();await marketCard().getByRole('button',{name:'Actualiser ce bien',exact:false}).click();await page.waitForFunction(()=>ioMarketBusy.size===0,{},{timeout:10000});assert(await marketCard().evaluate(el=>el.open),'refresh preserves the open card');
+ // Error retains the last estimate and its successful date, restores controls and creates no unhandled rejection.
+ const previous=await page.evaluate(()=>({...db.properties[0].marketAnalysis})),offline=async route=>route.fulfill({status:503,body:'Service indisponible'});
+ await page.route('https://data.geopf.fr/**',offline);await marketCard().getByRole('button',{name:'Actualiser ce bien',exact:false}).click();await page.waitForFunction(()=>!!db.properties[0].marketAnalysis.error&&ioMarketBusy.size===0,{},{timeout:10000});
+ assert.equal(await page.evaluate(()=>db.properties[0].marketAnalysis.estimate),previous.estimate);assert.equal(await page.evaluate(()=>db.properties[0].marketAnalysis.updatedAt),previous.updatedAt);assert(await marketCard().locator('.io-market-error').isVisible());assert(await page.locator('#marketRefreshAll').isEnabled());
+ await page.unroute('https://data.geopf.fr/**',offline);await marketCard().getByRole('button',{name:'Actualiser ce bien',exact:false}).click();await page.waitForFunction(()=>!db.properties[0].marketAnalysis.error&&ioMarketBusy.size===0,{},{timeout:10000});assert.equal(await marketCard().locator('.io-market-error').count(),0);
+ await page.reload();await page.waitForTimeout(300);await page.evaluate(()=>showPage('valorisation'));assert.equal(await page.evaluate(()=>db.properties[0].marketAnalysis.estimate),125000);assert((await page.locator('#marketOverview').textContent()).includes('+15 %'));
+ await page.evaluate(data=>{db=data;ioMarketOpenId=null;renderAll();showPage('dashboard')},fixture());
+
  // Banque / Financement is now the sole loan-management destination; old links redirect safely.
  await page.evaluate(data=>{db=data;ioBankOpenId=null;ioBankHelpOpen=false;renderAll();showPage('financement')},fixture());
  assert(await page.locator('#banque').isVisible());assert(await page.locator('#financement').isHidden());assert.equal(await page.evaluate(()=>pages.some(p=>p[0]==='financement')),false);
@@ -217,6 +252,6 @@ const fixture=require('./fixture.cjs');
  await page.evaluate(()=>{db.properties=[{id:'missing',name:'Bien incomplet',rentHC:490,recoverable:35}];db.loans=[];ioBuildBankReport('both')});assert((await page.locator('#bankPdfReport').textContent()).includes('NR'));assert.equal(await page.evaluate(()=>bankReportCharges(db.properties[0])),null);
  await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},fixture());
  assert.deepEqual(errors,[],'browser runtime errors');
- fs.writeFileSync('qa-out/ui-results.json',JSON.stringify({passed:true,viewportTests:[320,360,393,430,800],screenshots:'Synthetic QA portfolio; real Chromium rendering',checks:['Bank summary/financing tabs, draft preservation and keyboard navigation','five financing viewports and eleven-credit list','loan add/edit/delete/reload and linked/unlinked scope','three PDF modes','bank C editing and bidirectional amounts','bank C five one-screen viewports','bank 11-property list and full exports','empty launch','all four analyses','tabs','periods','legends','property tabs','property edit','photo upload and persistence','bank CSV','bank print layout','reload persistence','backup export','backup import','invalid import rollback','owner filter','point tooltip','unique IDs','responsive widths','four analyses fit with closed help','help expands and closing restores viewport'],runtimeErrors:errors},null,2));
+ fs.writeFileSync('qa-out/ui-results.json',JSON.stringify({passed:true,viewportTests:[320,360,393,430,800],screenshots:'Synthetic QA portfolio; real Chromium rendering',checks:['Market C five viewports, weighted percentage and eleven-property list','Market actual refresh pipeline with mocked public endpoints, persistence, error retention and privacy scope','Bank summary/financing tabs, draft preservation and keyboard navigation','five financing viewports and eleven-credit list','loan add/edit/delete/reload and linked/unlinked scope','three PDF modes','bank C editing and bidirectional amounts','bank C five one-screen viewports','bank 11-property list and full exports','empty launch','all four analyses','tabs','periods','legends','property tabs','property edit','photo upload and persistence','bank CSV','bank print layout','reload persistence','backup export','backup import','invalid import rollback','owner filter','point tooltip','unique IDs','responsive widths','four analyses fit with closed help','help expands and closing restores viewport'],runtimeErrors:errors},null,2));
  console.log('PASS mobile browser UI, interactions, storage, backup round-trip and responsive layouts');await browser.close();server.close();
 })().catch(e=>{console.error(e);process.exit(1)});
