@@ -297,6 +297,9 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.locator('#ioOptSettings summary').click();await page.locator('#ioOptSettingsForm [name=target_meuble]').fill('999');await page.locator('[data-opt-refresh]').click();assert((await page.locator('#ioOptModalStatus').textContent()).includes('Enregistrez'));
  await page.evaluate(()=>ioOptOpenCompare(db.properties[0].id));await page.locator('[data-opt-refresh]').click();await page.waitForFunction(()=>!ioOptBusy&&document.getElementById('ioOptModalStatus').textContent.includes('actualisé'),{},{timeout:15000});assert.equal(await page.evaluate(()=>db.properties[0].rentHC),actualValues.rent);
  await page.locator('#ioOptCompare [data-opt-close]').click();await page.reload();await page.waitForTimeout(300);await page.evaluate(()=>{immoptimaAuthState={status:'signed_in',uid:'qa-browser'};showPage('optimisation');ioOptOpenCompare(db.properties[0].id)});assert.equal(await page.evaluate(()=>ioOptObservedRange(db.properties[0],'meuble').basis),'CC');
+ assert(await page.evaluate(()=>{const root=document.getElementById('ioOptCompare'),sources=document.getElementById('ioOptReferences'),nested=sources.querySelector('details');sources.open=true;nested.open=true;return immoptimaHandleBack()&&!nested.open&&sources.open&&!root.hidden}));
+ assert(await page.evaluate(()=>immoptimaHandleBack()&&!document.getElementById('ioOptReferences').open&&!document.getElementById('ioOptCompare').hidden));
+ assert(await page.evaluate(()=>immoptimaHandleBack()&&document.getElementById('ioOptCompare').hidden));
  await page.evaluate(data=>{db=data;ioOptCloseCompare();ioOptOpenId=null;ioOptState('');renderAll();showPage('dashboard')},fixture());
 
  assert.deepEqual(errors,[],'browser runtime errors');
