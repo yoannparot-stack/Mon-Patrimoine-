@@ -16,7 +16,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  let ws,seq=0;const pending=new Map();
  const connect=async()=>{
   ws?.close();let target;
-  for(let i=0;i<40;i++){await wait(500);try{const pid=adb('shell','pidof','com.immoptima.app');adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid);const targets=await fetch('http://127.0.0.1:9222/json').then(r=>r.json());target=targets.find(t=>t.url.includes('appassets'));if(target)break}catch{}}
+  for(let i=0;i<40;i++){await wait(500);try{const pid=adb('shell','pidof','com.immoptima.app');adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid);const targets=await fetch('http://127.0.0.1:9222/json').then(r=>r.json());fs.writeFileSync(out+'/webview-targets.json',JSON.stringify(targets,null,2));const info=t=>{try{return JSON.parse(t.description||'{}')}catch{return {}}};target=targets.filter(t=>{const d=info(t);return t.url.includes('appassets')&&d.attached!==false&&d.visible!==false&&d.width!==0&&d.height!==0}).sort((a,b)=>{const x=info(a),y=info(b);return Number(y.visible===true)-Number(x.visible===true)||(y.width||0)*(y.height||0)-(x.width||0)*(x.height||0)})[0];if(target)break}catch{}}
   assert(target,'WebView debugging target unavailable');const socket=new WebSocket(target.webSocketDebuggerUrl);ws=socket;
   await new Promise((r,j)=>{socket.once('open',r);socket.once('error',j)});
   socket.on('message',d=>{const msg=JSON.parse(d);if(msg.id&&pending.has(msg.id)){const {r,j,t}=pending.get(msg.id);clearTimeout(t);pending.delete(msg.id);msg.error?j(Error(msg.error.message)):r(msg.result)}});
@@ -28,12 +28,12 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  for(let attempt=0;attempt<3&&!initialized;attempt++){
   try{
    await connect();
-   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}
+   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,width:innerWidth,height:innerHeight,visibility:document.visibilityState,save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&(ready.width===0||ready.height===0||ready.visibility!=='visible'))throw Error('Inactive startup WebView');if(ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}
    fs.writeFileSync(out+'/webview-ready.json',JSON.stringify(ready,null,2));assert.equal(ready.state,'complete','wait for the full application document before injecting data');assert.equal(ready.save,'function');
    await evaluate(`localStorage.setItem('immoptima_welcome_v1','seen');document.getElementById('immoptimaWelcome')?.remove();db=(${fixture.toString()})();localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll();showPage('dashboard');true`);
    // A second response confirms that the renderer survived startup/recreation.
    assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);initialized=true;
-  }catch(error){if(!/CDP timeout|CDP connection closed|WebSocket.*not open|Execution context.*destroyed/.test(error.message)||attempt===2)throw error;console.log('Startup WebView reconnected after provider/configuration recreation');}
+  }catch(error){if(!/Inactive startup WebView|CDP timeout|CDP connection closed|WebSocket.*not open|Execution context.*destroyed/.test(error.message)||attempt===2)throw error;console.log('Startup WebView reconnected after provider/configuration recreation');}
  }
  assert(initialized,'stable Android WebView startup');
  const waitFor=async expression=>{for(let i=0;i<24;i++){if(await evaluate(expression))return;await wait(250)}throw Error('Android condition not reached: '+expression)};
@@ -47,7 +47,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
    await wait(1000);cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/'+name+'.png','w'),'inherit']});
    const ocr=cp.execFileSync('tesseract',[out+'/'+name+'.png','stdout'],{encoding:'utf8',stdio:['ignore','pipe','ignore']});fs.writeFileSync(out+'/'+name+'-ocr.txt',ocr);
    if(/quickstep/i.test(ocr)&&/responding/i.test(ocr)){await dismissLauncherAnr();continue;}
-   const normalized=ocr.toLowerCase().replace(/[^a-z]/g,'');if(normalized.includes(expected.replace(/[^a-z]/g,''))&&(expected==='immoptima'||!normalized.includes('immoptima')))return;
+   const normalized=ocr.toLowerCase().replace(/[^a-z]/g,'');if(normalized.includes('bienvenuesurimmoptima'))throw Error('Unexpected welcome dialog: startup target must be the visible WebView');if(normalized.includes(expected.replace(/[^a-z]/g,''))&&(expected==='immoptima'||!normalized.includes('immoptima')))return;
   }
   throw Error('Android screenshot does not show expected screen: '+name);
  };
@@ -59,7 +59,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  };
  await evaluate("showPage('immobilier');db.properties.push({...db.properties[1],id:'qa-list-third',name:'Studio · Validation liste',address:'Tours',surface:22});renderProperties();true");
  assert.equal(await evaluate('document.querySelectorAll("#properties .io-property-card").length'),3);
- assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
+ await waitFor('innerWidth>0&&document.documentElement.scrollWidth<=innerWidth');assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
  await capture('08-biens-liste-b','immoptima');
  await tap('#properties .io-property-card .io-property-menu summary');await waitFor('document.querySelector("#properties .io-property-menu").open');
  adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#properties .io-property-menu").open');assert.equal(await evaluate('document.querySelector(".page.active").id'),'immobilier');
