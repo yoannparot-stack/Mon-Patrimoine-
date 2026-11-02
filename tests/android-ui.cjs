@@ -7,14 +7,15 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  assert.equal(adb('shell','getprop','ro.kernel.qemu'),'1','QA requires a disposable Android emulator');
  const apk=fs.readdirSync('installed-apk').find(n=>n.endsWith('.apk'));assert(apk,'APK artifact missing');adb('install','-r','installed-apk/'+apk);
  adb('shell','settings','put','global','window_animation_scale','0');adb('shell','settings','put','global','transition_animation_scale','0');adb('shell','settings','put','global','animator_duration_scale','0');
- adb('shell','am','start','-n','com.immoptima.app/com.monpatrimoine.app.MainActivity');
  // Quickstep repeatedly ANRs in the headless API-35 image. Isolate the test app
  // from this unrelated launcher; this emulator is discarded after the job.
  adb('shell','pm','disable-user','--user','0','com.android.launcher3');
  adb('shell','am','force-stop','com.android.launcher3');
- // Disabling the launcher can leave the activity visible but without focus or
- // frame callbacks in the headless image. Bring the tested activity forward.
- adb('shell','am','start','-n','com.immoptima.app/com.monpatrimoine.app.MainActivity');
+ // Start once, after disabling the launcher. Starting a second standard
+ // activity left two WebViews: CDP could control one while touches reached
+ // the other. A clean QA process prevents this false interaction mismatch.
+ adb('shell','am','force-stop','com.immoptima.app');
+ adb('shell','am','start','-W','-n','com.immoptima.app/com.monpatrimoine.app.MainActivity');
  // API-35 can recreate WebView while installing its first provider/configuration.
  // Reconnect only during startup; once user-interaction assertions begin, errors fail normally.
  let ws,seq=0,activeWebView=null;const pending=new Map();
@@ -53,7 +54,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
    await wait(1000);cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/'+name+'.png','w'),'inherit']});
    const ocr=cp.execFileSync('tesseract',[out+'/'+name+'.png','stdout'],{encoding:'utf8',stdio:['ignore','pipe','ignore']});fs.writeFileSync(out+'/'+name+'-ocr.txt',ocr);
    if(/quickstep/i.test(ocr)&&/responding/i.test(ocr)){await dismissLauncherAnr();continue;}
-   const normalized=ocr.toLowerCase().replace(/[^a-z]/g,'');if(normalized.includes('bienvenuesurimmoptima'))throw Error('Unexpected welcome dialog: startup target must be the visible WebView');if(normalized.includes(expected.replace(/[^a-z]/g,''))&&(expected==='immoptima'||allowBrandInBody||!normalized.includes('immoptima')))return;
+   const normalized=ocr.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z]/g,'');if(normalized.includes('bienvenuesurimmoptima'))throw Error('Unexpected welcome dialog: startup target must be the visible WebView');if(normalized.includes(expected.replace(/[^a-z]/g,''))&&(expected==='immoptima'||allowBrandInBody||!normalized.includes('immoptima')))return;
   }
   throw Error('Android screenshot does not show expected screen: '+name);
  };
@@ -69,7 +70,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  await evaluate("showPage('immobilier');db.properties.push({...db.properties[1],id:'qa-list-third',name:'Studio · Validation liste',address:'Tours',surface:22});renderProperties();true");
  assert.equal(await evaluate('document.querySelectorAll("#properties .io-property-card").length'),3);
  await waitFor('innerWidth>0&&document.documentElement.scrollWidth<=innerWidth');assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
- await capture('08-biens-liste-b','immoptima');
+ await capture('08-biens-liste-b','tourscentre',true);
  await tap('#properties .io-property-card .io-property-menu summary');await waitFor('document.querySelector("#properties .io-property-menu").open');
  adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#properties .io-property-menu").open');assert.equal(await evaluate('document.querySelector(".page.active").id'),'immobilier');
  await tap('#properties .io-list-open');await waitFor('!document.getElementById("ioPropertyDetailOverlay").hidden');adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioPropertyDetailOverlay").hidden');
