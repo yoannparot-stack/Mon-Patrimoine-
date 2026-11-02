@@ -3,7 +3,7 @@ const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.
 const fixture=require('./fixture.cjs'),marketFixture=require('./market-fixture.cjs'),rentalFixture=require('./rental-fixture.cjs');
 const advertisedFixture=require('./rental-advertised-fixture.cjs');
 (async()=>{
- const server=http.createServer((req,res)=>{const js=req.url==='/rental-optimization.js';res.setHeader('Content-Type',js?'application/javascript; charset=utf-8':'text/html; charset=utf-8');res.end(fs.readFileSync(js?'rental-optimization.js':'index.html'))});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const server=http.createServer((req,res)=>{const js=['/rental-optimization.js','/bank-simulator.js'].includes(req.url);res.setHeader('Content-Type',js?'application/javascript; charset=utf-8':'text/html; charset=utf-8');res.end(fs.readFileSync(js?req.url.slice(1):'index.html'))});await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:393,height:851},deviceScaleFactor:2,isMobile:true,hasTouch:true}),errors=[],dialogs=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept()});await page.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:')?r.continue():r.abort());
  await page.addInitScript(()=>localStorage.setItem('immoptima_welcome_v1','seen'));
@@ -67,6 +67,20 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.evaluate(()=>{showPage('banque');renderBankSummary()});assert.equal(await page.locator('#bankTableBody tr').first().locator('td').nth(8).locator('input').inputValue(),'11100');
  const csvPromise=page.waitForEvent('download');await page.evaluate(()=>exportBankCSV());const csv=await csvPromise;await csv.saveAs('qa-out/bank-test.csv');assert(fs.readFileSync('qa-out/bank-test.csv','utf8').includes('11100'));
  await page.emulateMedia({media:'print'});assert(await page.locator('#bankTableBody input').first().isHidden());await page.pdf({path:'qa-out/bank-print-test.pdf',landscape:true,format:'A4',printBackground:true});await page.emulateMedia({media:'screen'});
+ // Loan simulator is independent: calculations and preparation do not save loans.
+ await page.locator('#bankFinanceTab').click();const loanBefore=await page.evaluate(()=>JSON.stringify(db));
+ await page.locator('#bankSimulateLoan').click();assert(await page.locator('#ioLoanSimulator').isVisible());
+ const sim=name=>page.locator('#ioLoanForm [name='+name+']');
+ await sim('amount').fill('100000');await sim('years').fill('20');await sim('rate').fill('3');await sim('insurance').fill('0.3');
+ assert((await page.locator('#ioLoanMonthly').innerText()).includes('579,60'));assert.equal(await page.evaluate(()=>JSON.stringify(db)),loanBefore);
+ await sim('rate').fill('');assert(await page.locator('#ioLoanError').isVisible());assert(await page.locator('#ioLoanPrepare').isDisabled());
+ await sim('rate').fill('0');await sim('insurance').fill('0');await sim('amount').fill('120000');await sim('years').fill('10');assert((await page.locator('#ioLoanMonthly').innerText()).includes('000,00'));
+ await page.locator('#ioLoanUseReference').click();assert.equal(await sim('rate').inputValue(),'3.32');
+ for(const size of [{width:360,height:740},{width:393,height:851}]){await page.setViewportSize(size);await sim('amount').blur();await page.waitForTimeout(80);assert(await page.locator('#ioLoanSimulator').evaluate(el=>el.scrollHeight<=el.clientHeight+1),'simulator fits closed on '+size.width);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
+ await shot('25-simulateur-pret');await page.locator('#ioLoanHelp summary').click();assert(await page.locator('#ioLoanFees').isVisible());await page.locator('#ioLoanFees').fill('1500');assert((await page.locator('#ioLoanCost').textContent()).length>0);
+ await page.evaluate(()=>immoptimaHandleBack());assert(await page.locator('#ioLoanSimulator').isVisible());assert.equal(await page.locator('#ioLoanHelp').evaluate(el=>el.open),false);
+ await page.locator('#ioLoanPrepare').click();assert(await page.locator('#ioLoanSimulator').isHidden());assert.equal(await page.locator('#loanFormWrap [name=initial]').inputValue(),'120000');assert.equal(await page.locator('#loanFormWrap [name=rate]').inputValue(),'3.32');assert.equal(await page.evaluate(()=>JSON.stringify(db)),loanBefore,'preparation never adds a loan');
+ await page.evaluate(()=>closeForm('loanFormWrap'));await page.locator('#bankSimulateLoan').click();await page.evaluate(()=>immoptimaHandleBack());assert(await page.locator('#ioLoanSimulator').isHidden());assert(await page.locator('#bankFinanceMount').isVisible());await page.locator('#bankSummaryTab').click();
  // Bank C: real editing, monthly/annual links, collapsed viewport, long lists, no horizontal table.
  assert(await page.locator('#bankMobile').isVisible());assert(await page.locator('#banque .bank-print-document').isHidden());
  const bankCard=()=>page.locator('#bankMobile .io-bank-property').first();

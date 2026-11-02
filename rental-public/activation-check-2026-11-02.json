@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-02T18:11:46.734813+00:00",
+  "checks": [
+    {
+      "url": "https://europe-west1-immoptima-6af3b.cloudfunctions.net/rentalComparables",
+      "status": 404
+    },
+    {
+      "url": "https://www.leboncoin.fr/robots.txt",
+      "status": 200
+    }
+  ],
+  "configuredLocally": {
+    "YANPORT_TOKEN": false,
+    "IMMOPTIMA_CT_API_KEY": false,
+    "CLOUDFLARE_API_TOKEN": false,
+    "FIREBASE_TOKEN": false,
+    "GOOGLE_APPLICATION_CREDENTIALS": false,
+    "STREAM_ESTATE_API_KEY": false
+  },
+  "activated": false,
+  "providerCalls": 0
+}
