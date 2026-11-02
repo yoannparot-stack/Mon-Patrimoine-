@@ -1,0 +1,146 @@
+{
+  "checkedAt": "2026-11-02T21:19:37.846128+00:00",
+  "paidCalls": 0,
+  "sourcesActivated": [],
+  "researchOnly": true,
+  "checks": [
+    {
+      "source": "OLL national",
+      "metadata": {
+        "url": "https://www.data.gouv.fr/api/1/datasets/resultats-nationaux-des-observatoires-locaux-des-loyers/",
+        "status": 200,
+        "bytes": 28631,
+        "sha256": "81d50b6181c1ff7525d1ad08e50ebec7845f92557c9f64035d0bf1bce58d872a"
+      },
+      "csv": {
+        "url": "https://www.observatoires-des-loyers.org/datagouv/2025/Base_OP_2025_Nationale.csv",
+        "status": 200,
+        "bytes": 1453636,
+        "sha256": "921157ae8718c0fa0ad8def1100dba8ca3c55dd405b9509e5a6f7c742a75ce84"
+      },
+      "licence": "lov2",
+      "resourceTitle": "Loyers 2025 dans les agglomérations observées par les observatoires du réseau",
+      "records": 10104,
+      "agglomerations": 53,
+      "headers": [
+        "Observatory",
+        "Data_year",
+        "agglomeration",
+        "Zone_complementaire",
+        "Type_habitat",
+        "epoque_construction_homogene",
+        "anciennete_locataire_homogene",
+        "nombre_pieces_homogene",
+        "loyer_1_decile",
+        "loyer_1_quartile",
+        "loyer_median",
+        "loyer_3_quartile",
+        "loyer_9_decile",
+        "loyer_moyen",
+        "loyer_mensuel_1_decile",
+        "loyer_mensuel_1_quartile",
+        "loyer_mensuel_median",
+        "loyer_mensuel_3_quartile",
+        "loyer_mensuel_9_decile",
+        "moyenne_loyer_mensuel",
+        "surface_moyenne",
+        "nombre_observations",
+        "nombre_logements",
+        "methodologie_production"
+      ],
+      "toursStudioSegments": [
+        {
+          "Type_habitat": "Appartement",
+          "Zone_complementaire": "",
+          "Data_year": "2025",
+          "loyer_1_quartile": "13,0",
+          "loyer_median": "15,0",
+          "loyer_3_quartile": "17,9",
+          "loyer_mensuel_1_quartile": "350",
+          "loyer_mensuel_median": "393",
+          "loyer_mensuel_3_quartile": "439",
+          "surface_moyenne": "27",
+          "nombre_observations": "2776"
+        }
+      ],
+      "limit": "Published OLL statistics exclude furnished housing; do not infer furnished figures."
+    },
+    {
+      "source": "OLL Tours detailed",
+      "metadata": {
+        "url": "https://www.data.gouv.fr/api/1/datasets/resultats-des-observatoires-locaux-des-loyers-par-agglomeration/",
+        "status": 200,
+        "bytes": 1106674,
+        "sha256": "e956688cd3c8a183fb8c246a29fe060b13f3a78d51738fb1e1e326fc803afee6"
+      },
+      "archive": {
+        "url": "https://www.observatoires-des-loyers.org/datagouv/2025/Base_OP_2025_L3700.zip",
+        "status": 200,
+        "bytes": 364384,
+        "sha256": "55b0fab90ebec43a7bea00bf3f8a2b72d3a9db252cf46487a5d64b13fc039c52"
+      },
+      "licence": "lov2",
+      "resourceTitle": "Niveau des loyers en 2025 pour l'agglomération de Tours",
+      "headers": [
+        "Observatory",
+        "Data_year",
+        "agglomeration",
+        "Zone_calcul",
+        "Zone_complementaire",
+        "Type_habitat",
+        "epoque_construction_local",
+        "epoque_construction_homogene",
+        "anciennete_locataire_local",
+        "anciennete_locataire_homogene",
+        "nombre_pieces_local",
+        "nombre_pieces_homogene",
+        "loyer_1_decile",
+        "loyer_1_quartile",
+        "loyer_median",
+        "loyer_3_quartile",
+        "loyer_9_decile",
+        "loyer_moyen",
+        "loyer_mensuel_1_decile",
+        "loyer_mensuel_1_quartile",
+        "loyer_mensuel_median",
+        "loyer_mensuel_3_quartile",
+        "loyer_mensuel_9_decile",
+        "moyenne_loyer_mensuel",
+        "surface_moyenne",
+        "nombre_observations",
+        "nombre_logements",
+        "methodologie_production"
+      ],
+      "furnishedColumnPresent": false
+    },
+    {
+      "source": "ANIL T1/T2",
+      "metadata": {
+        "url": "https://www.data.gouv.fr/api/1/datasets/carte-des-loyers-indicateurs-de-loyers-dannonce-par-commune-en-2025/",
+        "status": 200,
+        "bytes": 19466,
+        "sha256": "a8830ebfd1dd05dfc67c7ca5c163184c0fd47835857b6170405f90cd985e1e40"
+      },
+      "csv": {
+        "url": "https://static.data.gouv.fr/resources/carte-des-loyers-indicateurs-de-loyers-dannonce-par-commune-en-2025/20251211-144934/pred-app12-mef-dhup.csv",
+        "status": 200,
+        "bytes": 4754556,
+        "sha256": "363baef0ce893ad920bf8751214ca77b9ff14422ea412c44716055937992d4bf"
+      },
+      "licence": "lov2",
+      "communes": 34900,
+      "tours": {
+        "INSEE_C": "37261",
+        "LIBGEO": "Tours",
+        "loypredm2": "15,4610709154832",
+        "lwr.IPm2": "12,5947150706213",
+        "upr.IPm2": "18,9797635367872",
+        "R2_adj": "0,761992031243493",
+        "nbobs_com": "26361",
+        "TYPPRED": "commune"
+      },
+      "limit": "Non-furnished reference dwelling of 37 m2, CC; model prediction and interval, not median/quartiles."
+    }
+  ],
+  "conclusion": "No complete nationwide free furnished/unfurnished live-ad source validated."
+}
