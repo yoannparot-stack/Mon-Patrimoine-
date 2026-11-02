@@ -2,7 +2,7 @@
 // Adapter based on yanport/yanport-api-doc: /properties, Property, Marketing,
 // Features, Address and AdRef. Never infer HC from an ambiguous `price`.
 const {createHash}=require('node:crypto');
-const {summarizeAdvertisedGroups}=require('./advertised-ranges.cjs');
+const {summarizeAdvertisedGroups,sampleReferenceRows}=require('./advertised-ranges.cjs');
 const DAY=86400000, PAGE=50, MAX_PAGES=2;
 const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const num=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
@@ -49,10 +49,12 @@ function normalizeProperty(x,q,mode,now,{allowCCOnly=false}={}){
 }
 function advertised(rows,q,mode,now){
  const groups=new Map();
- for(const r of rows){const offers=[];if(num(r.rentHC)!==null)offers.push({basis:'HC',bundle:'excluding-charges',amount:r.rentHC});if(num(r.rentCC)!==null)offers.push({basis:'CC',bundle:r.chargesScope,amount:r.rentCC});
+ // HC facts already live in modes[mode].references. Only CC-only facts need a
+ // supplementary snapshot: duplicating both views inflates cloud backups.
+ for(const r of rows){const offers=[];if(num(r.rentHC)===null&&num(r.rentCC)!==null)offers.push({basis:'CC',bundle:r.chargesScope,amount:r.rentCC});
   for(const offer of offers){const key=offer.basis+':'+offer.bundle;if(!groups.has(key))groups.set(key,{...offer,rows:[]});groups.get(key).rows.push({url:r.url,source:r.source,sourceId:'yanport',propertyId:r.aggregateId,domain:new URL(r.url).hostname.replace(/^www\./,''),mode:r.mode,family:r.family,communeCode:r.communeCode,rooms:r.rooms,distanceM:r.distanceM,surface:r.surface,amount:offer.amount,perM2:offer.amount/r.surface,datePublished:r.date,observedAt:new Date(now).toISOString()});}
  }
- const ranges=summarizeAdvertisedGroups([...groups.values()],q.surface);
+ const ranges=summarizeAdvertisedGroups([...groups.values()],q.surface,{maximum:groups.size>1?20:40});
  return {checkedAt:new Date(now).toISOString(),mode,examined:rows.length,status:ranges.some(g=>g.status==='indicative')?'indicative':'insufficient',ranges,countsNotAdditive:true};
 }
 function summarize(rows,q){
@@ -79,8 +81,9 @@ async function collect(q,{token,fetchImpl=fetch,now=Date.now()}={}){
   const rejected={},seen=new Set(),rows=[];
   for(const x of raw){try{const r=normalizeProperty(x,q,mode,now,{allowCCOnly:true}),keys=[r.id,'aggregate:'+r.aggregateId,'fingerprint:'+r.fingerprint,...r.urls];const duplicate=keys.some(k=>seen.has(k));keys.forEach(k=>seen.add(k));if(duplicate)fail('duplicate');rows.push(r)}catch(e){const k=e.code||'malformed';rejected[k]=(rejected[k]||0)+1}}
   const hcRows=rows.filter(r=>num(r.rentHC)!==null),center=median(hcRows.map(r=>r.rentHC/r.surface)),mad=median(hcRows.map(r=>Math.abs(r.rentHC/r.surface-center))),threshold=Math.max(center*.3,3*(mad||0));
-  const retained=hcRows.filter(r=>Math.abs(r.rentHC/r.surface-center)<=threshold);if(hcRows.length!==retained.length)rejected.outlier=hcRows.length-retained.length;
-  result.modes[mode]={...summarize(retained,q),advertised:advertised(rows,q,mode,now),references:retained.map(({fingerprint,aggregateId,...r})=>({...r,urls:r.urls.slice(0,2)})),examined:raw.length,rejected,truncated,period:retained.length?[...retained.map(r=>r.date)].sort().filter((_,i,a)=>i===0||i===a.length-1):[]};
+  const full=hcRows.filter(r=>Math.abs(r.rentHC/r.surface-center)<=threshold);if(hcRows.length!==full.length)rejected.outlier=hcRows.length-full.length;
+  const retained=sampleReferenceRows(full,r=>r.rentHC/r.surface,40),snapshot=advertised(rows,q,mode,now),cacheLimited=full.length>retained.length||snapshot.ranges.some(g=>g.sampledOut>0);
+  result.modes[mode]={...summarize(retained,q),advertised:snapshot,references:retained.map(({fingerprint,aggregateId,...r})=>({...r,urls:r.urls.slice(0,2)})),examined:raw.length,rejected,truncated:truncated||cacheLimited,cacheLimited,period:retained.length?[...retained.map(r=>r.date)].sort().filter((_,i,a)=>i===0||i===a.length-1):[]};
  }
  return result;
 }

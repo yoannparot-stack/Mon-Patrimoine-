@@ -17,11 +17,11 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  adb('shell','am','start','-n','com.immoptima.app/com.monpatrimoine.app.MainActivity');
  // API-35 can recreate WebView while installing its first provider/configuration.
  // Reconnect only during startup; once user-interaction assertions begin, errors fail normally.
- let ws,seq=0;const pending=new Map();
+ let ws,seq=0,activeWebView=null;const pending=new Map();
  const connect=async()=>{
   ws?.close();let target;
   for(let i=0;i<40;i++){await wait(500);try{const pid=adb('shell','pidof','com.immoptima.app');adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid);const targets=await fetch('http://127.0.0.1:9222/json').then(r=>r.json());fs.writeFileSync(out+'/webview-targets.json',JSON.stringify(targets,null,2));const info=t=>{try{return JSON.parse(t.description||'{}')}catch{return {}}};target=targets.filter(t=>{const d=info(t);return t.url.includes('appassets')&&d.attached!==false&&d.visible!==false&&d.width!==0&&d.height!==0}).sort((a,b)=>{const x=info(a),y=info(b);return Number(y.visible===true)-Number(x.visible===true)||(y.width||0)*(y.height||0)-(x.width||0)*(x.height||0)})[0];if(target)break}catch{}}
-  assert(target,'WebView debugging target unavailable');const socket=new WebSocket(target.webSocketDebuggerUrl);ws=socket;
+  assert(target,'WebView debugging target unavailable');activeWebView=JSON.parse(target.description||'{}');const socket=new WebSocket(target.webSocketDebuggerUrl);ws=socket;
   await new Promise((r,j)=>{socket.once('open',r);socket.once('error',j)});
   socket.on('message',d=>{const msg=JSON.parse(d);if(msg.id&&pending.has(msg.id)){const {r,j,t}=pending.get(msg.id);clearTimeout(t);pending.delete(msg.id);msg.error?j(Error(msg.error.message)):r(msg.result)}});
   socket.on('close',()=>{if(socket!==ws)return;for(const {j,t} of pending.values()){clearTimeout(t);j(Error('CDP connection closed'))}pending.clear()});
@@ -60,8 +60,11 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);await capture('01-dashboard','immoptima');
  // Touch the actual dashboard tile using screen coordinates derived from the DOM.
  const tap=async selector=>{await evaluate('new Promise(resolve=>{const done=()=>resolve(true);setTimeout(done,750);requestAnimationFrame(()=>requestAnimationFrame(done))})');const r=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth}})()`);
-  const views=uiNodes().filter(n=>/class="android.webkit.WebView"/.test(n)).map(bounds).sort((a,b)=>(b[2]-b[0])*(b[3]-b[1])-(a[2]-a[0])*(a[3]-a[1]));assert(views.length,'native WebView bounds');const [left,top,right,bottom]=views[0],scale=(right-left)/r.w;
-  adb('shell','input','tap',String(Math.round(left+r.x*scale)),String(Math.round(top+r.y*scale)));
+  // Accessibility can include an older detached WebView with larger bounds.
+  // Use the attached CDP target's observed physical position for native taps.
+  assert(activeWebView?.attached===true&&activeWebView.width>0&&Number.isFinite(activeWebView.screenX)&&Number.isFinite(activeWebView.screenY),'attached native WebView bounds');
+  const scale=activeWebView.width/r.w;
+  adb('shell','input','tap',String(Math.round(activeWebView.screenX+r.x*scale)),String(Math.round(activeWebView.screenY+r.y*scale)));
  };
  await evaluate("showPage('immobilier');db.properties.push({...db.properties[1],id:'qa-list-third',name:'Studio · Validation liste',address:'Tours',surface:22});renderProperties();true");
  assert.equal(await evaluate('document.querySelectorAll("#properties .io-property-card").length'),3);

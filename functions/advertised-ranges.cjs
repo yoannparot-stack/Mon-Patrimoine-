@@ -1,12 +1,22 @@
 'use strict';
 // Descriptive ranges over facts already validated and deduplicated by adapters.
 // No network, private contacts or model-based furnished premium.
-function summarizeAdvertisedGroups(groups,surface){
+function sampleReferenceRows(rows,value,maximum){
+ if(rows.length<=maximum)return rows;
+ const sorted=[...rows].sort((a,b)=>value(a)-value(b)),n=sorted.length,count=maximum-(maximum%2!==n%2?1:0);
+ const indices=Array.from({length:count},(_,i)=>Math.floor(i*(n-1)/(count-1)));
+ // Preserve the full sample's median, including the two central values when
+ // its size is even; spread the other retained facts across the price range.
+ if(n%2)indices[Math.floor(count/2)]=Math.floor(n/2);
+ else{indices[count/2-1]=n/2-1;indices[count/2]=n/2;}
+ return indices.map(i=>sorted[i]);
+}
+function summarizeAdvertisedGroups(groups,surface,{maximum=Infinity}={}){
  const median=a=>{const s=[...a].sort((a,b)=>a-b),i=Math.floor(s.length/2);return s.length?s.length%2?s[i]:(s[i-1]+s[i])/2:null};
  const quantile=(a,p)=>{const at=(a.length-1)*p,i=Math.floor(at);return a[i]+(a[Math.ceil(at)]-a[i])*(at-i)},round=v=>Math.round(v/5)*5;
  const ranges=groups.map(g=>{
   const middle=median(g.rows.map(r=>r.perM2)),mad=median(g.rows.map(r=>Math.abs(r.perM2-middle))),threshold=Math.max(middle*.3,3*mad);
-  const rows=g.rows.filter(r=>Math.abs(r.perM2-middle)<=threshold),discarded=g.rows.length-rows.length;
+  const full=g.rows.filter(r=>Math.abs(r.perM2-middle)<=threshold),discarded=g.rows.length-full.length,rows=sampleReferenceRows(full,r=>r.perM2,maximum);
   const values=rows.map(r=>r.perM2).sort((a,b)=>a-b),enough=rows.length>=3,dates=rows.map(r=>r.datePublished).sort(),domains=[...new Set(rows.map(r=>r.domain))].sort();
   const central=rows.length>=5,uncertainBundle=g.basis==='CC'&&g.bundle==='unknown';
   return {basis:g.basis,chargesScope:g.bundle,status:enough?'indicative':'insufficient',count:rows.length,sourceCount:domains.length,sourceDomains:domains,
@@ -15,11 +25,11 @@ function summarizeAdvertisedGroups(groups,surface){
    high:enough?round((central?quantile(values,.8):values.at(-1))*surface):null,
    spread:central?'central_60_percent':'observed_min_max',
    evidenceLevel:!enough?'insufficient':rows.length<5||uncertainBundle?'limited':'indicative',
-   period:dates.length?[dates[0],dates.at(-1)]:[],outliers:discarded,
+   period:dates.length?[dates[0],dates.at(-1)]:[],outliers:discarded,sampledOut:full.length-rows.length,
    usableAsHCTarget:enough&&g.basis==='HC',
    caveat:uncertainBundle?'Périmètre des charges non précisé : repère CC limité.':g.bundle==='all-inclusive'?'Services inclus : ne pas comparer directement à un loyer HC.':'Loyers annoncés, pas loyers signés.',
    references:rows.map(({perM2,domain,...r})=>r)};
  });
  return ranges;
 }
-module.exports={summarizeAdvertisedGroups};
+module.exports={summarizeAdvertisedGroups,sampleReferenceRows};

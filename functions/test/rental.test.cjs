@@ -50,4 +50,24 @@ test('CC-only supplier results reach the descriptive snapshot without entering H
  }
  const bad=listing('bad');bad.marketing.priceCC=500;assert.throws(()=>core.normalizeProperty(bad,q,'meuble',now),/inconsistent_charges/);
 });
+test('a large HC/CC supplier response does not duplicate references and keeps an eleven-property backup within the cloud limit',async()=>{
+ const x=await core.collect(q,{token:'test-only',now,fetchImpl:async u=>{
+  const mode=u.searchParams.get('furnished')==='true'?'meuble':'nu',from=Number(u.searchParams.get('from'));
+  const hits=Array.from({length:50},(_,i)=>{const r=listing(mode+'-'+(from+i),mode,500+from+i);r.marketing.priceCC=540+from+i;r.marketing.rentalExpenses=40;return r});
+  return new Response(JSON.stringify({hits,total:100}));
+ }});
+ for(const mode of ['nu','meuble']){assert.equal(x.modes[mode].count,40);assert.equal(x.modes[mode].target,550,'the full median survives the representative cache sample');assert(x.modes[mode].cacheLimited);assert.equal(x.modes[mode].advertised.ranges.length,0,'known HC data already has a single authoritative copy');}
+ const portfolio={properties:Array.from({length:11},(_,i)=>({id:'p-'+i,optimization:{collection:x}})),loans:[],assets:[],settings:{}};
+ assert.doesNotThrow(()=>require('../../cloud/portfolio-sync-core.js').validPortfolio(portfolio));
+ assert(Buffer.byteLength(JSON.stringify(portfolio))<850000);
+});
+test('bounded odd and even reference samples preserve the median and label the omitted CC facts',()=>{
+ const {sampleReferenceRows,summarizeAdvertisedGroups}=require('../advertised-ranges.cjs');
+ for(const size of [99,100]){
+  const rows=Array.from({length:size},(_,i)=>({id:String(i),perM2:(500+i)/30,amount:500+i,surface:30,domain:'qa.example',url:'https://qa.example/'+i,source:'Test',datePublished:'2026-10-31',observedAt:new Date(now).toISOString()}));
+  const sample=sampleReferenceRows(rows,r=>r.perM2,40);assert.equal(sample.length%2,size%2);assert(sample.length<=40);
+  const full=core.summarize(rows.map(r=>({rentHC:r.amount,surface:r.surface})),q),retained=core.summarize(sample.map(r=>({rentHC:r.amount,surface:r.surface})),q);assert.equal(retained.target,full.target);
+  const g=summarizeAdvertisedGroups([{basis:'CC',bundle:'unknown',rows}],30,{maximum:40})[0];assert.equal(g.count,sample.length);assert.equal(g.sampledOut,size-sample.length);assert.equal(g.usableAsHCTarget,false);assert.equal(g.median,full.target);
+ }
+});
 module.exports={listing,q,now};
