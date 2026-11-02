@@ -246,7 +246,7 @@ jobs:
       - name: Verify installed APK and capture real Android screens
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 34
           arch: x86_64
           profile: pixel_6
           disable-animations: true
