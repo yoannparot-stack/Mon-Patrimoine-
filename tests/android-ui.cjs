@@ -2,20 +2,19 @@
 const fs=require('fs'),cp=require('child_process'),assert=require('assert/strict'),WebSocket=require('ws');
 const fixture=require('./fixture.cjs'),marketFixture=require('./market-fixture.cjs'),rentalFixture=require('./rental-fixture.cjs'),out='qa-out/android';fs.mkdirSync(out,{recursive:true});
 const advertisedFixture=require('./rental-advertised-fixture.cjs');
+let inspectOnFailure=null;
 const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
  assert.equal(adb('shell','getprop','ro.kernel.qemu'),'1','QA requires a disposable Android emulator');
  const apk=fs.readdirSync('installed-apk').find(n=>n.endsWith('.apk'));assert(apk,'APK artifact missing');adb('install','-r','installed-apk/'+apk);
  adb('shell','settings','put','global','window_animation_scale','0');adb('shell','settings','put','global','transition_animation_scale','0');adb('shell','settings','put','global','animator_duration_scale','0');
- // Quickstep repeatedly ANRs in the headless API-35 image. Isolate the test app
- // from this unrelated launcher; this emulator is discarded after the job.
- adb('shell','pm','disable-user','--user','0','com.android.launcher3');
- adb('shell','am','force-stop','com.android.launcher3');
- // Start once, after disabling the launcher. Starting a second standard
- // activity left two WebViews: CDP could control one while touches reached
- // the other. A clean QA process prevents this false interaction mismatch.
+ // Keep the normal launcher/window lifecycle. Disabling Quickstep can
+ // leave a visible WebView without a focused window or new compositor frames.
+ adb('shell','input','keyevent','KEYCODE_WAKEUP');
+ adb('shell','wm','dismiss-keyguard');
  adb('shell','am','force-stop','com.immoptima.app');
  adb('shell','am','start','-W','-n','com.immoptima.app/com.monpatrimoine.app.MainActivity');
+ fs.writeFileSync(out+'/window-focus.txt',adb('shell','dumpsys','window','windows').split('\n').filter(x=>/mCurrentFocus|mFocusedApp|mHasSurface|com.immoptima/.test(x)).join('\n'));
  // API-35 can recreate WebView while installing its first provider/configuration.
  // Reconnect only during startup; once user-interaction assertions begin, errors fail normally.
  let ws,seq=0,activeWebView=null;const pending=new Map();
@@ -29,11 +28,12 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  };
  const cmd=(method,params={})=>new Promise((r,j)=>{const id=++seq,t=setTimeout(()=>{pending.delete(id);j(Error('CDP timeout: '+method))},15000);pending.set(id,{r,j,t});ws.send(JSON.stringify({id,method,params}),err=>{if(err){clearTimeout(t);pending.delete(id);j(err)}})});
  const evaluate=async expression=>{fs.writeFileSync(out+'/last-evaluation.txt',expression.slice(0,300));try{const v=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(v.exceptionDetails)throw Error(JSON.stringify(v.exceptionDetails));return v.result.value}catch(e){throw Error(e.message+' [evaluation: '+expression.slice(0,140)+']')}};
+ inspectOnFailure=()=>evaluate('JSON.stringify({url:location.href,focused:document.hasFocus(),visibility:document.visibilityState,page:document.querySelector(".page.active")?.id,analysisHidden:document.getElementById("ioAnalysisOverlay")?.hidden,simulatorHidden:document.getElementById("ioLoanSimulator")?.hidden,text:document.body.innerText.slice(0,1200)})');
  let ready,initialized=false;
  for(let attempt=0;attempt<3&&!initialized;attempt++){
   try{
    await connect();
-   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,width:innerWidth,height:innerHeight,visibility:document.visibilityState,save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&(ready.width===0||ready.height===0||ready.visibility!=='visible'))throw Error('Inactive startup WebView');if(ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}
+   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,width:innerWidth,height:innerHeight,visibility:document.visibilityState,focused:document.hasFocus(),save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&(ready.width===0||ready.height===0||ready.visibility!=='visible'))throw Error('Inactive startup WebView');if(ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}
    fs.writeFileSync(out+'/webview-ready.json',JSON.stringify(ready,null,2));assert.equal(ready.state,'complete','wait for the full application document before injecting data');assert.equal(ready.save,'function');
    await evaluate(`localStorage.setItem('immoptima_welcome_v1','seen');document.getElementById('immoptimaWelcome')?.remove();db=(${fixture.toString()})();localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll();showPage('dashboard');true`);
    // A second response confirms that the renderer survived startup/recreation.
@@ -160,4 +160,4 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  await capture('07-richesse-historique-court','mon patrimoine net');
  fs.writeFileSync(out+'/results.json',JSON.stringify({passed:true,package:'com.immoptima.app',device:adb('shell','getprop','ro.product.model'),api:adb('shell','getprop','ro.build.version.sdk'),screen:adb('shell','wm','size'),data:'Isolated synthetic QA portfolio, no user account',checks:['Optimization C and Nu/Meuble comparison, actual touchscreen, gain and Back','Market C native navigation, violet percentage, single screen, cards and help Back','Bank tabs touched natively, loan menu and help Back, no finance entry in More','bank C native accordion and Back','bank C single-screen summary','property mockup A and all four tabs fit with closed help','property help expansion and collapse','renamed net wealth and recap tabs','dashboard fits one screen','short-history annual growth suppressed','financial result 580 EUR','six actual APK screenshots verified with OCR','native touchscreen tile','four analyses fit with closed calculations','opening help permits scrolling; closing restores viewport','four analysis handlers','tabs','period buttons','native Android Back','property rents tab','WebView persistence after reload','all legacy destinations accessible','loan simulator: native opening, monthly amount, one page, help Back and portfolio unchanged']},null,2));
  ws.close();console.log('PASS installed Android APK rendering, navigation, Back, persistence and six screenshots');
-})().catch(e=>{console.error(e);try{cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/failure-screen.png','w'),'inherit']});fs.writeFileSync(out+'/logcat.txt',adb('logcat','-d','-t','1000'))}catch{}process.exit(1)});
+})().catch(async e=>{console.error(e);if(inspectOnFailure)try{fs.writeFileSync(out+'/failure-dom.json',await inspectOnFailure())}catch{}try{cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/failure-screen.png','w'),'inherit']});fs.writeFileSync(out+'/logcat.txt',adb('logcat','-d','-t','1000'))}catch{}process.exit(1)});
