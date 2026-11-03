@@ -1,0 +1,9 @@
+// Synthetic portfolio; real, dated OLL public sector statistics. No network.
+const fs=require('node:fs'),vm=require('node:vm');
+module.exports=function modelFixture(zone='1'){
+ const db=require('./rental-fixture.cjs')(),p=db.properties[0];db.properties=[p];p.id='qa-rental-model';p.name='Studio · Tours · Démonstration';p.address='Adresse de démonstration à Tours';p.surface=24;p.rooms=1;p.rentHC=300;p.recoverable=25;p.dpe='D';
+ p.optimization={currentMode:'nu',selectedMode:'meuble',usage:'locatif',rooms:1,communeCode:'37261',currentVacancy:0,works:0,scenarios:{nu:{target:null,extraMonthly:0,investment:0,vacancy:0},meuble:{target:null,extraMonthly:15,investment:1500,vacancy:0}},references:[]};
+ const ctx={console,URL,URLSearchParams,Map,Set,Date,Math,Number,JSON,window:{}};vm.createContext(ctx);vm.runInContext(fs.readFileSync('rental-local-data.js','utf8')+'\n'+fs.readFileSync('rental-optimization.js','utf8'),ctx);ctx.p=p;ctx.zone=zone;
+ const geo=vm.runInContext(`(()=>{const a=IO_RENT_LOCAL_DATA.areas.find(a=>a.commune==='37261'&&a.zone===zone),rings=a.geometry.type==='Polygon'?a.geometry.coordinates:a.geometry.coordinates[0],r=rings[0],xs=r.map(p=>p[0]),ys=r.map(p=>p[1]);for(let i=1;i<20;i++)for(let j=1;j<20;j++){const g={lon:Math.min(...xs)+(Math.max(...xs)-Math.min(...xs))*i/20,lat:Math.min(...ys)+(Math.max(...ys)-Math.min(...ys))*j/20,citycode:'37261',city:'Tours',score:1,type:'housenumber'};if(ioOptLocalSource(p,g)?.geography===IO_RENT_LOCAL_DATA.zoneNames[zone])return g;}throw Error('No interior test point');})()`,ctx);
+ ctx.geo=geo;const source=vm.runInContext('ioOptLocalSource(p,geo)',ctx);p.optimization.analysis={signature:vm.runInContext('ioOptSignature(p)',ctx),communeCode:'37261',city:'Tours',checkedAt:new Date().toISOString(),sources:[source],errors:[],geo};return {db,geo};
+};
