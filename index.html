@@ -503,6 +503,8 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
 /* Six permanent destinations and compact landlord tools. */
 header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:100%}header #nav [data-page=optimisation] span{letter-spacing:-.25px}.io-landlord-toolbar{display:flex;gap:7px;margin:0 0 12px}.io-landlord-toolbar button{flex:1;min-height:36px;font-size:12px;padding:7px;color:#0865cf;background:#f4f8ff;border:1px solid #dce5f1;border-radius:9px}
 @media(max-width:360px){header #nav [data-page=optimisation] span{font-size:8px}}
+
+#immobilier .io-properties-title{gap:7px}.io-properties-title>div:first-child{min-width:0;flex:1}.io-properties-title .io-landlord-toolbar{margin:0;gap:5px;flex-shrink:0}.io-properties-title .io-landlord-toolbar button{flex:none;min-width:44px;min-height:40px;padding:6px;font-size:11px}
 </style>
 </head>
 <body>
@@ -577,8 +579,7 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 
 <section id="immobilier" class="page">
   <details class="io-discovery no-print"><summary><span>Découverte gratuite</span><span>En savoir plus <span aria-hidden="true">›</span></span></summary><p>Vous pouvez gérer ici <b>1 logement complet</b> avec ses loyers, charges, financement, valeur et analyse de marché. Les fonctionnalités multi-biens seront réservées à l’offre premium lors de la commercialisation.</p></details>
-  <div class="section-title io-properties-title"><div><h2>Mes biens</h2><span id="ioPropertyCount" aria-live="polite">0 bien</span></div><button id="addPropertyButton" class="primary" type="button" aria-label="Ajouter un bien">+ Ajouter</button></div>
-  <div class="io-landlord-toolbar"><button type="button" class="secondary" onclick="ioLandlordOpen(null,'irl')">Indice IRL</button><button type="button" class="secondary" onclick="ioLandlordOpen(null,'lease')">Préparer un bail</button></div>
+  <div class="section-title io-properties-title"><div><h2>Mes biens</h2><span id="ioPropertyCount" aria-live="polite">0 bien</span></div><div class="io-landlord-toolbar"><button type="button" class="secondary" onclick="ioLandlordOpen(null,'irl')" aria-label="Indice IRL" title="Indice IRL et révision du loyer">IRL</button><button type="button" class="secondary" onclick="ioLandlordOpen(null,'lease')" aria-label="Préparer un bail" title="Préparer un bail">Bail</button></div><button id="addPropertyButton" class="primary" type="button" aria-label="Ajouter un bien">+ Ajouter</button></div>
   <div id="propertyFormWrap"></div>
   <div id="properties"></div>
 </section>
