@@ -142,6 +142,7 @@ jobs:
           node tests/finance.cjs
           node tests/rental.cjs
           node tests/rental-model.cjs
+          node tests/rental-search.cjs
           node tests/rental-collection.cjs
           node tests/rental-advertised.cjs
           node --test functions/test/*.test.cjs
