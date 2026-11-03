@@ -129,5 +129,20 @@ ET.parse(paths_file)
 if "public void shareFile(" not in source or "FileProvider.getUriForFile" not in source:
     raise SystemExit("ERROR: Android JSON attachment sharing not installed")
 
+# Landlord lease drafts use portrait A4 independently of the bank dossier.
+if "public void printLeaseDraft()" not in source:
+    source = source.replace(bridge_anchor, bridge_anchor + """
+            @JavascriptInterface public void printLeaseDraft() {
+                runOnUiThread(() -> beginPrintLeaseDraft());
+            }""", 1)
+if "private void beginPrintLeaseDraft()" not in source:
+    lease_print = print_method.replace("private void beginPrint()", "private void beginPrintLeaseDraft()")
+    lease_print = lease_print.replace("ISO_A4.asLandscape()", "ISO_A4.asPortrait()")
+    lease_print = lease_print.replace("ImmOptima_Dossier_Bancaire", "ImmOptima_Projet_Bail")
+    lease_print = lease_print.replace("ImmOptima - Dossier bancaire", "ImmOptima - Projet de bail")
+    source = source.replace(marker, lease_print + marker, 1)
+if "public void printLeaseDraft()" not in source or "ISO_A4.asPortrait()" not in source:
+    raise SystemExit("ERROR: native portrait lease printing patch not installed")
+
 java_file.write_text(source, encoding="utf-8")
 print("PASS: Android native print dialog enabled for bank summary PDF")

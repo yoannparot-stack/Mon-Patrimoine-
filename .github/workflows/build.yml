@@ -10,6 +10,7 @@ on:
       - 'rental-optimization.js'
       - 'rental-local-data.js'
       - 'bank-simulator.js'
+      - 'landlord-tools.js'
       - 'functions/**'
       - 'android-rental-patch.py'
       - 'firebase.json'
@@ -85,6 +86,7 @@ jobs:
           cp index.html "$ASSET_FILE"
           cp rental-local-data.js "$(dirname "$ASSET_FILE")/rental-local-data.js"
           cp rental-optimization.js "$(dirname "$ASSET_FILE")/rental-optimization.js"
+          cp landlord-tools.js "$(dirname "$ASSET_FILE")/landlord-tools.js"
           cp bank-simulator.js "$(dirname "$ASSET_FILE")/bank-simulator.js"
           test -s "$ASSET_FILE"
           echo "HTML Android mis à jour : $ASSET_FILE"
@@ -95,7 +97,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 22/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 23/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -143,6 +145,7 @@ jobs:
           node tests/rental.cjs
           node tests/rental-model.cjs
           node tests/rental-search.cjs
+          node tests/landlord.cjs
           node tests/rental-collection.cjs
           node tests/rental-advertised.cjs
           node --test functions/test/*.test.cjs
