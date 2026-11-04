@@ -2,9 +2,11 @@ const fs=require('node:fs'),http=require('node:http'),assert=require('node:asser
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright':'playwright');
 const fixture=require('./fixture.cjs'),marketFixture=require('./market-fixture.cjs'),rentalFixture=require('./rental-fixture.cjs');
 const advertisedFixture=require('./rental-advertised-fixture.cjs');
+let qaStage='startup',failurePage;const qaWatchdog=setTimeout(()=>{console.error('QA watchdog at '+qaStage);process.exit(1)},240000);qaWatchdog.unref();
 (async()=>{
  const server=http.createServer((req,res)=>{const js=['/rental-optimization.js','/rental-local-data.js','/bank-simulator.js','/landlord-tools.js','/rental-management.js'].includes(req.url);res.setHeader('Content-Type',js?'application/javascript; charset=utf-8':'text/html; charset=utf-8');res.end(fs.readFileSync(js?req.url.slice(1):'index.html'))});await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const browser=await chromium.launch({headless:true,executablePath:process.env.IMMOPTIMA_CHROMIUM||undefined}),page=await browser.newPage({viewport:{width:393,height:851},deviceScaleFactor:2,isMobile:true,hasTouch:true}),errors=[],dialogs=[];
+ failurePage=page;page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(20000);
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept()});await page.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:')?r.continue():r.abort());
  await page.addInitScript(()=>localStorage.setItem('immoptima_welcome_v1','seen'));
  const url='http://127.0.0.1:'+server.address().port;await page.goto(url);await page.waitForTimeout(500);
@@ -15,6 +17,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.evaluate(data=>{db=data;localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll()},data);
  assert.equal(await page.locator('#igNet').textContent(),'124 500 €');
  fs.mkdirSync('qa-out/web',{recursive:true});const shot=async name=>{await page.waitForTimeout(120);await page.screenshot({path:'qa-out/web/'+name+'.png'});};await shot('01-dashboard');
+ qaStage='Validated list B: consecutive property cards, compact notice, live actions and all metrics retained.';console.log(qaStage);
  // Validated list B: consecutive property cards, compact notice, live actions and all metrics retained.
  await page.getByRole('button',{name:'Biens',exact:true}).click();
  assert.equal(await page.locator('#ioPropertyCount').textContent(),'2 biens');
@@ -35,6 +38,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  const cardsLayout=await page.locator('#properties .io-property-card').evaluateAll(cards=>cards.map(c=>({height:c.getBoundingClientRect().height,bottom:c.getBoundingClientRect().bottom})));
  assert(cardsLayout[0].height<300,'property card remains compact');assert(cardsLayout[1].bottom<790,'two complete property cards on a normal phone');
  for(const width of [320,360,393,430,800]){await page.setViewportSize({width,height:851});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'property list horizontal overflow '+width)}
+ qaStage='A long imported name/address and an apostrophe in ID remain safe and readable.';console.log(qaStage);
  // A long imported name/address and an apostrophe in ID remain safe and readable.
  await page.evaluate(()=>{Object.assign(db.properties[2],{id:"qa-list-'quoted",name:'Appartement très long avec nom et adresse à vérifier '.repeat(3),holder:'Détenteur dont le nom est long',address:'Rue de validation très longue '.repeat(4),retainedValue:123456789012});renderProperties()});
  await page.setViewportSize({width:320,height:740});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'long property fields cannot widen the page');
@@ -57,8 +61,10 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.locator('#ioPropertyDetailOverlay .io-premium-tabs').first().getByRole('button',{name:'Loyers',exact:true}).click();assert((await page.locator('#ioPropertyDetailOverlay').textContent()).includes('350'));
  await page.locator('#ioPropertyDetailOverlay .io-premium-tabs').first().getByRole('button',{name:'Récap',exact:true}).click();assert(await page.getByRole('button',{name:'Modifier le bien',exact:true}).isVisible());
  await page.evaluate(()=>immoptimaClosePropertyDetail());
+ qaStage='Upload a real image through the file chooser, then retain it through edit/reload/export/import.';console.log(qaStage);
  // Upload a real image through the file chooser, then retain it through edit/reload/export/import.
  await page.evaluate(()=>immoptimaOpenPropertyDetail('qa-tours'));const chooserPromise=page.waitForEvent('filechooser');await page.locator('.io-property-photo').click();const chooser=await chooserPromise;await chooser.setFiles({name:'photo.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=','base64')});await page.waitForFunction(()=>db.properties[0].photo?.startsWith('data:image/jpeg'));assert(await page.locator('.io-property-photo img').isVisible());await page.evaluate(()=>immoptimaClosePropertyDetail());
+ qaStage='Real DOM interactions: edit, persistence after reload, JSON export/import and invalid import rollback.';console.log(qaStage);
  // Real DOM interactions: edit, persistence after reload, JSON export/import and invalid import rollback.
  await page.evaluate(()=>openPropertyForm('qa-tours'));await page.locator('#propertyFormWrap [name=rentHC]').fill('925');await page.locator('#propertyFormWrap form button.primary').click();
  assert.equal(await page.evaluate(()=>db.properties[0].rentHC),925);await page.reload();await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>db.properties[0].rentHC),925);assert(await page.evaluate(()=>db.properties[0].photo.startsWith('data:image/jpeg')));
@@ -66,10 +72,12 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  const downloadPromise=page.waitForEvent('download');await page.evaluate(()=>exportData('local'));const download=await downloadPromise;await download.saveAs('qa-out/backup-test.json');const backup=JSON.parse(fs.readFileSync('qa-out/backup-test.json'));assert.equal(backup.properties[0].rentHC,925);assert(backup.propertySnapshots.length);
  await page.evaluate(()=>db.properties[0].rentHC=10);await page.locator('#importFile').setInputFiles('qa-out/backup-test.json');await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>db.properties[0].rentHC),925);assert(await page.evaluate(()=>!!localStorage.getItem('immoptima_pre_import_v1')));
  const before=await page.evaluate(()=>JSON.stringify(db));await page.locator('#importFile').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{"properties":"wrong"}')});await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>JSON.stringify(db)),before);assert(dialogs.some(d=>d.includes('invalide')));
+ qaStage='Bank export and print layout use real numbers, including thousands and cents.';console.log(qaStage);
  // Bank export and print layout use real numbers, including thousands and cents.
  await page.evaluate(()=>{showPage('banque');renderBankSummary()});assert.equal(await page.locator('#bankTableBody tr').first().locator('td').nth(8).locator('input').inputValue(),'11100');
  const csvPromise=page.waitForEvent('download');await page.evaluate(()=>exportBankCSV());const csv=await csvPromise;await csv.saveAs('qa-out/bank-test.csv');assert(fs.readFileSync('qa-out/bank-test.csv','utf8').includes('11100'));
  await page.emulateMedia({media:'print'});assert(await page.locator('#bankTableBody input').first().isHidden());await page.pdf({path:'qa-out/bank-print-test.pdf',landscape:true,format:'A4',printBackground:true});await page.emulateMedia({media:'screen'});
+ qaStage='Loan simulator is independent: calculations and preparation do not save loans.';console.log(qaStage);
  // Loan simulator is independent: calculations and preparation do not save loans.
  await page.locator('#bankFinanceTab').click();const loanBefore=await page.evaluate(()=>JSON.stringify(db));
  await page.locator('#bankSimulateLoan').click();assert(await page.locator('#ioLoanSimulator').isVisible());
@@ -84,6 +92,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.evaluate(()=>immoptimaHandleBack());assert(await page.locator('#ioLoanSimulator').isVisible());assert.equal(await page.locator('#ioLoanHelp').evaluate(el=>el.open),false);
  await page.locator('#ioLoanPrepare').click();assert(await page.locator('#ioLoanSimulator').isHidden());assert.equal(await page.locator('#loanFormWrap [name=initial]').inputValue(),'120000');assert.equal(await page.locator('#loanFormWrap [name=rate]').inputValue(),'3.32');assert.equal(await page.evaluate(()=>JSON.stringify(db)),loanBefore,'preparation never adds a loan');
  await page.evaluate(()=>closeForm('loanFormWrap'));await page.locator('#bankSimulateLoan').click();await page.evaluate(()=>immoptimaHandleBack());assert(await page.locator('#ioLoanSimulator').isHidden());assert(await page.locator('#bankFinanceMount').isVisible());await page.locator('#bankSummaryTab').click();
+ qaStage='Bank C: real editing, monthly/annual links, collapsed viewport, long lists, no horizontal table.';console.log(qaStage);
  // Bank C: real editing, monthly/annual links, collapsed viewport, long lists, no horizontal table.
  assert(await page.locator('#bankMobile').isVisible());assert(await page.locator('#banque .bank-print-document').isHidden());
  const bankCard=()=>page.locator('#bankMobile .io-bank-property').first();
@@ -96,6 +105,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await bankInput('annualCC').fill('12600');await bankInput('annualCC').blur();assert.equal(await bankInput('recoverable').inputValue(),'125');
  await bankInput('credit').fill('0');await page.locator('#bankMobile .io-bank-editor').getByRole('button',{name:'Enregistrer',exact:true}).click();assert.equal(await page.evaluate(()=>propertyLoanPayment(db.properties[0])),0);assert.equal(await page.evaluate(()=>db.properties[0].recoverable),125);
  assert.equal(await bankCard().evaluate(card=>card.open),true,'saving preserves the expanded bank card');
+ qaStage='Metadata-only edits do not override an automatically calculated loan payment.';console.log(qaStage);
  // Metadata-only edits do not override an automatically calculated loan payment.
  await page.evaluate(()=>{db.loans[0].payment=0;db.loans[0].paymentOverride=false;renderBankSummary()});
  await bankCard().getByRole('button',{name:'Modifier les données',exact:true}).click();await bankInput('name').fill('Appartement bancaire modifié');await page.locator('#bankMobile .io-bank-editor').getByRole('button',{name:'Enregistrer',exact:true}).click();assert.equal(await page.evaluate(()=>db.loans[0].paymentOverride),false);
@@ -109,21 +119,25 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
   await page.locator('#bankMobile .io-bank-help summary').click();await page.waitForTimeout(80);assert(await page.locator('#bankMobile .io-bank-help p').first().isVisible());await page.locator('#bankMobile .io-bank-help summary').click();
  }
  await page.setViewportSize({width:393,height:851});await page.evaluate(()=>window.scrollTo(0,0));await shot('12-banque-c-replie');await bankCard().locator('summary').click();await page.waitForTimeout(120);assert(await page.evaluate(()=>Math.abs(window.scrollY)<2),'opening first bank card preserves the top of the page '+JSON.stringify(await page.evaluate(()=>({y:scrollY,card:document.querySelector('.io-bank-property').getBoundingClientRect().top}))));await shot('13-banque-c-ouvert');await bankCard().locator('summary').click();
+ qaStage='11-property portfolio and a long imported ID/name: the list scrolls vertically inside the closed summary.';console.log(qaStage);
  // 11-property portfolio and a long imported ID/name: the list scrolls vertically inside the closed summary.
  await page.evaluate(()=>{const base=db.properties[0];db.properties=Array.from({length:11},(_,i)=>({...base,id:'bank-many-'+i,name:'Appartement '+(i+1)}));db.properties[10].id="bank-quoted-'";db.properties[10].name='Appartement au nom très long '.repeat(5);renderBankSummary()});await page.waitForTimeout(100);
  assert(await page.evaluate(()=>{const list=document.querySelector('.io-bank-list');return document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth&&list.scrollHeight>list.clientHeight}),'large bank portfolio uses vertical list');
  const lastBank=page.locator('#bankMobile .io-bank-property').last();await lastBank.locator('summary').click();await lastBank.getByRole('button',{name:'Modifier les données',exact:true}).click();assert.equal(await page.locator('#bankMobile .io-bank-editor').getAttribute('data-property-id'),"bank-quoted-'");await page.locator('#bankMobile .io-bank-editor').getByRole('button',{name:'Annuler',exact:true}).click();
+ qaStage='Export still includes every property, regardless of collapsed state or vertical position.';console.log(qaStage);
  // Export still includes every property, regardless of collapsed state or vertical position.
  const manyCsvPromise=page.waitForEvent('download');await page.evaluate(()=>exportBankCSV());const manyCsv=await manyCsvPromise;await manyCsv.saveAs('qa-out/bank-11-properties.csv');assert(fs.readFileSync('qa-out/bank-11-properties.csv','utf8').includes('Appartement 10'));
  await page.emulateMedia({media:'print'});assert(await page.locator('#bankMobile').isHidden());assert(await page.locator('#banque .bank-print-document').isHidden());assert(await page.locator('#bankPdfReport').isVisible());assert.equal(await page.locator('#bankTableBody tr').count(),12);await page.pdf({path:'qa-out/bank-11-properties.pdf',landscape:true,format:'A4',printBackground:true});await page.emulateMedia({media:'screen'});
  await page.evaluate(()=>{db.properties=[];db.loans=[];ioBankOpenId=null;ioBankEditorId=null;ioBankHelpOpen=false;renderAll();showPage('banque')});await page.waitForTimeout(100);assert(await page.locator('#bankMobile .empty').isVisible());assert(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth),'empty bank fits');
  await page.evaluate(data=>{db=data;ioBankOpenId=null;ioBankEditorId=null;ioBankHelpOpen=false;renderAll();showPage('banque')},fixture());
+ qaStage='Snapshot persistence, owner filtering, chart point interaction, no duplicate DOM IDs.';console.log(qaStage);
  // Snapshot persistence, owner filtering, chart point interaction, no duplicate DOM IDs.
  await page.evaluate(()=>{showPage('dashboard');immoptimaHolderChange('SARL de famille')});assert.equal(await page.locator('#igNet').textContent(),'84 000 €');
  await page.evaluate(()=>{document.getElementById('ioHolderFilter').value='Tous';immoptimaOpenAnalysis('wealth')});await page.locator('#ioAnalysisBody svg g[role=button]').first().dispatchEvent('click');assert(!(await page.locator('#ioAnalysisBody .io-chart-tip').textContent()).includes('Touchez'));
  const dup=await page.evaluate(()=>{const ids=[...document.querySelectorAll('[id]')].map(e=>e.id);return ids.filter((v,i)=>ids.indexOf(v)!==i)});assert.deepEqual(dup,[]);
  await page.evaluate(()=>immoptimaCloseAnalysis());
  for(const width of [320,360,393,430,800]){await page.setViewportSize({width,height:851});await page.evaluate(()=>{showPage('dashboard');renderAll()});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'dashboard overflow '+width);await page.evaluate(()=>immoptimaOpenAnalysis('income'));assert(await page.evaluate(()=>document.getElementById('ioAnalysisOverlay').scrollWidth<=innerWidth),'analysis overflow '+width);await page.evaluate(()=>immoptimaCloseAnalysis());}
+ qaStage='All four cards and the navigation must fit on ONE screen, including a short phone.';console.log(qaStage);
  // All four cards and the navigation must fit on ONE screen, including a short phone.
  for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
   await page.setViewportSize({width,height});await page.evaluate(()=>{showPage('dashboard');renderAll()});await page.waitForTimeout(100);
@@ -132,6 +146,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
   for(const tile of geometry.tiles){assert(tile.bottom<=geometry.navTop+1,'tile hidden under nav');for(const content of tile.content)assert(content.top>=tile.top-1&&content.bottom<=tile.bottom+1,'card text clipped '+width+'x'+height+': '+JSON.stringify(tile));}
  }
  await page.setViewportSize({width:393,height:740});await page.waitForTimeout(100);await shot('08-dashboard-une-page');
+ qaStage="Regression from the user's screenshot: +5000 / +11.1% in one day, no annualized explosion.";console.log(qaStage);
  // Regression from the user's screenshot: +5000 / +11.1% in one day, no annualized explosion.
  await page.setViewportSize({width:393,height:851});await page.evaluate(()=>{
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);const date=yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
@@ -142,6 +157,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  assert((await page.locator('#ioAnalysisBody .io-footer-stats > div').nth(1).textContent()).includes('11,1'));
  assert(await page.evaluate(()=>document.getElementById('ioAnalysisOverlay').scrollWidth<=innerWidth),'short-history percentage must not widen screen');
  await shot('07-richesse-historique-court');
+ qaStage='Every analysis, not only the dashboard: closed help stays on the first screen.';console.log(qaStage);
  // Every analysis, not only the dashboard: closed help stays on the first screen.
  await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},fixture());
  for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
@@ -162,6 +178,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  }
  await page.setViewportSize({width:393,height:740});
  for(const kind of ['wealth','income','yield','diagnostic']){await page.evaluate(kind=>immoptimaOpenAnalysis(kind),kind);await page.waitForTimeout(120);await shot('09-'+kind+'-une-page');await page.evaluate(()=>immoptimaCloseAnalysis());}
+ qaStage='Property mockup A: all four tabs fit, with only calculations help expanding the page.';console.log(qaStage);
  // Property mockup A: all four tabs fit, with only calculations help expanding the page.
  await page.evaluate(data=>{db=data;renderAll();showPage('immobilier')},fixture());
  for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
@@ -184,11 +201,13 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  for(let i=0;i<6;i++){await page.evaluate(i=>ioPropertyPeriodChoice(i),i);await page.waitForTimeout(80);assert.equal(await page.locator('#ioPropertyDetailOverlay .io-premium-periods button[aria-pressed=true]').count(),1)}
  for(let i=0;i<5;i++){await page.evaluate(i=>ioPropertyCurveTab(i),i);await page.waitForTimeout(80);assert.equal(await page.locator('#ioPropertyDetailOverlay .io-premium-tabs').nth(1).locator('button[aria-pressed=true]').count(),1)}
  await page.evaluate(()=>{ioPropertyTab(1)});await page.locator('#ioPropertyDetailOverlay .io-property-help summary').click();await page.locator('#ioPropertyDetailOverlay .io-comparison').getByRole('button',{name:'Modifier',exact:true}).click();assert(await page.locator('#loanFormWrap form').isVisible());await page.locator('#loanFormWrap').getByRole('button',{name:'Fermer',exact:true}).click();
+ qaStage='Empty/undated/negative cases keep the help visible and do not invent curves.';console.log(qaStage);
  // Empty/undated/negative cases keep the help visible and do not invent curves.
  await page.evaluate(()=>{db.properties=[{id:'qa-empty-property',name:'Bien sans dates',holder:'Détenteur',retainedValue:90000,rentHC:0,ownerCharges:120}];db.loans=[];db.propertySnapshots=[];immoptimaOpenPropertyDetail('qa-empty-property')});await page.waitForTimeout(120);assert(await page.locator('#ioPropertyDetailOverlay .io-analysis-empty').isVisible());assert(await page.evaluate(()=>{const o=document.getElementById('ioPropertyDetailOverlay');return o.scrollHeight<=o.clientHeight+1}));await page.evaluate(()=>immoptimaClosePropertyDetail());
  await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},fixture());
  assert((await page.locator('#dashboardGraph .io-tile-title').first().textContent()).includes('MON PATRIMOINE NET'));
  await page.evaluate(()=>immoptimaOpenAnalysis('wealth'));assert((await page.locator('#ioAnalysisTitle').textContent()).includes('Mon patrimoine net'));assert(await page.getByRole('button',{name:'Récap',exact:true}).isVisible());await page.evaluate(()=>immoptimaCloseAnalysis());
+ qaStage='Market C keeps matched financial scope, a vertical portfolio list and explicit unknown/error states.';console.log(qaStage);
  // Market C keeps matched financial scope, a vertical portfolio list and explicit unknown/error states.
  await page.evaluate(()=>{db.properties=[];marketStatus('Aucun bien à analyser.','warn')});
  await page.evaluate(data=>{db=data;ioMarketOpenId=null;marketSave({checkedAt:new Date().toISOString(),results:{}});renderAll();showPage('valorisation')},marketFixture(fixture()));
@@ -205,6 +224,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.evaluate(()=>{const p=db.properties[0];db.properties=Array.from({length:11},(_,i)=>({...p,id:'market-many-'+i,name:'Bien '+i}));db.properties[10].id="market-quote-'";db.properties[10].name='Bien au nom très long '.repeat(7);renderMarketPage()});await page.waitForTimeout(100);assert(await page.evaluate(()=>{const list=document.getElementById('marketTable');return list.scrollHeight>list.clientHeight&&document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth}),'large market list scrolls vertically');
  await page.locator('#marketTable .io-market-property').last().locator('summary').click();assert.equal(await page.locator('#marketTable details[open]').getAttribute('data-market-property'),"market-quote-'");await page.locator('#marketTable .io-market-property').last().locator('summary').click();
  await page.evaluate(()=>{db.properties=[];ioMarketOpenId=null;renderMarketPage()});assert(await page.locator('#marketTable .empty').isVisible());assert((await page.locator('#marketOverview').textContent()).includes('Écart non disponible'));
+ qaStage='Exercise the original full geocoding/cadastre/DVF pipeline through the real buttons, using deterministic public-serv';console.log(qaStage);
  // Exercise the original full geocoding/cadastre/DVF pipeline through the real buttons, using deterministic public-service fixtures.
  const sent=[];
  const geocoder=async route=>{sent.push(route.request().url());await route.fulfill({json:{features:[{geometry:{coordinates:[.68,47.394]},properties:{citycode:'37261',city:'Tours',postcode:'37000',score:.9,label:'Adresse fictive de validation'}}]}})};
@@ -218,6 +238,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  assert.deepEqual(await page.evaluate(()=>db.properties.map(p=>p.retainedValue)),retained,'DVF does not overwrite retained asset values');
  assert(sent.some(x=>x.startsWith('https://dvf-api.data.gouv.fr/')));assert(sent.every(x=>!x.includes('SARL')&&!x.includes('rentHC')&&!x.includes('remaining')&&!x.includes('holder')),'no financial or ownership data sent to public services');
  await marketCard().locator('summary').click();await marketCard().getByRole('button',{name:'Actualiser ce bien',exact:false}).click();await page.waitForFunction(()=>ioMarketBusy.size===0,{},{timeout:10000});assert(await marketCard().evaluate(el=>el.open),'refresh preserves the open card');
+ qaStage='Error retains the last estimate and its successful date, restores controls and creates no unhandled rejection.';console.log(qaStage);
  // Error retains the last estimate and its successful date, restores controls and creates no unhandled rejection.
  const previous=await page.evaluate(()=>({...db.properties[0].marketAnalysis})),offline=async route=>route.fulfill({status:503,body:'Service indisponible'});
  await page.route('https://data.geopf.fr/**',offline);await marketCard().getByRole('button',{name:'Actualiser ce bien',exact:false}).click();await page.waitForFunction(()=>!!db.properties[0].marketAnalysis.error&&ioMarketBusy.size===0,{},{timeout:10000});
@@ -226,6 +247,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.reload();await page.waitForTimeout(300);await page.evaluate(()=>showPage('valorisation'));assert.equal(await page.evaluate(()=>db.properties[0].marketAnalysis.estimate),125000);assert((await page.locator('#marketOverview').textContent()).includes('+15 %'));
  await page.evaluate(data=>{db=data;ioMarketOpenId=null;renderAll();showPage('dashboard')},fixture());
 
+ qaStage='Banque / Financement is now the sole loan-management destination; old links redirect safely.';console.log(qaStage);
  // Banque / Financement is now the sole loan-management destination; old links redirect safely.
  await page.evaluate(data=>{db=data;ioBankOpenId=null;ioBankHelpOpen=false;renderAll();showPage('financement')},fixture());
  assert(await page.locator('#banque').isVisible());assert(await page.locator('#financement').isHidden());assert.equal(await page.evaluate(()=>pages.some(p=>p[0]==='financement')),false);
@@ -245,6 +267,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.locator('#loans [data-loan-id="'+newLoan+'"] .io-loan-menu summary').click();await page.locator('#loans [data-loan-id="'+newLoan+'"]').getByRole('button',{name:'Supprimer',exact:true}).click();assert.equal(await page.evaluate(()=>db.loans.length),3);assert.equal(await page.evaluate(()=>propertyLoanPayment(db.properties[0])),450);
  await page.evaluate(data=>{db=data;ioBankOpenId=null;ioBankHelpOpen=false;renderAll();showPage('banque');ioBankOpenPropertyLoans('qa-tours')},fixture());assert.equal(await page.locator('#loanFormWrap form').getAttribute('data-loan-id'),'qa-credit-tours','one linked loan opens editing rather than adding a duplicate');await page.locator('#loanFormWrap').getByRole('button',{name:'Fermer',exact:true}).click();await page.locator('#bankSummaryTab').click();
  await page.setViewportSize({width:393,height:851});await page.waitForTimeout(120);await shot('14-banque-financement-regroupe');await page.locator('#bankFinanceTab').click();await page.waitForTimeout(100);assert(await page.evaluate(()=>scrollY===0&&document.querySelector('header .top').getBoundingClientRect().top>=0&&document.getElementById('nav').getBoundingClientRect().bottom<=innerHeight+1),'finance tab restores whole screen after editing');await shot('15-financements-integres');await page.locator('#bankSummaryTab').click();
+ qaStage='Both Bank views fit: the credit list scrolls internally, and switching views preserves draft input.';console.log(qaStage);
  // Both Bank views fit: the credit list scrolls internally, and switching views preserves draft input.
  for(const [width,height] of [[320,568],[360,640],[393,740],[412,780],[430,932]]){
   await page.setViewportSize({width,height});await page.locator('#bankFinanceTab').click();await page.waitForTimeout(100);
@@ -258,6 +281,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.evaluate(()=>{db.loans=[];renderAll()});assert(await page.locator('#loans .empty').isVisible());
  await page.evaluate(data=>{db=data;renderAll();ioBankSetView('summary')},fixture());
  await page.locator('#bankSummaryTab').focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#bankFinanceTab').getAttribute('aria-selected'),'true');await page.keyboard.press('Home');assert.equal(await page.locator('#bankSummaryTab').getAttribute('aria-selected'),'true');
+ qaStage='Export choices invoke the same native/browser print entry point with the requested sections.';console.log(qaStage);
  // Export choices invoke the same native/browser print entry point with the requested sections.
  await page.evaluate(()=>{db.properties.forEach(p=>p.demo='qa-report');window.__printed=0;window.print=()=>window.__printed++});
  for(const [mode,label] of [['summary','Synthèse · les chiffres essentiels'],['detail','Détail · biens, charges et prêts'],['both','Synthèse + détail']]){
@@ -268,9 +292,11 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  }
  assert.equal(await page.evaluate(()=>window.__printed),3);
  await page.evaluate(()=>{db.properties=[{id:'zero-report',name:'Bien à loyers nuls',rentHC:0,recoverable:0,ownerCharges:0,tax:0,pno:0,otherMonthly:0,currentValue:1000}];db.loans=[];ioBuildBankReport('summary')});assert((await page.locator('#bankPdfReport tbody tr').first().locator('td').nth(1).textContent()).includes('0,00'),'explicit zero rent remains zero in PDF');
+ qaStage='Missing data produces NR rather than a fictional zero or computed cash flow.';console.log(qaStage);
  // Missing data produces NR rather than a fictional zero or computed cash flow.
  await page.evaluate(()=>{db.properties=[{id:'missing',name:'Bien incomplet',rentHC:490,recoverable:35}];db.loans=[];ioBuildBankReport('both')});assert((await page.locator('#bankPdfReport').textContent()).includes('NR'));assert.equal(await page.evaluate(()=>bankReportCharges(db.properties[0])),null);
  await page.evaluate(data=>{db=data;renderAll();showPage('dashboard')},fixture());
+ qaStage='Optimisation C and comparison B use real scenarios and preserve all actual financial data.';console.log(qaStage);
  // Optimisation C and comparison B use real scenarios and preserve all actual financial data.
  await page.evaluate(data=>{db=data;ioOptOpenId=null;ioOptFilter='all';renderAll();showPage('optimisation')},rentalFixture());
  assert((await page.locator('#optimizationSummary').textContent()).includes('+50'));
@@ -287,6 +313,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.locator('#ioOptCompare [data-opt-retain]').click();await page.locator('#ioOptCompare [data-opt-close]').click();await page.reload();await page.waitForTimeout(350);await page.evaluate(()=>showPage('optimisation'));assert.equal(await page.evaluate(()=>db.properties[0].optimization.scenarios.meuble.target),530);assert.equal(await page.evaluate(()=>db.properties[0].rentHC),450);
  await page.evaluate(()=>ioOptOpenCompare(db.properties[0].id,true));const invalid=JSON.stringify([{mode:'meuble',url:'https://exemple.test/invalid'}]);const prevRefs=await page.evaluate(()=>JSON.stringify(db.properties[0].optimization.references));await page.locator('#ioOptImport').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from(invalid)});await page.waitForTimeout(150);assert.equal(await page.evaluate(()=>JSON.stringify(db.properties[0].optimization.references)),prevRefs);assert((await page.locator('#ioOptModalStatus').textContent()).includes('incomplète'));await page.locator('#ioOptCompare [data-opt-close]').click();
  await page.evaluate(()=>{const p=db.properties[0];db.properties=Array.from({length:11},(_,i)=>({...p,id:'opt-'+i,name:'Appartement '+i}));renderAll()});await page.waitForTimeout(100);assert(await page.evaluate(()=>{const l=document.getElementById('optimizationTable');return l.scrollHeight>l.clientHeight&&document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth}),'eleven optimization cards scroll internally');
+ qaStage='Furnished modelling on real public sector statistics, synthetic property.';console.log(qaStage);
  // Furnished modelling on real public sector statistics, synthetic property.
  const modelData=require('./rental-model-fixture.cjs')();
  await page.evaluate(data=>{db=data;renderAll();showPage('optimisation');ioOptOpenCompare(db.properties[0].id)},modelData.db);
@@ -298,6 +325,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.locator('#ioOptSettings summary').click();await page.locator('[name=furnishedPremiumPct]').fill('20');await page.locator('#ioOptSettingsForm button.primary').click();assert.equal(await page.evaluate(()=>ioOptScenario(db.properties[0],'meuble').target),500);assert.equal(await page.evaluate(()=>db.properties[0].rentHC),300);
  await page.reload();await page.waitForTimeout(300);await page.evaluate(()=>{showPage('optimisation');ioOptOpenCompare(db.properties[0].id)});assert.equal(await page.locator('[name=furnishedPremiumPct]').inputValue(),'20');assert.equal(await page.evaluate(()=>ioOptScenario(db.properties[0],'meuble').target),500);
  await page.locator('#ioOptSettings summary').click();await page.locator('[name=furnishedPremiumPct]').fill('');await page.locator('#ioOptSettingsForm button.primary').click();assert.equal(await page.evaluate(()=>ioOptScenario(db.properties[0],'meuble').target),455);await page.locator('[data-opt-close]').click();
+ qaStage='Public-source integration: dated bare evidence, explicit modelled premium, no invented ads.';console.log(qaStage);
  // Public-source integration: dated bare evidence, explicit modelled premium, no invented ads.
  const rentalSent=[];
  await page.route('https://www.data.gouv.fr/api/1/datasets/**',async route=>{const u=route.request().url();rentalSent.push(u);if(u.includes('-2026/'))return route.fulfill({status:404,body:'Not published'});return route.fulfill({json:u.includes('resultats-nationaux')?{resources:[{id:'oll-test',format:'csv',title:'Loyers 2025'}]}:{slug:'carte-des-loyers-indicateurs-de-loyers-dannonce-par-commune-en-2025',title:'Carte des loyers 2025',resources:[{id:'anil-test',title:'Indicateur de loyer appartement de 1 ou 2 pièces',format:'csv',url:'https://static.data.gouv.fr/2025.csv'}]}})});
@@ -307,6 +335,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  assert.equal(await page.evaluate(()=>ioOptEvidence(db.properties[0],'nu').target),415);assert.equal(await page.evaluate(()=>ioOptEvidence(db.properties[0],'meuble').target),455);assert.equal(await page.evaluate(()=>db.properties[0].rentHC),actualValues.rent);assert.equal(await page.evaluate(()=>db.properties[0].retainedValue),actualValues.retained);assert.equal(await page.evaluate(()=>JSON.stringify(db.loans)),actualValues.loans);
  assert(rentalSent.every(u=>!u.includes('rentHC')&&!u.includes('holder')&&!u.includes('remaining')&&!u.includes('450')),'financial values never sent to data providers');
  const rentalOffline=route=>route.fulfill({status:503,body:'Unavailable'});await page.route('https://www.data.gouv.fr/api/1/datasets/**',rentalOffline);await page.locator('#optimizationAnalyze').click();await page.waitForFunction(()=>!ioOptBusy,{},{timeout:15000});assert.equal(await page.evaluate(()=>db.properties[0].optimization.analysis.sources.length),2);assert(await page.evaluate(()=>db.properties[0].optimization.analysis.sources.every(s=>s.retained)));assert(await page.locator('#optimizationAnalyze').isEnabled());await page.unroute('https://www.data.gouv.fr/api/1/datasets/**',rentalOffline);
+ qaStage='Android bridge simulated only for this browser integration test: never real listings.';console.log(qaStage);
  // Android bridge simulated only for this browser integration test: never real listings.
  await page.evaluate(()=>{immoptimaAuthState={status:'signed_in',uid:'qa-browser'};window.__rentalSent=[];window.AndroidBridge={immoptimaRentalCollect(requestId,q){window.__rentalSent.push(JSON.parse(q));const p=db.properties[0],today=new Date().toISOString().slice(0,10),md=mode=>({examined:3,rejected:{},period:[today],references:[500,550,600].map((rent,i)=>({id:'yanport:'+mode+i,mode,source:'Données de test · annonces.example',url:'https://annonces.example/'+mode+i,urls:['https://annonces.example/'+mode+i],date:today,rentHC:rent,surface:p.surface,rooms:1,communeCode:'37261',family:'appartement',distanceM:100,basis:'HC explicite',provenance:'provider',verified:false}))});window.immoptimaNativeRentalResult({requestId,uid:'qa-browser',result:{version:1,provider:'yanport',checkedAt:new Date().toISOString(),expiresAt:new Date(Date.now()+86400000).toISOString(),modes:{nu:md('nu'),meuble:md('meuble')}}})}};ioOptOpenCompare(db.properties[0].id,true)});
  await page.locator('[data-opt-collect]').click();await page.waitForFunction(()=>!!db.properties[0].optimization.collection);
@@ -330,6 +359,7 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  assert(await page.evaluate(()=>immoptimaHandleBack()&&document.getElementById('ioOptCompare').hidden));
  await page.evaluate(data=>{db=data;ioOptCloseCompare();ioOptOpenId=null;ioOptState('');renderAll();showPage('dashboard')},fixture());
 
+ qaStage='V23: six primary destinations, IRL information/calculation and lease drafts.';console.log(qaStage);
  // V23: six primary destinations, IRL information/calculation and lease drafts.
  await page.evaluate(data=>{db=data;db.properties[0].rentHC=600;db.properties[0].dpe='D';renderAll();showPage('dashboard')},fixture());
  assert.equal(await page.locator('#nav button').count(),6);await page.locator('#nav [data-page=optimisation]').click();assert.equal(await page.locator('#nav [data-page=optimisation]').getAttribute('class'),'active');assert(!(await page.locator('#nav [data-page=more]').getAttribute('class')));
@@ -346,8 +376,10 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  for(const mode of ['nu','meuble']){await leaseField('mode').selectOption(mode);await page.evaluate(()=>ioLandlordPreparePrint());await page.emulateMedia({media:'print'});assert(await page.locator('#ioLandlordPrint').isVisible());assert(await page.locator('#bankPdfReport').isHidden());await page.pdf({path:'qa-out/projet-bail-'+mode+'.pdf',format:'A4',preferCSSPageSize:true,printBackground:true});await page.emulateMedia({media:'screen'});await page.evaluate(()=>dispatchEvent(new Event('afterprint')));}
  await page.locator('[data-ll-preview]').click();assert((await page.locator('#ioLandlordPreview').textContent()).includes('12 mois'));await page.locator('[data-ll-save]').click();await page.locator('#ioLandlord').evaluate(e=>e.scrollTop=0);await shot('28-trame-bail');
  await page.locator('[data-ll-close]').click();assert(!(await page.evaluate(()=>document.body.classList.contains('io-landlord-printing'))));assert.equal(await page.locator('#ioLandlordPageStyle').count(),0);await page.reload();await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>db.properties[0].landlordTools.lease.mode),'meuble');
+ qaStage='Switching accounts closes the tool and cannot reuse a transient draft for an identical property ID.';console.log(qaStage);
  // Switching accounts closes the tool and cannot reuse a transient draft for an identical property ID.
  await page.evaluate(()=>{window.__llOriginalDb=db;window.__llOriginalAuth=immoptimaAuthState;showPage('immobilier');ioLandlordOpen(db.properties[0].id,'lease');db=JSON.parse(JSON.stringify(db));delete db.properties[0].landlordTools;immoptimaAuthState={status:'signed_in',uid:'another-landlord-account'}});await page.waitForFunction(()=>document.getElementById('ioLandlord').hidden);await page.evaluate(()=>ioLandlordOpen(db.properties[0].id,'lease'));assert.equal(await page.locator('#ioLeaseForm [name=ownerName]').inputValue(),'');await page.locator('[data-ll-close]').click();await page.evaluate(()=>{db=window.__llOriginalDb;immoptimaAuthState=window.__llOriginalAuth;renderAll()});
+ qaStage='Import eleven properties through the real file selector, then edit and add a twelfth.';console.log(qaStage);
  // Import eleven properties through the real file selector, then edit and add a twelfth.
  const portfolioBefore=await page.evaluate(()=>structuredClone(db));
  const many=structuredClone(portfolioBefore);many.properties=Array.from({length:11},(_,i)=>({...structuredClone(many.properties[i%many.properties.length]),id:'multi-'+i,name:'Bien de test '+(i+1)}));many.loans=[];
@@ -356,9 +388,11 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  await page.locator('#addPropertyButton').click();await page.locator('#propertyFormWrap input[name=name]').fill('Douzième bien');await page.locator('#propertyFormWrap form').evaluate(f=>f.requestSubmit());assert.equal(await page.evaluate(()=>db.properties.length),12);
  await page.reload();await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>db.properties.length),12);
  await page.evaluate(data=>{db=data;save()},portfolioBefore);
+ qaStage='Actual backup export/import includes the new draft, without changing financial data.';console.log(qaStage);
  // Actual backup export/import includes the new draft, without changing financial data.
  const lld=page.waitForEvent('download');await page.evaluate(()=>exportData('local'));const llBackup=await lld;await llBackup.saveAs('qa-out/landlord-backup.json');assert.equal(JSON.parse(fs.readFileSync('qa-out/landlord-backup.json')).properties[0].landlordTools.lease.mode,'meuble');await page.locator('#importFile').setInputFiles('qa-out/landlord-backup.json');await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>db.properties[0].landlordTools.lease.tenantName),'Locataire de validation');assert.equal(await page.evaluate(()=>db.properties[0].rentHC),600);
  await page.evaluate(()=>{showPage('immobilier');immoptimaMore()});assert.equal(await page.locator('#ioMore .io-more-grid button[onclick*=optimisation]').count(),0);await page.locator('#ioMore [aria-label="Fermer le menu"]').click();
+ qaStage='V26: real dossier, actual payments, receipt/PDF, backup and reload.';console.log(qaStage);
  // V26: real dossier, actual payments, receipt/PDF, backup and reload.
  await page.evaluate(data=>{db=data;renderAll();showPage('immobilier')},fixture());
  await page.locator('.io-management-toolbar button').first().click();await page.waitForSelector('#rmDossierForm');
@@ -377,4 +411,4 @@ const advertisedFixture=require('./rental-advertised-fixture.cjs');
  assert.deepEqual(errors,[],'browser runtime errors');
  fs.writeFileSync('qa-out/ui-results.json',JSON.stringify({passed:true,viewportTests:[320,360,393,430,800],screenshots:'Synthetic QA portfolio; real Chromium rendering',checks:['V23: six navigation targets, IRL formula and eligibility, lease draft safety, portrait PDFs, text download, backup and reload','V22: explicit furnished model, 10/20 percent settings, two one-page viewports and persisted reset','Optimization C/comparison B, five viewports, editing/persistence, long list, atomic reference import','Automatic ANIL/OLL integration and retained data after errors','Native supplier callback integration, HC target, links, outage retention, reload, account isolation','Market C five viewports, weighted percentage and eleven-property list','Market actual refresh pipeline with mocked public endpoints, persistence, error retention and privacy scope','Bank summary/financing tabs, draft preservation and keyboard navigation','five financing viewports and eleven-credit list','loan add/edit/delete/reload and linked/unlinked scope','three PDF modes','bank C editing and bidirectional amounts','bank C five one-screen viewports','bank 11-property list and full exports','empty launch','all four analyses','tabs','periods','legends','property tabs','property edit','photo upload and persistence','bank CSV','bank print layout','reload persistence','backup export','backup import','invalid import rollback','owner filter','point tooltip','unique IDs','responsive widths','four analyses fit with closed help','help expands and closing restores viewport'],runtimeErrors:errors},null,2));
  console.log('PASS mobile browser UI, interactions, storage, backup round-trip and responsive layouts');await browser.close();server.close();
-})().catch(e=>{console.error(e);process.exit(1)});
+})().catch(async e=>{console.error('Failure at '+qaStage,e);if(failurePage)try{await failurePage.screenshot({path:'qa-out/failure.png'});fs.writeFileSync('qa-out/failure.html',await failurePage.content())}catch{}process.exit(1)});
