@@ -23,10 +23,10 @@
 
 ## Vérifications et activation restant nécessaires
 
-Les nouveaux tests de navigateur, de règles Firestore et d'APK sur émulateur n'ont pas été exécutés pour cette V25. Le navigateur local ne démarre pas dans cet environnement ; les vérifications Android complètes nécessitent la compilation distante.
+Les tests de navigateur, de règles Firestore et d'APK sur émulateur ont ensuite été exécutés avec succès pour la livraison personnelle V26 ; voir les identifiants de runs dans LIVRAISON_V26.md.
 
-Le code n'est pas déployé. Le précédent envoi GitHub a été refusé par le contrôle automatique, faute d'autorisation explicite de publication sur le dépôt public. Aucun nouveau contournement ou envoi n'a été tenté.
+Après autorisation explicite de l’utilisateur, les modifications ont été publiées sur la branche personnelle personal/immoptima-access-v25 et l’APK V26 a été compilé et vérifié. Aucun déploiement Firebase de production ni mise en vente n’a été effectué.
 
 Avant activation commerciale : vérifier puis provisionner l'UID du propriétaire ; connecter la mise à jour des droits à des achats/renouvellements/révocations vérifiés côté serveur (le paiement n'est pas encore intégré) ; exécuter les tests de sécurité dans l'émulateur ; déployer les règles après ces validations ; compiler l'APK signé et contrôler le téléphone réel. Ne jamais distribuer la version personnelle comme version commerciale.
 
-Aucun nouveau fichier APK n'est livré comme finalisé à ce stade. La V23 demeure le dernier APK livré.
+Actualisation après V26 : les tests navigateur et Android de la version personnelle ont réussi et ImmOptima-Test-v26.apk est livré. Voir LIVRAISON_V26.md. L’activation des paiements réels, du compte propriétaire serveur et des règles de production reste distincte de cette livraison personnelle.

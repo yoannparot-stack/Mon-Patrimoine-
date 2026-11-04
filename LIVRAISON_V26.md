@@ -12,3 +12,11 @@ Accès personnel gratuit multi-biens, contrôles commerciaux et bouton Retour re
 Sources contrôlées le 04/11/2026 : Service Public F35247, F33463, F34769, F947. Les modèles restent distincts de la trame de bail nu/meublé.
 
 Tests : `tests/rental-management.cjs`, suites IRL/finances/accès, extension des parcours navigateur et Android (dossier, paiement confirmé, reçu/quittance, impression, rechargement et sauvegarde). Les résultats de compilation et d'émulateur doivent être vérifiés avant remise de l'APK.
+
+## Validation finale
+
+Compilation signée et essais navigateur + Android API 34 réussis : run GitHub 41886348626, source be06752b8a65bc383e82a2da2f5e52093c34fe75. Les règles Firestore ont passé le run d’émulateur 41884846580 ; elles ne sont pas déployées en production par ces tests.
+
+Contrôles réels : génération d’un reçu partiel et d’une quittance, PDF A4 portrait sur une page, conservation du dossier et des encaissements après sauvegarde/import et rechargement, bouton Retour natif, vérifications des fonctions existantes. Données d’essai entièrement fictives. Les fichiers HTML et JavaScript contenus dans l’APK correspondent aux sources vérifiées.
+
+APK personnel livré : ImmOptima-Test-v26.apk, 7 325 022 octets, SHA-256 3e2d97e8a1c2b6444879412ac8b0c29b1ee1447a05456e34eb51284a64fe1aca. Même identifiant Android et certificat persistant que les versions de test précédentes. Le contrôle sur le téléphone de l’utilisateur reste à effectuer.
