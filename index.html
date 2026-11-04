@@ -140,6 +140,7 @@ header .top{align-items:center!important}
 .io-analysis-empty{padding:20px 12px;border:1px dashed #a9b4c5;border-radius:12px;font-size:13px;line-height:1.5}
 .io-analysis-tip{font-size:12px;color:#475569;min-height:18px;margin-top:4px}
 
+.io-management-toolbar{margin:0 0 8px!important}.io-management-toolbar button{min-height:34px!important;padding:5px!important}
 /* ImmOptima premium analysis: lightweight motion, accessible on Android */
 #ioPropertyDetailOverlay .io-analysis-panel{animation:ioPremiumEnter .23s ease-out}
 #ioPropertyDetailOverlay .io-analysis-plot polyline,.io-analysis-plot polyline{stroke-dasharray:1200;stroke-dashoffset:1200;animation:ioPremiumTrace .85s ease-out forwards}
@@ -578,9 +579,10 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 </section>
 
 <section id="immobilier" class="page">
-  <details class="io-discovery no-print"><summary><span>Découverte gratuite</span><span>En savoir plus <span aria-hidden="true">›</span></span></summary><p>Vous pouvez gérer ici <b>1 logement complet</b> avec ses loyers, charges, financement, valeur et analyse de marché. Les fonctionnalités multi-biens seront réservées à l’offre premium lors de la commercialisation.</p></details>
+  <details class="io-discovery no-print"><summary><span>Test multi-biens</span><span>En savoir plus <span aria-hidden="true">›</span></span></summary><p>Version de test sans limite commerciale de logements et sans abonnement. Importez votre sauvegarde depuis Plus → Importer pour vérifier votre patrimoine complet, puis ajoutez ou modifiez vos biens.</p></details>
   <div class="section-title io-properties-title"><div><h2>Mes biens</h2><span id="ioPropertyCount" aria-live="polite">0 bien</span></div><div class="io-landlord-toolbar"><button type="button" class="secondary" onclick="ioLandlordOpen(null,'irl')" aria-label="Indice IRL" title="Indice IRL et révision du loyer">IRL</button><button type="button" class="secondary" onclick="ioLandlordOpen(null,'lease')" aria-label="Préparer un bail" title="Préparer un bail">Bail</button></div><button id="addPropertyButton" class="primary" type="button" aria-label="Ajouter un bien">+ Ajouter</button></div>
   <div id="propertyFormWrap"></div>
+  <div class="io-landlord-toolbar io-management-toolbar"><button class="secondary" type="button" onclick="ioRentalManagementOpen(null,'dossier')">Dossier logement</button><button class="secondary" type="button" onclick="ioRentalManagementOpen(null,'payments')">Loyers / quittances</button></div>
   <div id="properties"></div>
 </section>
 
@@ -658,7 +660,7 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
   <div class="card"><h3>Détenteurs des biens</h3><p class="muted">Personnalisez la liste des personnes, sociétés ou structures qui peuvent détenir vos biens. Inscrivez un détenteur par ligne. Cette liste sert au formulaire immobilier, aux filtres et à la synthèse bancaire.</p><div class="field"><label for="holderList">Liste des détenteurs (un par ligne)</label><textarea id="holderList" rows="5" placeholder="Ex. : Personne, société, SCI…"></textarea></div><div class="actions"><button class="primary" onclick="saveHolders()">Enregistrer les détenteurs</button></div><div class="hint">Les détenteurs déjà affectés à un bien restent visibles même si vous modifiez cette liste, pour éviter de perdre leur identification.</div></div>
   <div class="card"><h3>Données</h3><p class="muted">Toutes les données sont conservées localement dans le navigateur de cet appareil. Faites régulièrement une sauvegarde JSON si vous voulez éviter toute perte.</p><div class="actions" style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="primary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button><input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importData(event)"></div><p class="muted" id="backupStatus" role="status" aria-live="polite">La sauvegarde ouvre le choix du dossier sur Android. Vérifiez que le fichier est enregistré avant toute suppression.</p><div class="actions"><button class="danger" onclick="resetAll()">Effacer toutes les données</button></div></div>
   <div class="card"><h3>Jeu de données de démonstration</h3><p class="muted">Données 100 % fictives, ajoutées uniquement sur demande. Une seule propriété est créée pour respecter la limite gratuite. Exportez vos vraies données avant tout test.</p><div class="actions"><button class="secondary" onclick="installDemoData()">Charger le patrimoine fictif</button><button class="danger" onclick="removeDemoData()">Supprimer les données fictives</button></div></div>
-  <div class="card"><h3>Offre</h3><div class="plan-card"><div><div class="label">Version actuelle</div><div class="metric">Découverte gratuite</div><div class="hint">1 logement complet · architecture prête pour une offre premium multi-biens.</div></div><span class="commercial-badge">FREE</span></div></div>
+  <div class="card"><h3>Offre</h3><div class="plan-card"><div><div class="label">Version actuelle</div><div class="metric">Test multi-biens</div><div class="hint">Multi-biens débloqué pour les essais · aucun abonnement requis.</div></div><span class="commercial-badge">TEST</span></div></div>
   <div class="card"><h3>Version</h3><p>Mon Patrimoine — version commerciale V1.</p></div>
 </section>
 </main>
@@ -669,10 +671,45 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 <script src="rental-optimization.js"></script>
 <script src="bank-simulator.js"></script>
 <script src="landlord-tools.js"></script>
+<script src="rental-management.js"></script>
 <script>
 const KEY='mon_patrimoine_v13_1_clean';
-const COMMERCIAL_PLAN='free';
+// Internal validation build: no purchase or subscription required.
+const IMMOPTIMA_BUILD_CHANNEL='personal-test';
+const COMMERCIAL_PLAN='commercial';
 const FREE_PROPERTY_LIMIT=1;
+const ioAccessPending=new Map();
+let ioAccessVerified=null;
+function ioAccessLeaseValid(){return ioAccessVerified&&ioAccessVerified.uid===immoptimaAuthState.uid&&immoptimaAuthState.status==='signed_in'&&ioAccessVerified.checkedUntil>Date.now()&&(ioAccessVerified.owner||ioAccessVerified.expiresAt>Date.now())}
+function ioAccessUpdateGate(){
+ if(IMMOPTIMA_BUILD_CHANNEL==='personal-test')return;
+ let gate=document.getElementById('ioCommercialAccessGate');
+ const locked=db?.properties?.length>1&&!ioAccessLeaseValid();
+ if(!locked){if(gate)gate.remove();return;}
+ if(!gate){gate=document.createElement('div');gate.id='ioCommercialAccessGate';gate.className='backup-choices';gate.style.zIndex='100000';gate.setAttribute('role','dialog');gate.setAttribute('aria-modal','true');gate.innerHTML=`<div class="backup-choices-panel"><h2>Accès multi-biens</h2><p>Un abonnement actif ou votre accès propriétaire est nécessaire. Vos biens sont conservés.</p><p>Connectez-vous puis vérifiez votre accès. Vous pouvez toujours exporter votre sauvegarde ou importer un patrimoine d’un seul bien.</p><div class="backup-choice-actions"><button class="primary" onclick="immoptimaAccountInformation()">Connexion / compte</button><button class="secondary" onclick="ioAccessRefresh()">Vérifier mon accès</button><button class="secondary" onclick="exportData('local')">Exporter ma sauvegarde</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importer un seul bien</button></div></div>`;document.body.appendChild(gate)}
+ gate.hidden=false;
+}
+async function ioAccessRefresh(){if(IMMOPTIMA_BUILD_CHANNEL==='personal-test')return;await ioAccessAuthorize(db);ioAccessUpdateGate()}
+
+function ioAccessAuthorize(portfolio){
+ if(!portfolio||!Array.isArray(portfolio.properties))return Promise.resolve(false);
+ if(IMMOPTIMA_BUILD_CHANNEL==='personal-test'||portfolio.properties.length<=1)return Promise.resolve(true);
+ if(immoptimaAuthState.status!=='signed_in'||!window.AndroidBridge?.immoptimaAccessCheck){alert('Un abonnement actif est nécessaire pour utiliser ou importer plusieurs biens. Votre patrimoine actuel est conservé ; l’export reste disponible.');return Promise.resolve(false)}
+ const uid=immoptimaAuthState.uid,requestId=crypto.randomUUID();
+ return new Promise(resolve=>{
+  const timeout=setTimeout(()=>{ioAccessPending.delete(requestId);alert('Vérification de l’abonnement impossible. Réessayez avec une connexion ; vos données sont conservées.');resolve(false)},12000);
+  ioAccessPending.set(requestId,{uid,resolve,timeout});
+  try{window.AndroidBridge.immoptimaAccessCheck(requestId,portfolio.properties.length)}catch(e){clearTimeout(timeout);ioAccessPending.delete(requestId);resolve(false)}
+ });
+}
+window.immoptimaNativeAccessResult=function(event){
+ const p=ioAccessPending.get(event?.requestId);if(!p)return;clearTimeout(p.timeout);ioAccessPending.delete(event.requestId);
+ const allowed=event.allowed===true&&event.uid===p.uid&&immoptimaAuthState.status==='signed_in'&&immoptimaAuthState.uid===p.uid;
+ ioAccessVerified=allowed?{uid:p.uid,owner:event.owner===true,expiresAt:Number(event.expiresAt)||0,checkedUntil:Date.now()+60000}:null;
+ if(!allowed)alert('Multi-biens réservé à un abonnement actif ou au compte propriétaire. Aucune donnée remplacée. Vos exports restent disponibles.');p.resolve(allowed);
+ ioAccessUpdateGate();
+};
+
 const DEFAULT_HOLDERS=[];
 const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine',holders:[...DEFAULT_HOLDERS]},properties:[],loans:[],assets:[],snapshots:[],otherDebt:0,otherDebtNote:'',otherDebtOwner:''};
 const empty = structuredClone(EMBEDDED_BACKUP);
@@ -991,7 +1028,7 @@ function immoptimaRenderAnalysis(){
 }
 function immoptimaMore(){let el=document.getElementById('ioMore');if(!el){el=document.createElement('div');el.id='ioMore';el.className='backup-choices';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Toutes les fonctionnalités');document.body.appendChild(el)}el.innerHTML='<div class="backup-choices-panel"><div class="section-title"><h2>Mon espace ImmOptima</h2><button class="secondary" onclick="immoptimaCloseMore()" aria-label="Fermer le menu">✕</button></div><div class="io-more-grid">'+pages.filter(([id])=>id!=='optimisation').map(([id,label])=>'<button class="secondary" type="button" onclick="showPage(\''+id+'\')">'+label+'</button>').join('')+'</div><label for="ioMoreView">Affichage du tableau de bord</label><select id="ioMoreView" onchange="document.getElementById(\'dashboardViewMode\').value=this.value;immoptimaDashboardModeChange()"><option value="graph">Vue graphique</option><option value="compact">Vue chiffrée</option><option value="detailed">Détails complets</option></select><hr><div class="actions"><button class="primary" onclick="immoptimaCloseMore();openBackupOptions()">Sauvegarder</button><button class="secondary" onclick="document.getElementById(\'importFile\').click()">Importer</button></div></div>';el.hidden=false;el.querySelector('button').focus()}
 function immoptimaCloseMore(){const el=document.getElementById('ioMore');if(el)el.hidden=true}
-function immoptimaHandleBack(){if(window.ioLandlordBack?.())return true;if(window.ioLoanBack?.())return true;const optModal=document.getElementById('ioOptCompare');if(optModal&&!optModal.hidden){const expanded=[...optModal.querySelectorAll('details[open]')];if(expanded.length){expanded.at(-1).open=false;if(!optModal.querySelector('details[open]'))optModal.scrollTop=0;return true}ioOptCloseCompare();return true}const exportDialog=document.getElementById('bankExportOptions');if(exportDialog&&!exportDialog.hidden){exportDialog.hidden=true;return true}for(const id of ['backupChoices','ioMore','ioPropertyDetailOverlay','ioAnalysisOverlay']){const el=document.getElementById(id);if(el&&!el.hidden){if(id==='ioAnalysisOverlay')immoptimaCloseAnalysis();else if(id==='ioPropertyDetailOverlay')immoptimaClosePropertyDetail();else el.hidden=true;return true}}if(document.getElementById('optimisation')?.classList.contains('active')){const optOpen=document.querySelector('#optimizationMobile details[open]');if(optOpen){optOpen.open=false;return true}}if(document.getElementById('valorisation')?.classList.contains('active')){const card=document.querySelector('#marketTable details[open]');if(card){card.open=false;return true}const help=document.getElementById('marketHelp');if(help.open){help.open=false;return true}}if(document.getElementById('banque')?.classList.contains('active')){if(ioBankView==='finance'){const menu=document.querySelector('#loans .io-loan-menu[open]');if(menu){menu.open=false;return true}const loanForm=document.getElementById('loanFormWrap');if(loanForm?.children.length){closeForm('loanFormWrap');return true}const help=document.getElementById('bankFinanceHelp');if(help.open){help.open=false;return true}ioBankSetView('summary');return true}if(ioBankEditorId){ioBankCancelEdit();return true}const bankOpen=document.querySelector('#bankMobile details[open]');if(bankOpen){bankOpen.open=false;return true}}const propertyMenu=document.querySelector('#immobilier.active .io-property-menu[open]');if(propertyMenu){propertyMenu.open=false;return true}const p=document.querySelector('.page.active');if(p&&p.id!=='dashboard'){showPage('dashboard');return true}return false}
+function immoptimaHandleBack(){if(window.ioRentalManagementBack?.())return true;if(window.ioLandlordBack?.())return true;if(window.ioLoanBack?.())return true;const optModal=document.getElementById('ioOptCompare');if(optModal&&!optModal.hidden){const expanded=[...optModal.querySelectorAll('details[open]')];if(expanded.length){expanded.at(-1).open=false;if(!optModal.querySelector('details[open]'))optModal.scrollTop=0;return true}ioOptCloseCompare();return true}const exportDialog=document.getElementById('bankExportOptions');if(exportDialog&&!exportDialog.hidden){exportDialog.hidden=true;return true}for(const id of ['backupChoices','ioMore','ioPropertyDetailOverlay','ioAnalysisOverlay']){const el=document.getElementById(id);if(el&&!el.hidden){if(id==='ioAnalysisOverlay')immoptimaCloseAnalysis();else if(id==='ioPropertyDetailOverlay')immoptimaClosePropertyDetail();else el.hidden=true;return true}}if(document.getElementById('optimisation')?.classList.contains('active')){const optOpen=document.querySelector('#optimizationMobile details[open]');if(optOpen){optOpen.open=false;return true}}if(document.getElementById('valorisation')?.classList.contains('active')){const card=document.querySelector('#marketTable details[open]');if(card){card.open=false;return true}const help=document.getElementById('marketHelp');if(help.open){help.open=false;return true}}if(document.getElementById('banque')?.classList.contains('active')){if(ioBankView==='finance'){const menu=document.querySelector('#loans .io-loan-menu[open]');if(menu){menu.open=false;return true}const loanForm=document.getElementById('loanFormWrap');if(loanForm?.children.length){closeForm('loanFormWrap');return true}const help=document.getElementById('bankFinanceHelp');if(help.open){help.open=false;return true}ioBankSetView('summary');return true}if(ioBankEditorId){ioBankCancelEdit();return true}const bankOpen=document.querySelector('#bankMobile details[open]');if(bankOpen){bankOpen.open=false;return true}}const propertyMenu=document.querySelector('#immobilier.active .io-property-menu[open]');if(propertyMenu){propertyMenu.open=false;return true}const propertyForm=document.querySelector('#immobilier.active #propertyFormWrap');if(propertyForm?.children.length){closeForm('propertyFormWrap');return true}const p=document.querySelector('.page.active');if(p&&p.id!=='dashboard'){showPage('dashboard');return true}return false}
 // Each analysis starts with the closed explanation visible in the first viewport.
 // The graph uses the remaining height; its coordinates are redrawn to keep text readable.
 let ioAnalysisHelpOpen=false,ioAnalysisChartState=null;
@@ -1104,8 +1141,8 @@ function immoptimaWireCurveReadiness(containerId,type){
  form.addEventListener('input',update);form.addEventListener('change',update);update();
 }
 
-function openPropertyForm(editId=null){
- if(!editId && COMMERCIAL_PLAN==='free' && db.properties.length>=FREE_PROPERTY_LIMIT){ showUpgradePrompt(); return; }
+async function openPropertyForm(editId=null){
+ if(!await ioAccessAuthorize({properties:editId?db.properties:[...db.properties,{}]}))return;
  const p=editId?db.properties.find(x=>x.id===editId):{id:'',name:'',address:'',structure:'Nom propre',holder:'À attribuer',type:'Appartement',surface:'',floor:'',dpe:'',acquisitionDate:'',purchase:'',notary:'',works:'',furniture:'',otherCost:'',currentValue:'',retainedValue:'',rentHC:'',recoverable:'',ownerCharges:'',tax:'',pno:'',otherMonthly:'',occupancy:'100',autoEstimate:'',estimateLow:'',estimateHigh:'',estimateSource:'',estimateDate:'',market12m:'',priceM2:'',sources:[],notes:''};
  const wrap=document.getElementById('propertyFormWrap');
  wrap.innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier le bien':'Nouveau bien'}</h3><button class="secondary" onclick="closeForm('propertyFormWrap')">Fermer</button></div>
@@ -1127,7 +1164,7 @@ function openPropertyForm(editId=null){
  immoptimaWireCurveReadiness('propertyFormWrap','property');
 }
 function closeForm(id){document.getElementById(id).innerHTML='';if(id==='loanFormWrap')immoptimaScheduleBankFit()}
-function saveProperty(e,editId){e.preventDefault();if(!editId && COMMERCIAL_PLAN==='free' && db.properties.length>=FREE_PROPERTY_LIMIT){showUpgradePrompt();return;}const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();if(!o.holder||!o.holder.trim()){alert('Veuillez choisir un détenteur dans le formulaire du bien.');return;}['surface','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;db.properties[i]={...db.properties[i],...o}}else db.properties.push(o);closeForm('propertyFormWrap');save()}
+async function saveProperty(e,editId){e.preventDefault();if(!await ioAccessAuthorize({properties:editId?db.properties:[...db.properties,{}]}))return;const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();if(!o.holder||!o.holder.trim()){alert('Veuillez choisir un détenteur dans le formulaire du bien.');return;}['surface','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;db.properties[i]={...db.properties[i],...o}}else db.properties.push(o);closeForm('propertyFormWrap');save()}
 
 function propertyLoans(p){return db.loans.filter(l=>l.propertyId===p.id)}
 function cashflowGross(p){return (Number(p.rentHC)||0)-(Number(p.ownerCharges)||0)-(Number(p.tax)||0)/12-(Number(p.pno)||0)-(Number(p.otherMonthly)||0)}
@@ -1204,7 +1241,7 @@ function renderProperties(){
   const cost=propertyCost(p),val=Number(p.retainedValue)||Number(p.currentValue)||0,loans=propertyLoans(p),debt=loans.reduce((s,l)=>s+(Number(l.remaining)||0),0),payments=loans.reduce((s,l)=>s+monthlyLoanPayment(l),0),gross=cashflowGross(p),net=cashflowNet(p),cons=consensusValue(p),netYield=cost?gross*12/cost*100:0,grossYield=cost?Number(p.rentHC)*12/cost*100:0,holder=p.holder||((p.structure==='SARL de famille')?'SARL de famille':'À attribuer');
   const chips=[...new Set([p.structure,holder].filter(Boolean))].map(x=>'<span>'+esc(x)+'</span>').join('')+(p.dpe?'<span class="io-list-dpe">DPE '+esc(p.dpe)+'</span>':'');
   return `<article class="io-property-card" data-property-id="${esc(p.id)}" aria-label="${esc(p.name)}">
-   <div class="io-list-head"><button type="button" class="io-list-identity" data-property-action="view" aria-label="Ouvrir ${esc(p.name)}"><span class="io-list-building">${ioIcon('building')}</span><span class="io-list-name"><strong>${esc(p.name||'Bien immobilier')}</strong><span class="io-list-address">${esc(p.address||'Adresse non renseignée')}${p.surface?' · '+esc(p.surface)+' m²':''}</span></span></button><details class="io-property-menu"><summary aria-label="Actions pour ${esc(p.name)}">⋮</summary><div><button type="button" data-property-action="edit">${ioIcon('wallet')} Modifier</button><button type="button" data-property-action="irl">Indice IRL</button><button type="button" data-property-action="lease">Préparer un bail</button><button type="button" class="io-list-delete" data-property-action="delete">Supprimer</button></div></details></div>
+   <div class="io-list-head"><button type="button" class="io-list-identity" data-property-action="view" aria-label="Ouvrir ${esc(p.name)}"><span class="io-list-building">${ioIcon('building')}</span><span class="io-list-name"><strong>${esc(p.name||'Bien immobilier')}</strong><span class="io-list-address">${esc(p.address||'Adresse non renseignée')}${p.surface?' · '+esc(p.surface)+' m²':''}</span></span></button><details class="io-property-menu"><summary aria-label="Actions pour ${esc(p.name)}">⋮</summary><div><button type="button" data-property-action="edit">${ioIcon('wallet')} Modifier</button><button type="button" data-property-action="irl">Indice IRL</button><button type="button" data-property-action="lease">Préparer un bail</button><button type="button" data-property-action="dossier">Dossier logement</button><button type="button" data-property-action="payments">Loyers / quittances</button><button type="button" class="io-list-delete" data-property-action="delete">Supprimer</button></div></details></div>
    <div class="io-list-chips">${chips}</div>
    <div class="io-list-wealth"><div><span>Valeur estimée</span><b>${euro(val)}</b></div><div><span>Patrimoine net</span><b>${euro(val-debt)}</b></div></div>
    <div class="io-list-cash"><div class="io-list-row-title">Cash-flow / mois <span>Avant fiscalité</span></div><div class="io-list-three"><div><span>Brut</span><b class="${gross>=0?'positive':'negative'}">${euro(gross)}</b></div><div><span>Crédit</span><b>${euro(payments)}</b></div><div><span>Net</span><b class="${net>=0?'positive':'negative'}">${euro(net)}</b></div></div></div>
@@ -1219,6 +1256,7 @@ function renderProperties(){
   if(action==='view')immoptimaOpenPropertyDetail(pid);
   if(action==='edit'){openPropertyForm(pid);document.getElementById('propertyFormWrap').scrollIntoView({behavior:'smooth',block:'start'})}
   if(action==='irl'||action==='lease')ioLandlordOpen(pid,action);
+  if(action==='dossier'||action==='payments')ioRentalManagementOpen(pid,action);
   if(action==='delete')deleteProperty(pid);
  };
  wrap.querySelectorAll('.io-property-menu').forEach(menu=>menu.addEventListener('toggle',()=>{if(menu.open)wrap.querySelectorAll('.io-property-menu').forEach(other=>{if(other!==menu)other.open=false})}));
@@ -1595,7 +1633,7 @@ function immoptimaSyncUpload(){
   window.AndroidBridge.immoptimaCloudWrite(serialized,immoptimaCloudState.revision);
  }catch(error){immoptimaCloudState.busy=false;console.warn('Synchronisation suspendue :',error.message)}
 }
-window.immoptimaNativeCloudResult=function(event){
+window.immoptimaNativeCloudResult=async function(event){
  if(!event||typeof event!=='object')return;
  if(immoptimaAuthState.status!=='signed_in'||!event.uid||event.uid!==immoptimaAuthState.uid)return;
  const meta=immoptimaSyncMeta();
@@ -1644,6 +1682,7 @@ window.immoptimaNativeCloudResult=function(event){
     !Array.isArray(remote.payload.loans)||!Array.isArray(remote.payload.assets)||
     !remote.payload.settings||typeof remote.payload.settings!=='object')
     throw Error('Structure distante invalide');
+  if(!await ioAccessAuthorize(remote.payload)){immoptimaCloudState.loaded=false;return;}
   immoptimaCloudState.revision=remote.revision;
   // Compare content independent of Firestore map key ordering.
   const canonical=(value)=>JSON.stringify(value,function(key,v){
@@ -1727,6 +1766,7 @@ window.immoptimaNativeAuthResult=function(payload){
   if(welcome)welcome.remove();
   immoptimaCloudAfterLogin(immoptimaAuthState.uid);
  }
+ ioAccessVerified=null;ioAccessUpdateGate();if(immoptimaAuthState.status==='signed_in')ioAccessRefresh();
  immoptimaCloudUpdateStatus();
 };
 function immoptimaCloudUpdateStatus(){
@@ -1788,7 +1828,7 @@ function showImmoptimaWelcome(){
   }else alert('La sauvegarde Google est disponible dans la version Android ImmOptima. Vous pouvez utiliser l’application sans sauvegarde Google.');
  };
 }
-function immoptimaRecoverBeforeRestore(){
+async function immoptimaRecoverBeforeRestore(){
  const raw=localStorage.getItem('immoptima_pre_restore_v1');
  if(!raw){alert('Aucune copie de secours antérieure à une restauration n’est disponible.');return;}
  try{
@@ -1800,17 +1840,18 @@ function immoptimaRecoverBeforeRestore(){
   candidate.settings={...structuredClone(empty.settings),...(data.settings&&typeof data.settings==='object'?data.settings:{})};
   candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders:[...DEFAULT_HOLDERS];
   candidate.properties=candidate.properties.map(normalizeHolder);
+  if(!await ioAccessAuthorize(candidate))return;
   try{
    localStorage.setItem('immoptima_pre_restore_v1',current);
    db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();
-   alert('Copie de secours restaurée.');
+   ioAccessUpdateGate();alert('Copie de secours restaurée.');
   }catch(err){
    localStorage.setItem('immoptima_pre_restore_v1',raw);
    localStorage.setItem(KEY,current);db=JSON.parse(current);renderAll();throw err;
   }
  }catch(e){alert('Impossible de restaurer la copie de secours. Vos données actuelles sont conservées.');}
 }
-function immoptimaRestoreFromDriveBase64(encoded){
+async function immoptimaRestoreFromDriveBase64(encoded){
  try{
   const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
   const json=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
@@ -1824,8 +1865,9 @@ function immoptimaRestoreFromDriveBase64(encoded){
   candidate.properties=candidate.properties.map(normalizeHolder);
   candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];
   candidate.otherDebt=Number(candidate.otherDebt)||0;
+  if(!await ioAccessAuthorize(candidate))return;
   const previous=db;
-  try{localStorage.setItem('immoptima_pre_restore_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();alert('Patrimoine restauré depuis Google. Une copie de secours locale du patrimoine précédent a été conservée.');}
+  try{localStorage.setItem('immoptima_pre_restore_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();alert('Patrimoine restauré depuis Google. Une copie de secours locale du patrimoine précédent a été conservée.');}
   catch(e){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw e;}
  }catch(e){alert('Sauvegarde Google invalide ou incompatible : patrimoine conservé.');}
 }
@@ -1895,7 +1937,7 @@ function exportData(destination='local'){
   closeBackupOptions();
  }catch(error){alert('Sauvegarde impossible : '+(error.message||'erreur inconnue'))}
 }
-function importData(e){const input=e?.target,file=input?.files?.[0];if(!file)return;const resetInput=()=>{if(input)input.value=''};if(file.size>10*1024*1024){alert('Fichier trop volumineux : la sauvegarde doit faire moins de 10 Mo.');resetInput();return}const r=new FileReader();r.onerror=()=>{alert('Lecture impossible. Votre patrimoine actuel est conservé.');resetInput()};r.onload=()=>{try{const x=JSON.parse(String(r.result||''));if(!x||typeof x!=='object'||Array.isArray(x)||!Array.isArray(x.properties)||!Array.isArray(x.loans)||!Array.isArray(x.assets))throw Error('structure');if(!x.properties.every(p=>p&&typeof p==='object'&&!Array.isArray(p))||!x.loans.every(l=>l&&typeof l==='object'&&!Array.isArray(l))||!x.assets.every(a=>a&&typeof a==='object'&&!Array.isArray(a)))throw Error('records');const candidate={...structuredClone(empty),...x};candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];if(JSON.stringify(candidate.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))candidate.settings.holders=[];candidate.properties=candidate.properties.map(normalizeHolder);candidate.loans=candidate.loans;candidate.assets=candidate.assets;candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];candidate.otherDebt=Number(candidate.otherDebt)||0;if(!confirm('Importer cette sauvegarde et remplacer le patrimoine actuel ? Une copie de secours locale sera conservée avant le remplacement.'))return;const previous=db;try{localStorage.setItem('immoptima_pre_import_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();alert('Sauvegarde importée avec succès. Une copie locale du patrimoine précédent a été conservée.')}catch(renderError){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw renderError}}catch(err){alert('Fichier de sauvegarde invalide ou incompatible. Votre patrimoine actuel est conservé.')}};r.readAsText(file);resetInput()}
+function importData(e){const input=e?.target,file=input?.files?.[0];if(!file)return;const resetInput=()=>{if(input)input.value=''};if(file.size>10*1024*1024){alert('Fichier trop volumineux : la sauvegarde doit faire moins de 10 Mo.');resetInput();return}const r=new FileReader();r.onerror=()=>{alert('Lecture impossible. Votre patrimoine actuel est conservé.');resetInput()};r.onload=async()=>{try{const x=JSON.parse(String(r.result||''));if(!x||typeof x!=='object'||Array.isArray(x)||!Array.isArray(x.properties)||!Array.isArray(x.loans)||!Array.isArray(x.assets))throw Error('structure');if(!x.properties.every(p=>p&&typeof p==='object'&&!Array.isArray(p))||!x.loans.every(l=>l&&typeof l==='object'&&!Array.isArray(l))||!x.assets.every(a=>a&&typeof a==='object'&&!Array.isArray(a)))throw Error('records');const candidate={...structuredClone(empty),...x};candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];if(JSON.stringify(candidate.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))candidate.settings.holders=[];candidate.properties=candidate.properties.map(normalizeHolder);candidate.loans=candidate.loans;candidate.assets=candidate.assets;candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];candidate.otherDebt=Number(candidate.otherDebt)||0;if(!await ioAccessAuthorize(candidate))return;if(!confirm('Importer cette sauvegarde et remplacer le patrimoine actuel ? Une copie de secours locale sera conservée avant le remplacement.'))return;const previous=db;try{localStorage.setItem('immoptima_pre_import_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();alert('Sauvegarde importée avec succès. Une copie locale du patrimoine précédent a été conservée.')}catch(renderError){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw renderError}}catch(err){alert('Fichier de sauvegarde invalide ou incompatible. Votre patrimoine actuel est conservé.')}};r.readAsText(file);resetInput()}
 const DEMO_MARK='immoptima_demo_v1';
 function installDemoData(){
  if(db.properties.length||db.loans.length||db.assets.length){alert('Pour protéger vos données, le jeu fictif ne peut être chargé que dans un patrimoine vide. Exportez d’abord vos données et utilisez une installation de test vierge.');return;}
@@ -1923,12 +1965,12 @@ window.addEventListener('resize',()=>{drawHistory();if(document.getElementById('
 db=load();
 const addPropertyButton=document.getElementById('addPropertyButton');
 if(addPropertyButton){
- addPropertyButton.addEventListener('click',()=>{
+ addPropertyButton.addEventListener('click',async()=>{
   try{
-   openPropertyForm();
+   await openPropertyForm();
    const formWrap=document.getElementById('propertyFormWrap');
    if(formWrap&&formWrap.innerHTML.trim()) formWrap.scrollIntoView({behavior:'smooth',block:'nearest'});
-   else alert("L’ouverture du formulaire n’a pas abouti. Fermez puis rouvrez l’onglet Immobilier et réessayez.");
+
   }catch(err){
    alert("Impossible d’ouvrir le formulaire d’ajout : "+(err&&err.message?err.message:"erreur JavaScript"));
   }
@@ -1941,6 +1983,9 @@ if(window.AndroidBridge&&typeof window.AndroidBridge.immoptimaAuthStatus==='func
  try{window.AndroidBridge.immoptimaAuthStatus();}catch(error){console.warn('État du compte indisponible');}
 }
 setTimeout(showImmoptimaWelcome,350);
+setTimeout(ioAccessUpdateGate,450);
+setInterval(ioAccessUpdateGate,1000);
+setInterval(()=>{if(IMMOPTIMA_BUILD_CHANNEL!=='personal-test'&&db.properties.length>1&&!document.hidden&&immoptimaAuthState.status==='signed_in')ioAccessRefresh()},45000);
 </script>
 </body>
 </html>

@@ -35,6 +35,22 @@ require('firebase/compat/firestore');
     await assertFails(client.doc(adminPath).delete());
    }
   }
+  const accessPath='accountAccess/owner';
+  const multi={...create,revision:3,payload:{...payload,properties:[{id:'one'},{id:'two'}]}};
+  await assertFails(doc.set(multi));
+  await assertFails(owner.doc(accessPath).set({owner:true}));
+  await assertFails(intruder.doc(accessPath).get());
+  const provision=async data=>env.withSecurityRulesDisabled(async c=>c.firestore().doc(accessPath).set(data));
+  await provision({status:'active',expiresAt:firebase.firestore.Timestamp.fromMillis(Date.now()+3600000)});
+  await assertSucceeds(owner.doc(accessPath).get());await assertSucceeds(doc.set(multi));
+  await provision({status:'expired',expiresAt:firebase.firestore.Timestamp.fromMillis(Date.now()+3600000)});
+  await assertFails(doc.set({...multi,revision:4}));await assertFails(owner.doc(accessPath).get());
+  await provision({status:'active',expiresAt:firebase.firestore.Timestamp.fromMillis(Date.now()-1000)});
+  await assertFails(doc.set({...multi,revision:4}));
+  await provision({status:'active',expiresAt:'2099-01-01'});await assertFails(doc.set({...multi,revision:4}));
+  await provision({owner:true});await assertSucceeds(doc.set({...multi,revision:4}));
+  await assertFails(owner.doc(accessPath).update({owner:false}));await assertFails(owner.doc(accessPath).delete());
+  console.log('PASS server access: free multi denied; active future entitlement and owner allowed; expired, cancelled, malformed and client forgery denied');
   console.log('PASS Firestore emulator: owner isolation, sequential revision, deletion guard');
   console.log('PASS Firestore emulator: rental service activation, entitlements and quota counters are admin-only');
  }finally{await env.cleanup()}

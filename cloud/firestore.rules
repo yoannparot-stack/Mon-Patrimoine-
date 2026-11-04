@@ -10,6 +10,19 @@ service cloud.firestore {
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() <= 120;
     }
+    // Access is provisioned by Admin SDK / verified billing only. An APK, backup,
+    // profile field or email cannot grant owner or subscription status.
+    match /accountAccess/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId && multiAccess(userId);
+      allow write: if false;
+    }
+    function multiAccess(uid) {
+      let path = /databases/$(database)/documents/accountAccess/$(uid);
+      return exists(path) && (get(path).data.get('owner', false) == true ||
+        (get(path).data.get('status', '') == 'active' &&
+         get(path).data.get('expiresAt', request.time) is timestamp &&
+         get(path).data.get('expiresAt', request.time) > request.time));
+    }
     match /users/{userId}/portfolios/{portfolioId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       function validWrite() {
@@ -26,7 +39,8 @@ service cloud.firestore {
         && request.resource.data.payload.properties is list
         && request.resource.data.payload.loans is list
         && request.resource.data.payload.assets is list
-        && request.resource.data.payload.settings is map;
+        && request.resource.data.payload.settings is map
+        && (request.resource.data.payload.properties.size() <= 1 || multiAccess(userId));
       }
       allow create: if validWrite() && request.resource.data.revision == 1;
       allow update: if validWrite() && resource.data.revision is int

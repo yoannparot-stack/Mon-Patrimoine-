@@ -144,5 +144,16 @@ if "private void beginPrintLeaseDraft()" not in source:
 if "public void printLeaseDraft()" not in source or "ISO_A4.asPortrait()" not in source:
     raise SystemExit("ERROR: native portrait lease printing patch not installed")
 
+# Rental receipts also use A4 portrait, with a distinct native print-job name.
+if "public void printRentalDocument()" not in source:
+    source=source.replace(bridge_anchor,bridge_anchor+"""
+            @JavascriptInterface public void printRentalDocument() {
+                runOnUiThread(() -> beginPrintRentalDocument());
+            }""",1)
+if "private void beginPrintRentalDocument()" not in source:
+    rental_print=print_method.replace("private void beginPrint()","private void beginPrintRentalDocument()")
+    rental_print=rental_print.replace("ISO_A4.asLandscape()","ISO_A4.asPortrait()")
+    rental_print=rental_print.replace("ImmOptima_Dossier_Bancaire","ImmOptima_Document_Locatif").replace("ImmOptima - Dossier bancaire","ImmOptima - Document locatif")
+    source=source.replace(marker,rental_print+marker,1)
 java_file.write_text(source, encoding="utf-8")
 print("PASS: Android native print dialog enabled for bank summary PDF")
