@@ -60,7 +60,10 @@ check('private restore is explicit and validates all primary collections', () =>
 check('automatic backup requires opt-in and does not trigger during restoration', () => {
  assert.match(html,/immoptima_auto_google_v1/);
  assert.match(html,/now-last<86400000/);
- assert.match(html,/function save\(\)\{(?:immoptimaRecordDashboardSnapshot\(\);)?localStorage\.setItem\(KEY,JSON\.stringify\(db\)\); renderAll\(\); immoptimaMaybeAutoBackup\(\); immoptimaSyncMarkDirty\(\);\}/);
+ const vm=require('node:vm'),start=html.indexOf('function save(){'),end=html.indexOf('\nfunction ',start+1),body=html.slice(start,end),calls=[];
+ const context={KEY:'qa',db:{properties:[]},immoptimaRecordDashboardSnapshot:()=>calls.push('snapshot'),localStorage:{setItem:()=>calls.push('persist')},renderAll:()=>calls.push('render'),immoptimaMaybeAutoBackup:()=>calls.push('backup'),immoptimaSyncMarkDirty:()=>calls.push('dirty'),alert:()=>calls.push('error')};
+ vm.createContext(context);vm.runInContext(body,context);context.save();assert.deepEqual(calls,['snapshot','persist','render','backup','dirty']);
+ calls.length=0;context.localStorage.setItem=()=>{throw Error('full')};assert.throws(()=>context.save(),/full/);assert.deepEqual(calls,['snapshot','error'],'failed persistence must not schedule backups or report a render success');
  assert.match(html,/immoptima_pre_restore_v1/);
 });
 

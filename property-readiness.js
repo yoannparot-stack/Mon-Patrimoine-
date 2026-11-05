@@ -7,7 +7,7 @@
  const positive=new Set(['surface','rooms','purchase','retainedValue','initial','years']);
  function filled(p,key){if(Array.isArray(p.guidanceEnteredFields)&&!p.guidanceEnteredFields.includes(key))return false;const v=p[key];if(v===null||v===undefined||String(v).trim()==='')return false;if(key==='holder')return !['À attribuer','À définir'].includes(v);if(key==='dpe')return /^[A-G]$/i.test(String(v).trim());if(/Date$/.test(key)){const d=new Date(String(v)+'T12:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===v}if(['name','holder','type','address','guidanceCreditMode','propertyId'].includes(key))return true;return Number.isFinite(Number(v))&&(positive.has(key)?Number(v)>0:Number(v)>=0)}
  function missing(p,keys){return keys.filter(k=>!filled(p,k))}
- function assess(p,loans=[]){p={...p,rooms:p.optimization?.rooms??p.rooms};const supported={market:housing(p),rentComparison:housing(p),yield:true,curves:true,cash:true};const linked=loans.filter(l=>l.propertyId===p.id),credit=linked.length?'has':p.guidanceCreditMode||'unknown';const out={};for(const [k,keys]of Object.entries(groups))out[k]=missing(p,keys);
+ function assess(p,loans=[]){p={...p,rooms:p.optimization?.rooms??p.rooms};const supported={market:housing(p),rentComparison:housing(p),yield:true,curves:true,cash:true};const linked=loans.filter(l=>l.propertyId===p.id),credit=linked.length?'has':['none','has'].includes(p.guidanceCreditMode)?p.guidanceCreditMode:'unknown';const out={};for(const [k,keys]of Object.entries(groups))out[k]=missing(p,keys);
  for(const k of ['market','rentComparison'])if(!supported[k])out[k]=[];
  if(credit==='unknown')out.cash.push('guidanceCreditMode');
  if(credit==='has'&&!linked.length){out.cash.push('credit');out.curves.push('credit')}
