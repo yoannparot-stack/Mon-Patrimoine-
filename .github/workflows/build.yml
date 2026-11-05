@@ -13,6 +13,8 @@ on:
       - 'landlord-tools.js'
       - 'rental-management.js'
       - 'client-guidance.js'
+      - 'property-readiness.js'
+      - 'first-use.js'
       - 'android-access-patch.py'
       - 'access-policy.js'
       - 'scripts/prepare-commercial.py'
@@ -93,6 +95,8 @@ jobs:
           cp rental-optimization.js "$(dirname "$ASSET_FILE")/rental-optimization.js"
           cp landlord-tools.js "$(dirname "$ASSET_FILE")/landlord-tools.js"
           cp rental-management.js "$(dirname "$ASSET_FILE")/rental-management.js"
+          cp property-readiness.js "$(dirname "$ASSET_FILE")/property-readiness.js"
+          cp first-use.js "$(dirname "$ASSET_FILE")/first-use.js"
           cp client-guidance.js "$(dirname "$ASSET_FILE")/client-guidance.js"
           cp bank-simulator.js "$(dirname "$ASSET_FILE")/bank-simulator.js"
           test -s "$ASSET_FILE"
@@ -104,7 +108,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 27/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 28/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -148,6 +152,7 @@ jobs:
           node qa_firebase_preflight.js
           node qa_portfolio_sync.js
           node qa_cloud_sync_gate.js
+          node tests/property-readiness.cjs
           node tests/loan-simulator.cjs
           node tests/finance.cjs
           node tests/rental.cjs

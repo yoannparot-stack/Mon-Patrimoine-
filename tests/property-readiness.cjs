@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),R=require('../property-readiness.js');
+const p={id:'p',name:'Studio',holder:'Nom propre',type:'Appartement',address:'Adresse fictive',surface:25,rooms:1,dpe:'D',acquisitionDate:'2020-01-01',purchase:80000,retainedValue:100000,notary:6000,works:0,furniture:0,otherCost:0,rentHC:600,recoverable:30,ownerCharges:30,tax:600,pno:10,otherMonthly:0,occupancy:100,guidanceCreditMode:'none'};
+assert(Object.values(R.assess(p).ready).every(Boolean));
+assert.deepEqual(R.assess({...p,address:''}).missing.market,['address']);
+assert(R.assess({...p,surface:0}).missing.market.includes('surface'));
+assert(R.assess({...p,dpe:'Z'}).missing.rentComparison.includes('dpe'));
+assert(R.assess({...p,acquisitionDate:'2026-02-30'}).missing.curves.includes('acquisitionDate'));
+assert(R.assess({...p,guidanceCreditMode:''}).missing.cash.includes('guidanceCreditMode'));
+assert(R.assess({...p,guidanceCreditMode:'has'}).missing.cash.includes('credit'));
+const loan={propertyId:'p',initial:80000,years:20,rate:0,insuranceRate:0,remaining:50000,startDate:'2020-01-01'};
+assert(R.assess({...p,guidanceCreditMode:'has'},[loan]).ready.cash);
+assert(R.assess({...p,guidanceCreditMode:'has'},[loan]).ready.curves);
+assert(!R.assess({...p,guidanceCreditMode:'has'},[{...loan,propertyId:'other'}]).ready.cash);
+assert(!R.assess({...p,guidanceCreditMode:'has'},[{...loan,startDate:''}]).ready.curves);
+const entered=Object.keys(p).filter(k=>k!=='works');
+assert(R.assess({...p,guidanceEnteredFields:entered}).missing.yield.includes('works'),'missing stored as 0 remains missing');
+assert(!R.assess({...p,guidanceEnteredFields:[...entered,'works']}).missing.yield.includes('works'),'explicit zero is complete');
+console.log('PASS readiness: dependencies, explicit zeros, dates, credit and property linkage');
