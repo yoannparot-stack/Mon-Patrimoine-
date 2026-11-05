@@ -108,7 +108,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 28/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 29/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -152,6 +152,7 @@ jobs:
           node qa_firebase_preflight.js
           node qa_portfolio_sync.js
           node qa_cloud_sync_gate.js
+          node tests/audit-regressions.cjs
           node tests/property-readiness.cjs
           node tests/loan-simulator.cjs
           node tests/finance.cjs
@@ -164,6 +165,11 @@ jobs:
           node tests/rental-collection.cjs
           node tests/rental-advertised.cjs
           node --test functions/test/*.test.cjs
+
+      - name: Verify public rental parsers on offline fixtures
+        run: |
+          npm ci --ignore-scripts --prefix rental-public
+          npm --prefix rental-public test
 
       - name: Set up browser regression tests
         uses: actions/setup-node@v4
@@ -280,3 +286,19 @@ jobs:
           name: ImmOptima-Android-Verification
           path: qa-out/android/
           if-no-files-found: warn
+
+  cloud-rules-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install security emulator dependencies
+        run: npm install --no-save --no-package-lock firebase-tools@14 @firebase/rules-unit-testing@5 firebase@12
+      - name: Verify account isolation and subscription gates without production writes
+        run: npx firebase emulators:exec --only firestore --project immoptima-rules-test 'node cloud/test-firestore-rules.cjs'

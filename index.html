@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#ffffff">
 <title>ImmOptima — Un seul outil pour tout votre patrimoine</title>
 <style>
+.io-incomplete-badge{background:#fff2dc!important;color:#845400!important}.io-property-card [data-property-action="edit"].io-list-open{color:#845400}
+
 :root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e5e7eb;--accent:#2563eb;--accent2:#0f766e;--danger:#dc2626;--shadow:0 4px 18px rgba(16,24,40,.07);--radius:16px}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
 header{background:#111827;color:white;padding:18px 16px;position:sticky;top:0;z-index:10}header .top{max-width:1200px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}h1{font-size:20px;margin:0}header small{color:#cbd5e1}
@@ -718,6 +720,31 @@ const EMBEDDED_BACKUP = {settings:{name:'Mon Patrimoine',holders:[...DEFAULT_HOL
 const empty = structuredClone(EMBEDDED_BACKUP);
 let db;
 
+function ioValidatePortfolio(value){
+ if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Structure de sauvegarde invalide');
+ const numeric={properties:['surface','rooms','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','priceM2','market12m'],loans:['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'],assets:['value']};
+ const plain=x=>x&&typeof x==='object'&&!Array.isArray(x);
+ for(const group of Object.keys(numeric)){
+  const rows=value[group];if(!Array.isArray(rows))throw Error('Collection invalide : '+group);
+  const ids=new Set();
+  for(const row of rows){
+   if(!plain(row)||typeof row.id!=='string'||!row.id.trim()||row.id.length>200||row.id.includes('\0')||ids.has(row.id))throw Error('Identifiant absent ou en double : '+group);
+   ids.add(row.id);
+   for(const k of numeric[group]){const v=row[k];if(v===null||v===undefined||v==='')continue;if(!['string','number'].includes(typeof v)||!Number.isFinite(Number(v))||(k!=='market12m'&&Number(v)<0))throw Error('Montant invalide : '+k)}
+   for(const k of ['name','address','holder','type','bank','notes','propertyId'])if(row[k]!==null&&row[k]!==undefined&&typeof row[k]!=='string')throw Error('Texte invalide : '+k);
+   for(const k of ['sources','guidanceEnteredFields'])if(row[k]!==undefined&&!Array.isArray(row[k]))throw Error('Liste invalide : '+k);
+   if(row.optimization!==undefined&&!plain(row.optimization))throw Error('Hypothèses locatives invalides');
+   if(row.sources!==undefined&&!row.sources.every(plain))throw Error('Sources invalides');
+   if(row.optimization?.references!==undefined&&(!Array.isArray(row.optimization.references)||!row.optimization.references.every(plain)))throw Error('Références locatives invalides');
+   if(row.rentalManagement!==undefined&&!plain(row.rentalManagement))throw Error('Dossier locatif invalide');
+   if(row.rentalManagement?.payments!==undefined&&(!Array.isArray(row.rentalManagement.payments)||!row.rentalManagement.payments.every(plain)))throw Error('Paiements invalides');
+  }
+ }
+ if(value.settings!==undefined&&(!plain(value.settings)))throw Error('Paramètres invalides');
+ for(const k of ['snapshots','dashboardSnapshots'])if(value[k]!==undefined&&(!Array.isArray(value[k])||!value[k].every(plain)))throw Error('Historique invalide');
+ if(value.otherDebt!==null&&value.otherDebt!==undefined&&(!Number.isFinite(Number(value.otherDebt))||Number(value.otherDebt)<0))throw Error('Autres dettes invalides');
+ return value;
+}
 function normalizeHolder(p){let h=String(p.holder||'').trim();if(['Personnel','Société','À définir','À attribuer'].includes(h))h='';if(h==='SARL')h='SARL de famille';if(!h)h='À attribuer';return {...p,holder:h}}
 function holderNames(){const configured=Array.isArray(db?.settings?.holders)?db.settings.holders:DEFAULT_HOLDERS;const assigned=(db?.properties||[]).map(p=>String(p.holder||'').trim()).filter(h=>h&&h!=='À attribuer');return [...new Set([...configured.map(h=>String(h).trim()).filter(Boolean),...assigned])].filter(Boolean)}
 function renderHolderControls(){const list=holderNames();const filter=document.getElementById('dashboardHolder');if(filter){const old=filter.value||'Tous';filter.innerHTML='<option value="Tous">Tous les biens</option>'+list.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('')+'<option value="À attribuer">À attribuer</option>';filter.value=[...list,'Tous','À attribuer'].includes(old)?old:'Tous';const mirror=document.getElementById('ioHolderFilter');if(mirror){mirror.innerHTML=filter.innerHTML;mirror.value=filter.value}}const textarea=document.getElementById('holderList');if(textarea)textarea.value=(Array.isArray(db.settings.holders)?db.settings.holders:DEFAULT_HOLDERS).join('\n')}
@@ -737,8 +764,8 @@ function addHolderFromPropertyForm(){
  try{localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderHolderControls()}catch(e){alert('Impossible d’enregistrer le détenteur. Vérifiez le stockage disponible.');}
 }
 function saveHolders(){const raw=document.getElementById('holderList').value;const names=[...new Set(raw.split('\n').map(x=>x.trim()).filter(Boolean))];db.settings.holders=names;save();renderHolderControls();alert(names.length?'Liste des détenteurs enregistrée.':'Liste des détenteurs vidée. Vous pourrez en ajouter quand vous le souhaitez.');}
-function load(){try{const raw=localStorage.getItem(KEY);const base=raw?JSON.parse(raw):EMBEDDED_BACKUP;const x={...empty,...base};x.settings={...empty.settings,...(base.settings||{})};x.settings.holders=Array.isArray(x.settings.holders)?x.settings.holders:[...DEFAULT_HOLDERS];if(JSON.stringify(x.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))x.settings.holders=[];x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const raw=localStorage.getItem(KEY);if(raw){try{const recoveryKey=KEY+'_recovery_'+Date.now();localStorage.setItem(recoveryKey,raw);alert('Les données locales ne peuvent pas être chargées. Une copie de récupération a été conservée sous '+recoveryKey+'. Restaurez une sauvegarde valide avant de saisir de nouvelles données.')}catch(backupError){alert('Les données locales ne peuvent pas être chargées. Ne modifiez pas votre patrimoine avant d’avoir récupéré votre sauvegarde.')}}const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
-function save(){immoptimaRecordDashboardSnapshot();localStorage.setItem(KEY,JSON.stringify(db)); renderAll(); immoptimaMaybeAutoBackup(); immoptimaSyncMarkDirty();}
+function load(){try{const raw=localStorage.getItem(KEY);const base=ioValidatePortfolio(raw?JSON.parse(raw):EMBEDDED_BACKUP);const x={...empty,...base};x.settings={...empty.settings,...(base.settings||{})};x.settings.holders=Array.isArray(x.settings.holders)?x.settings.holders:[...DEFAULT_HOLDERS];if(JSON.stringify(x.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))x.settings.holders=[];x.properties=(x.properties||[]).map(normalizeHolder);x.loans=x.loans||[];x.assets=x.assets||[];if(raw)localStorage.setItem(KEY,JSON.stringify(x));return x}catch(e){const raw=localStorage.getItem(KEY);if(raw){try{const recoveryKey=KEY+'_recovery_'+Date.now();localStorage.setItem(recoveryKey,raw);alert('Les données locales ne peuvent pas être chargées. Une copie de récupération a été conservée sous '+recoveryKey+'. Restaurez une sauvegarde valide avant de saisir de nouvelles données.')}catch(backupError){alert('Les données locales ne peuvent pas être chargées. Ne modifiez pas votre patrimoine avant d’avoir récupéré votre sauvegarde.')}}const x=structuredClone(EMBEDDED_BACKUP);x.properties=(x.properties||[]).map(normalizeHolder);return x}}
+function save(){immoptimaRecordDashboardSnapshot();try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('Enregistrement impossible : stockage du téléphone indisponible ou plein. Vos données précédemment enregistrées sont conservées.');throw e} renderAll(); immoptimaMaybeAutoBackup(); immoptimaSyncMarkDirty();}
 function euro(n){return (Number(n)||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0})}
 function pct(n){return (Number(n)||0).toLocaleString('fr-FR',{maximumFractionDigits:1})+' %'}
 function dateFR(s){if(!s)return '';return new Date(s+'T12:00:00').toLocaleDateString('fr-FR')}
@@ -819,12 +846,12 @@ function monthlyLoanPayment(l){
   if(l.paymentOverride===true)return Math.max(0,entered);
   if(entered>0)return entered;
   const amount=Number(l.initial)||0, r=(Number(l.rate)||0)/100/12, n=(Number(l.years)||0)*12;
-  if(!amount||!n)return 0;
+  if(!(amount>0&&n>0&&r>=0)||![amount,n,r].every(Number.isFinite))return 0;
   const base=r?amount*r/(1-Math.pow(1+r,-n)):amount/n;
-  const insurance=Number(l.insuranceAmount)|| (amount*(Number(l.insuranceRate)||0)/100/12);
+  const insurance=loanInsurance(l);
   return base+insurance;
 }
-function loanInsurance(l){return Math.max(0,Number(l.insuranceAmount)||((Number(l.initial)||0)*(Number(l.insuranceRate)||0)/1200))}
+function loanInsurance(l){if(l.insuranceAmountOverride===true||(l.insuranceAmountOverride===undefined&&l.guidanceEnteredFields?.includes('insuranceAmount')))return Math.max(0,Number(l.insuranceAmount)||0);return Math.max(0,Number(l.insuranceAmount)||((Number(l.initial)||0)*(Number(l.insuranceRate)||0)/1200))}
 function loanPrincipalPayment(l){return Math.max(0,monthlyLoanPayment(l)-loanInsurance(l))}
 function principalRepaid(l){return Math.max(0,(Number(l.initial)||0)-(Number(l.remaining)||0))}
 function totals(){
@@ -1101,11 +1128,12 @@ function renderDashboard(){
  document.getElementById('mCashNet').className='metric '+(t.cashNet>=0?'positive':'negative');
  document.getElementById('mYield').className='metric '+(t.grossYield>=0?'positive':'negative');
  document.getElementById('mNetYield').className='metric '+(t.netYield>=0?'positive':'negative');
- const by={};props.forEach(p=>{const k=String(p.structure||'Non renseignée').trim()||'Non renseignée';by[k]=(by[k]||0)+(Number(p.retainedValue)||Number(p.currentValue)||0)});
+ const by=Object.create(null);props.forEach(p=>{const k=String(p.structure||'Non renseignée').trim()||'Non renseignée';by[k]=(by[k]||0)+(Number(p.retainedValue)||Number(p.currentValue)||0)});
  const groups=Object.entries(by).filter(([k,v])=>props.some(p=>(String(p.structure||'Non renseignée').trim()||'Non renseignée')===k));
  const totalImm=groups.reduce((sum,[,v])=>sum+v,0);
  document.getElementById('structureBreakdown').innerHTML=groups.length?`<div class="structure-grid">${groups.map(([name,value])=>`<div class="structure-box"><div class="mini-label">🏠 ${esc(name)}</div><div class="metric">${euro(value)}</div><div class="hint">${totalImm?(value/totalImm*100).toFixed(1).replace('.',','):'0,0'} % de l'immobilier</div></div>`).join('')}</div>`:'<div class="empty">Aucun bien pour ce filtre.</div>';
  drawHistory();
+ const incomplete=props.filter(p=>Object.values(ioPropertyDisplayState(p)).some(v=>!v)).length;const notice=document.getElementById('ioCashWarning');if(incomplete&&notice)notice.textContent=(notice.textContent?notice.textContent+' · ':'')+incomplete+' bien(s) à compléter : résultats provisoires.';
 }
 function totalsFor(properties){
  const propValue=properties.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
@@ -1150,7 +1178,7 @@ async function openPropertyForm(editId=null){
  if(Array.isArray(p.guidanceEnteredFields))for(const key of window.ImmOptimaReadiness?.required||[])if(!p.guidanceEnteredFields.includes(key))p[key]='';
  const wrap=document.getElementById('propertyFormWrap');
  wrap.innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier le bien':'Nouveau bien'}</h3><button class="secondary" onclick="closeForm('propertyFormWrap')">Fermer</button></div>
- <form data-property-id="${p.id}" onsubmit="saveProperty(event,'${p.id}')">
+ <form data-property-id="${esc(p.id)}" onsubmit="saveProperty(event,this.dataset.propertyId)">
  <div class="grid3">
  <div class="field"><label>Nom du bien *</label><input name="name" required value="${esc(p.name)}"></div>
  <div class="field"><label>Structure</label><select name="structure">${['Nom propre','SARL de famille','SCI','Société','Autre'].map(x=>`<option ${x===p.structure?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Détenteur du bien *</label><select name="holder" required><option value="" disabled ${!holderNames().includes(p.holder)?'selected':''}>— Choisir un détenteur —</option>${holderNames().map(h=>`<option value="${esc(h)}" ${h===p.holder?'selected':''}>${esc(h)}</option>`).join('')}${p.holder&&!holderNames().includes(p.holder)?`<option value="${esc(p.holder)}" selected>${esc(p.holder)}</option>`:''}</select><div class="hint">Choisissez la personne ou la société qui détient réellement ce bien.</div><button type="button" class="secondary" style="margin-top:8px" onclick="addHolderFromPropertyForm()">+ Ajouter un détenteur</button></div>
@@ -1167,8 +1195,8 @@ async function openPropertyForm(editId=null){
  </form></div>`;
  immoptimaWireCurveReadiness('propertyFormWrap','property');
 }
-function closeForm(id){document.getElementById(id).innerHTML='';if(id==='loanFormWrap')immoptimaScheduleBankFit()}
-async function saveProperty(e,editId){e.preventDefault();if(!await ioAccessAuthorize({properties:editId?db.properties:[...db.properties,{}]}))return;const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.guidanceEnteredFields=Object.entries(o).filter(([,v])=>String(v).trim()!=='').map(([k])=>k);if(!o.holder||!o.holder.trim()){alert('Veuillez choisir un détenteur dans le formulaire du bien.');return;}['surface','rooms','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;if(db.properties[i].optimization)o.optimization={...db.properties[i].optimization,rooms:o.rooms};db.properties[i]={...db.properties[i],...o}}else db.properties.push(o);closeForm('propertyFormWrap');save();window.dispatchEvent(new CustomEvent('immoptima-property-saved',{detail:{id:o.id}}))}
+function closeForm(id){window.ioFirstUseClosed?.(id);document.getElementById(id).innerHTML='';if(id==='loanFormWrap')immoptimaScheduleBankFit()}
+async function saveProperty(e,editId){e.preventDefault();if(e.target.dataset.saving==='true')return;e.target.dataset.saving='true';try{const guided=e.target.dataset.guided==='true';if(!await ioAccessAuthorize({properties:editId?db.properties:[...db.properties,{}]}))return;const previous=structuredClone(db);const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.guidanceEnteredFields=Object.entries(o).filter(([,v])=>String(v).trim()!=='').map(([k])=>k);if(!o.holder||!o.holder.trim()){alert('Veuillez choisir un détenteur dans le formulaire du bien.');return;}['surface','rooms','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;if(db.properties[i].optimization)o.optimization={...db.properties[i].optimization,rooms:o.rooms};db.properties[i]={...db.properties[i],...o}}else db.properties.push(o);try{save()}catch(error){db=previous;return}closeForm('propertyFormWrap');window.dispatchEvent(new CustomEvent('immoptima-property-saved',{detail:{id:o.id,guided}}))}finally{e.target.dataset.saving='false'}}
 
 function propertyLoans(p){return db.loans.filter(l=>l.propertyId===p.id)}
 function cashflowGross(p){return (Number(p.rentHC)||0)-(Number(p.ownerCharges)||0)-(Number(p.tax)||0)/12-(Number(p.pno)||0)-(Number(p.otherMonthly)||0)}
@@ -1237,20 +1265,27 @@ function immoptimaRenderPropertyDetail(){
 }
 function ioPropertyPeriodChoice(i){ioPropertyDetailPeriod=['12','36','60','120','240','all'][i];immoptimaRenderPropertyDetail()}
 
+function ioPropertyDisplayState(p){
+ const complete={value:true,debt:true,cash:true,gross:true,yield:true,rent:true};
+ if(!Array.isArray(p.guidanceEnteredFields)||typeof ImmOptimaReadiness==='undefined')return complete;
+ const r=ImmOptimaReadiness,state=r.assess(p,db.loans),loans=propertyLoans(p),value=r.filled(p,'retainedValue')||r.filled(p,'currentValue');
+ return {value,debt:state.credit!=='unknown'&&(state.credit!=='has'||loans.length>0)&&loans.every(l=>r.filled(l,'remaining')),cash:state.ready.cash,gross:r.missing(p,r.groups.cash).length===0,yield:state.ready.yield,rent:r.filled(p,'rentHC')};
+}
 function renderProperties(){
  const wrap=document.getElementById('properties'),count=document.getElementById('ioPropertyCount');
  if(count)count.textContent=db.properties.length+' '+(db.properties.length>1?'biens':'bien');
  if(!db.properties.length){wrap.innerHTML='<div class="empty">Aucun bien. Commencez par ajouter votre premier appartement ou immeuble.</div>';return}
  wrap.innerHTML=db.properties.map(p=>{
+  const known=ioPropertyDisplayState(p),partial=Object.values(known).some(v=>!v);
   const cost=propertyCost(p),val=Number(p.retainedValue)||Number(p.currentValue)||0,loans=propertyLoans(p),debt=loans.reduce((s,l)=>s+(Number(l.remaining)||0),0),payments=loans.reduce((s,l)=>s+monthlyLoanPayment(l),0),gross=cashflowGross(p),net=cashflowNet(p),cons=consensusValue(p),netYield=cost?gross*12/cost*100:0,grossYield=cost?Number(p.rentHC)*12/cost*100:0,holder=p.holder||((p.structure==='SARL de famille')?'SARL de famille':'À attribuer');
   const chips=[...new Set([p.structure,holder].filter(Boolean))].map(x=>'<span>'+esc(x)+'</span>').join('')+(p.dpe?'<span class="io-list-dpe">DPE '+esc(p.dpe)+'</span>':'');
   return `<article class="io-property-card" data-property-id="${esc(p.id)}" aria-label="${esc(p.name)}">
    <div class="io-list-head"><button type="button" class="io-list-identity" data-property-action="view" aria-label="Ouvrir ${esc(p.name)}"><span class="io-list-building">${ioIcon('building')}</span><span class="io-list-name"><strong>${esc(p.name||'Bien immobilier')}</strong><span class="io-list-address">${esc(p.address||'Adresse non renseignée')}${p.surface?' · '+esc(p.surface)+' m²':''}</span></span></button><details class="io-property-menu"><summary aria-label="Actions pour ${esc(p.name)}">⋮</summary><div><button type="button" data-property-action="edit">${ioIcon('wallet')} Modifier</button><button type="button" data-property-action="irl">Indice IRL</button><button type="button" data-property-action="lease">Préparer un bail</button><button type="button" data-property-action="dossier">Dossier logement</button><button type="button" data-property-action="payments">Loyers / quittances</button><button type="button" class="io-list-delete" data-property-action="delete">Supprimer</button></div></details></div>
-   <div class="io-list-chips">${chips}</div>
-   <div class="io-list-wealth"><div><span>Valeur estimée</span><b>${euro(val)}</b></div><div><span>Patrimoine net</span><b>${euro(val-debt)}</b></div></div>
-   <div class="io-list-cash"><div class="io-list-row-title">Cash-flow / mois <span>Avant fiscalité</span></div><div class="io-list-three"><div><span>Brut</span><b class="${gross>=0?'positive':'negative'}">${euro(gross)}</b></div><div><span>Crédit</span><b>${euro(payments)}</b></div><div><span>Net</span><b class="${net>=0?'positive':'negative'}">${euro(net)}</b></div></div></div>
-   <div class="io-list-yield"><div><span>Loyer HC / mois</span><b>${euro(p.rentHC)}</b></div><div><span>Rendement net</span><b class="${netYield>=0?'':'negative'}">${pct(netYield)}</b></div></div>
-   <div class="io-list-footer"><details class="io-property-indicators"><summary>Autres indicateurs</summary><dl><div><dt>Coût total d’acquisition</dt><dd>${euro(cost)}</dd></div><div><dt>Capital restant dû</dt><dd>${euro(debt)}</dd></div><div><dt>Rendement brut</dt><dd>${pct(grossYield)}</dd></div><div><dt>Consensus marché</dt><dd>${cons?euro(cons):'À renseigner'}</dd></div>${p.market12m?'<div><dt>Marché sur 12 mois</dt><dd>'+trendHtml(p.market12m)+'</dd></div>':''}</dl></details><button type="button" class="io-list-open" data-property-action="view">Voir le bien <span aria-hidden="true">›</span></button></div>
+   <div class="io-list-chips">${chips}${partial?'<span class="io-incomplete-badge">À compléter</span>':''}</div>
+   <div class="io-list-wealth"><div><span>Valeur retenue</span><b>${known.value?euro(val):'—'}</b></div><div><span>Patrimoine net</span><b>${known.value&&known.debt?euro(val-debt):'—'}</b></div></div>
+   <div class="io-list-cash"><div class="io-list-row-title">Cash-flow / mois <span>Avant fiscalité</span></div><div class="io-list-three"><div><span>Brut</span><b class="${gross>=0?'positive':'negative'}">${known.gross?euro(gross):'—'}</b></div><div><span>Crédit</span><b>${known.cash?euro(payments):'—'}</b></div><div><span>Net</span><b class="${net>=0?'positive':'negative'}">${known.cash?euro(net):'—'}</b></div></div></div>
+   <div class="io-list-yield"><div><span>Loyer HC / mois</span><b>${known.rent?euro(p.rentHC):'—'}</b></div><div><span>Rendement net</span><b class="${netYield>=0?'':'negative'}">${known.yield?pct(netYield):'—'}</b></div></div>
+   <div class="io-list-footer"><details class="io-property-indicators"><summary>Autres indicateurs</summary><dl><div><dt>Coût total d’acquisition</dt><dd>${euro(cost)}</dd></div><div><dt>Capital restant dû</dt><dd>${euro(debt)}</dd></div><div><dt>Rendement brut</dt><dd>${pct(grossYield)}</dd></div><div><dt>Consensus marché</dt><dd>${cons?euro(cons):'À renseigner'}</dd></div>${p.market12m?'<div><dt>Marché sur 12 mois</dt><dd>'+trendHtml(p.market12m)+'</dd></div>':''}</dl></details><button type="button" class="io-list-open" data-property-action="${partial?'edit':'view'}">${partial?'Compléter':'Voir le bien'} <span aria-hidden="true">›</span></button></div>
   </article>`;
  }).join('');
  wrap.onclick=event=>{
@@ -1274,15 +1309,15 @@ function openLoanForm(editId=null){
  if(!l)return;
  if(Array.isArray(l.guidanceEnteredFields))for(const key of ['initial','years','rate','insuranceRate','insuranceAmount','payment','startDate','remaining'])if(!l.guidanceEnteredFields.includes(key))l[key]='';
  document.getElementById('loanFormWrap').innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier le crédit':'Nouveau crédit'}</h3><button class="secondary" onclick="closeForm('loanFormWrap')">Fermer</button></div><form data-loan-id="${esc(l.id)}" onsubmit="saveLoan(event,this.dataset.loanId)">
- <div class="grid3"><div class="field"><label>Bien lié</label><select name="propertyId"><option value="">Crédit non lié</option>${db.properties.map(p=>`<option value="${esc(p.id)}" ${p.id===l.propertyId?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div class="field"><label>Banque</label><input name="bank" value="${esc(l.bank)}"></div><div class="field"><label>Montant initial (€)</label><input name="initial" type="number" step="1" value="${l.initial??''}"></div></div>
- <div class="grid3"><div class="field"><label>Durée (années)</label><input name="years" type="number" value="${l.years??20}"></div><div class="field"><label>Taux crédit (%)</label><input name="rate" type="number" step=".01" value="${l.rate??''}"></div><div class="field"><label>Assurance (%)</label><input name="insuranceRate" type="number" step=".01" value="${l.insuranceRate??''}"></div></div>
- <div class="grid3"><div class="field"><label>Assurance mensuelle (€) si fixe</label><input name="insuranceAmount" type="number" step=".01" value="${l.insuranceAmount??''}"></div><div class="field"><label>Mensualité totale (€) si connue</label><input name="payment" type="number" step=".01" value="${l.paymentOverride?l.payment:(l.payment||'')}"></div><div class="field"><label>Date de début</label><input name="startDate" type="date" value="${l.startDate||''}"></div></div>
- <div class="grid3"><div class="field"><label>Capital restant dû (€) *</label><input name="remaining" type="number" step="1" value="${l.remaining??''}"></div><div class="field"><label>Capital déjà remboursé</label><input value="${euro(principalRepaid(l))}" disabled></div><div class="field"><label>Note</label><input name="notes" value="${esc(l.notes)}"></div></div>
+ <div class="grid3"><div class="field"><label>Bien lié</label><select name="propertyId"><option value="">Crédit non lié</option>${db.properties.map(p=>`<option value="${esc(p.id)}" ${p.id===l.propertyId?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div class="field"><label>Banque</label><input name="bank" value="${esc(l.bank)}"></div><div class="field"><label>Montant initial (€)</label><input name="initial" type="number" min="1" step="1" value="${l.initial??''}"></div></div>
+ <div class="grid3"><div class="field"><label>Durée (années)</label><input name="years" type="number" min="1" value="${l.years??20}"></div><div class="field"><label>Taux crédit (%)</label><input name="rate" type="number" min="0" step=".01" value="${l.rate??''}"></div><div class="field"><label>Assurance (%)</label><input name="insuranceRate" type="number" min="0" step=".01" value="${l.insuranceRate??''}"></div></div>
+ <div class="grid3"><div class="field"><label>Assurance mensuelle (€) si fixe</label><input name="insuranceAmount" type="number" min="0" step=".01" value="${l.insuranceAmountOverride===true||l.insuranceAmountOverride===undefined&&l.guidanceEnteredFields?.includes('insuranceAmount')||Number(l.insuranceAmount)>0?l.insuranceAmount:''}"></div><div class="field"><label>Mensualité totale (€) si connue</label><input name="payment" type="number" min="0" step=".01" value="${l.paymentOverride?l.payment:(l.payment||'')}"></div><div class="field"><label>Date de début</label><input name="startDate" type="date" value="${l.startDate||''}"></div></div>
+ <div class="grid3"><div class="field"><label>Capital restant dû (€) *</label><input name="remaining" type="number" min="0" step="1" value="${l.remaining??''}"></div><div class="field"><label>Capital déjà remboursé</label><input value="${euro(principalRepaid(l))}" disabled></div><div class="field"><label>Note</label><input name="notes" value="${esc(l.notes)}"></div></div>
  <div class="io-curve-readiness" style="background:#f1f8f6;border:1px solid #d6e9e1;border-radius:12px;padding:12px;margin:14px 0" aria-live="polite"></div><div class="actions"><button class="primary">${editId?'Enregistrer les modifications':'Ajouter le crédit'}</button></div></form></div>`;
  immoptimaWireCurveReadiness('loanFormWrap','loan');
  immoptimaScheduleBankFit();requestAnimationFrame(()=>{const form=document.getElementById('loanFormWrap');if(ioBankView==='finance'&&form.querySelector('form'))form.scrollIntoView({block:'start',behavior:'instant'})});
 }
-function saveLoan(e,editId){e.preventDefault();const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.guidanceEnteredFields=Object.entries(o).filter(([,v])=>String(v).trim()!=='').map(([k])=>k);['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'].forEach(k=>o[k]=Number(o[k])||0);o.paymentOverride=f.get('payment')!=='';if(editId)db.loans[db.loans.findIndex(x=>x.id===editId)]={...db.loans.find(x=>x.id===editId),...o};else db.loans.push(o);closeForm('loanFormWrap');save();window.dispatchEvent(new CustomEvent('immoptima-loan-saved',{detail:{id:o.id,propertyId:o.propertyId}}))}
+function saveLoan(e,editId){e.preventDefault();const previous=structuredClone(db),guided=e.target.dataset.guided==='true';const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.guidanceEnteredFields=Object.entries(o).filter(([,v])=>String(v).trim()!=='').map(([k])=>k);['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'].forEach(k=>o[k]=Number(o[k])||0);o.paymentOverride=f.get('payment')!=='';o.insuranceAmountOverride=f.get('insuranceAmount')!=='';if(editId)db.loans[db.loans.findIndex(x=>x.id===editId)]={...db.loans.find(x=>x.id===editId),...o};else db.loans.push(o);try{save()}catch(error){db=previous;return}closeForm('loanFormWrap');window.dispatchEvent(new CustomEvent('immoptima-loan-saved',{detail:{id:o.id,propertyId:o.propertyId,guided}}))}
 function immoptimaOpenBankFinancing(){
  if(!document.getElementById('banque').classList.contains('active'))showPage('banque');
  ioBankSetView('finance');
@@ -1305,16 +1340,16 @@ function deleteLoan(i){if(confirm('Supprimer ce crédit ?')){db.loans=db.loans.f
 
 function openAssetForm(editId=null){
  const a=editId?db.assets.find(x=>x.id===editId):{id:'',name:'',category:'Épargne',value:'',institution:'',notes:''};
- document.getElementById('assetFormWrap').innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier l’actif':'Nouvel actif'}</h3><button class="secondary" onclick="closeForm('assetFormWrap')">Fermer</button></div><form onsubmit="saveAsset(event,'${a.id}')"><div class="grid3"><div class="field"><label>Nom *</label><input name="name" required value="${esc(a.name)}"></div><div class="field"><label>Catégorie</label><select name="category">${['Livret A','Épargne','Assurance-vie','PEA / Actions','ETF / Fonds','Crypto','Compte bancaire','Autre'].map(x=>`<option ${x===a.category?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Valeur actuelle (€) *</label><input name="value" required type="number" step="1" value="${a.value||''}"></div></div><div class="grid2"><div class="field"><label>Établissement</label><input name="institution" value="${esc(a.institution)}"></div><div class="field"><label>Note</label><input name="notes" value="${esc(a.notes)}"></div></div><button class="primary">Enregistrer</button></form></div>`;
+ document.getElementById('assetFormWrap').innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier l’actif':'Nouvel actif'}</h3><button class="secondary" onclick="closeForm('assetFormWrap')">Fermer</button></div><form data-asset-id="${esc(a.id)}" onsubmit="saveAsset(event,this.dataset.assetId)"><div class="grid3"><div class="field"><label>Nom *</label><input name="name" required value="${esc(a.name)}"></div><div class="field"><label>Catégorie</label><select name="category">${['Livret A','Épargne','Assurance-vie','PEA / Actions','ETF / Fonds','Crypto','Compte bancaire','Autre'].map(x=>`<option ${x===a.category?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Valeur actuelle (€) *</label><input name="value" required type="number" min="0" step="1" value="${a.value??''}"></div></div><div class="grid2"><div class="field"><label>Établissement</label><input name="institution" value="${esc(a.institution)}"></div><div class="field"><label>Note</label><input name="notes" value="${esc(a.notes)}"></div></div><button class="primary">Enregistrer</button></form></div>`;
 }
-function saveAsset(e,editId){e.preventDefault();const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.value=Number(o.value)||0;if(editId)db.assets[db.assets.findIndex(x=>x.id===editId)]=o;else db.assets.push(o);closeForm('assetFormWrap');save()}
-function renderAssets(){const wrap=document.getElementById('assets');if(!db.assets.length){wrap.innerHTML='<div class="empty">Aucun actif financier.</div>';return}wrap.innerHTML=`<div class="card"><div class="tablewrap"><table><thead><tr><th>Actif</th><th>Catégorie</th><th>Établissement</th><th>Valeur</th><th></th></tr></thead><tbody>${db.assets.map(a=>`<tr><td><b>${esc(a.name)}</b></td><td>${esc(a.category)}</td><td>${esc(a.institution)}</td><td>${euro(a.value)}</td><td><button class="secondary" onclick="openAssetForm('${a.id}')">Modifier</button> <button class="danger" onclick="deleteAsset('${a.id}')">Suppr.</button></td></tr>`).join('')}</tbody></table></div></div>`}
+function saveAsset(e,editId){e.preventDefault();const previous=structuredClone(db);const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.value=Number(o.value)||0;if(editId)db.assets[db.assets.findIndex(x=>x.id===editId)]=o;else db.assets.push(o);try{save()}catch(error){db=previous;return}closeForm('assetFormWrap')}
+function renderAssets(){const wrap=document.getElementById('assets');if(!db.assets.length){wrap.innerHTML='<div class="empty">Aucun actif financier.</div>';return}wrap.innerHTML=`<div class="card"><div class="tablewrap"><table><thead><tr><th>Actif</th><th>Catégorie</th><th>Établissement</th><th>Valeur</th><th></th></tr></thead><tbody>${db.assets.map(a=>`<tr><td><b>${esc(a.name)}</b></td><td>${esc(a.category)}</td><td>${esc(a.institution)}</td><td>${euro(a.value)}</td><td><button class="secondary" data-asset-id="${esc(a.id)}" onclick="openAssetForm(this.dataset.assetId)">Modifier</button> <button class="danger" data-asset-id="${esc(a.id)}" onclick="deleteAsset(this.dataset.assetId)">Suppr.</button></td></tr>`).join('')}</tbody></table></div></div>`}
 function deleteAsset(i){if(confirm('Supprimer cet actif ?')){db.assets=db.assets.filter(x=>x.id!==i);save()}}
 function saveOtherDebt(){db.otherDebt=Number(document.getElementById('otherDebt').value)||0;db.otherDebtNote=document.getElementById('otherDebtNote').value;save()}
 function saveSettings(){db.settings.name=document.getElementById('appName').value||'Mon Patrimoine';save()}
 
 function takeSnapshot(){const t=totals(),note=prompt('Note pour ce point (facultatif) :','');db.snapshots.push({id:id(),date:new Date().toISOString().slice(0,10),gross:t.gross,debt:t.debt,net:t.net,note:note||''});db.snapshots.sort((a,b)=>a.date.localeCompare(b.date));save()}
-function renderHistory(){const tb=document.getElementById('historyTable');tb.innerHTML=db.snapshots.length?db.snapshots.map(s=>`<tr><td>${dateFR(s.date)}</td><td>${euro(s.gross)}</td><td>${euro(s.debt)}</td><td><b>${euro(s.net)}</b></td><td>${esc(s.note)}</td><td><button class="danger" onclick="deleteSnapshot('${s.id}')">Suppr.</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted">Aucun point historique.</td></tr>'}
+function renderHistory(){const tb=document.getElementById('historyTable');tb.innerHTML=db.snapshots.length?db.snapshots.map(s=>`<tr><td>${dateFR(s.date)}</td><td>${euro(s.gross)}</td><td>${euro(s.debt)}</td><td><b>${euro(s.net)}</b></td><td>${esc(s.note)}</td><td><button class="danger" data-snapshot-id="${esc(s.id)}" onclick="deleteSnapshot(this.dataset.snapshotId)">Suppr.</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted">Aucun point historique.</td></tr>'}
 function deleteSnapshot(i){db.snapshots=db.snapshots.filter(x=>x.id!==i);save()}
 
 function drawHistory(){
@@ -1363,20 +1398,20 @@ return {rows:limited,rawRows:rows.length,sections:targets.length,allCandidates};
 function marketEstimate(rows,p){if(!rows.length)throw new Error('Aucun comparable DVF suffisamment proche et de surface comparable');const vals=rows.map(r=>r.price/r.surface).filter(v=>v>=1000&&v<=20000);if(!vals.length)throw new Error('Prix au m² non exploitable dans les comparables');const med=marketMedian(vals);const q1=marketPercentile(vals,.25),q3=marketPercentile(vals,.75);const clean=vals.filter(v=>v>=q1*.75&&v<=q3*1.25);const use=clean.length>=4?clean:vals;const ppm=marketMedian(use);const surface=Number(p.surface)||0;const estimate=Math.round(ppm*surface);const low=Math.round(marketPercentile(use,.25)*surface);const high=Math.round(marketPercentile(use,.75)*surface);const n=use.length;const confidence=n>=20?'Élevée':n>=10?'Bonne':n>=5?'Moyenne':'Faible';const dpeNote=p.dpe?`DPE ${p.dpe} — pris en compte uniquement comme note de contexte, pas dans le calcul DVF.`:'DPE non renseigné — non intégré au calcul.';return {estimate,low:Math.min(low,estimate),high:Math.max(high,estimate),priceM2:Math.round(ppm),p25M2:Math.round(q1),p75M2:Math.round(q3),comparables:n,confidence,dpeNote,method:'Médiane €/m² sur ventes DVF filtrées par type, surface et proximité',source:marketSourceLabel()}}
 function marketFreshLabel(iso){if(!iso)return '<span class="muted">Jamais analysé</span>';const d=(Date.now()-new Date(iso).getTime())/86400000;return d<=MARKET_MAX_AGE_DAYS?'<span class="positive">🟢 À jour</span>':'<span class="negative">🟠 À actualiser</span>'}
 function marketStatus(text,kind='warn'){const el=document.getElementById('marketStatus');if(el){el.hidden=!text;el.textContent=text;el.dataset.propertyScope=JSON.stringify(db.properties.map(p=>p.id));el.className='market-status market-'+kind;immoptimaScheduleMarketFit()}}
-async function refreshMarketProperty(id,fromBatch=false){if(ioMarketBusy.size||ioMarketAllBusy&&!fromBatch)return;const p=db.properties.find(x=>x.id===id);if(!p)return;if(window.ImmOptimaReadiness?.assess(p,db.loans).missing.market.length){if(!fromBatch)window.ioProfileGuard?.('market',id);throw new Error('Adresse, type et surface sont nécessaires au comparatif de marché.')}ioMarketBusy.add(id);if(!fromBatch)marketSectionCacheClear();ioMarketSyncBusy();const btn=[...document.querySelectorAll('[data-market-refresh]')].find(b=>b.dataset.marketRefresh===id);if(btn)btn.disabled=true;marketStatus('Analyse de « '+(p.name||'ce bien')+' » en cours…','warn');try{const geo=await marketGeocode(p.address||'');const loaded=await marketLoadComparables(geo,p);const a=marketEstimate(loaded.rows,p);const now=new Date().toISOString();p.marketAnalysis={...a,geoLabel:geo.label,citycode:geo.citycode,updatedAt:now,rawComparables:loaded.rows.map(r=>({price:r.price,surface:r.surface,ppm:Math.round(r.price/r.surface),distanceM:Math.round(r.distance||0),date:r.date,type:r.type})),sourceYear:new Date().getFullYear()};p.autoEstimate=a.estimate;p.estimateLow=a.low;p.estimateHigh=a.high;p.priceM2=a.priceM2;p.estimateSource=a.source;p.estimateDate=now.slice(0,10);const st=marketLoad();st.results=st.results||{};st.results[p.id]=p.marketAnalysis;st.checkedAt=now;st.source=marketSourceLabel();st.security='address,surface,type only';marketSave(st);localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderMarketPage();renderDashboard();renderProperties();marketStatus('✓ « '+(p.name||'Ce bien')+' » actualisé — '+a.comparables+' comparables.','ok');return a}catch(e){const msg=e?.message||String(e);p.marketAnalysis={...(p.marketAnalysis||{}),error:msg,lastAttemptAt:new Date().toISOString()};localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderMarketPage();marketStatus('⚠ '+msg,'error');throw e}finally{ioMarketBusy.delete(id);ioMarketSyncBusy()}}
+async function refreshMarketProperty(id,fromBatch=false){if(ioMarketBusy.size||ioMarketAllBusy&&!fromBatch)return;const p=db.properties.find(x=>x.id===id);if(!p)return;if(window.ImmOptimaReadiness?.assess(p,db.loans).supported.market===false){if(fromBatch)return {skipped:true};window.ioProfileGuard?.('market',id);throw new Error('Comparatif réservé aux appartements et maisons.')}if(window.ImmOptimaReadiness&&!window.ImmOptimaReadiness.assess(p,db.loans).ready.market){if(!fromBatch)window.ioProfileGuard?.('market',id);throw new Error('Adresse, type et surface sont nécessaires au comparatif de marché.')}ioMarketBusy.add(id);if(!fromBatch)marketSectionCacheClear();ioMarketSyncBusy();const btn=[...document.querySelectorAll('[data-market-refresh]')].find(b=>b.dataset.marketRefresh===id);if(btn)btn.disabled=true;marketStatus('Analyse de « '+(p.name||'ce bien')+' » en cours…','warn');try{const geo=await marketGeocode(p.address||'');const loaded=await marketLoadComparables(geo,p);const a=marketEstimate(loaded.rows,p);const now=new Date().toISOString();p.marketAnalysis={...a,geoLabel:geo.label,citycode:geo.citycode,updatedAt:now,rawComparables:loaded.rows.map(r=>({price:r.price,surface:r.surface,ppm:Math.round(r.price/r.surface),distanceM:Math.round(r.distance||0),date:r.date,type:r.type})),sourceYear:new Date().getFullYear()};p.autoEstimate=a.estimate;p.estimateLow=a.low;p.estimateHigh=a.high;p.priceM2=a.priceM2;p.estimateSource=a.source;p.estimateDate=now.slice(0,10);const st=marketLoad();st.results=st.results||{};st.results[p.id]=p.marketAnalysis;st.checkedAt=now;st.source=marketSourceLabel();st.security='address,surface,type only';marketSave(st);localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderMarketPage();renderDashboard();renderProperties();marketStatus('✓ « '+(p.name||'Ce bien')+' » actualisé — '+a.comparables+' comparables.','ok');return a}catch(e){const msg=e?.message||String(e);p.marketAnalysis={...(p.marketAnalysis||{}),error:msg,lastAttemptAt:new Date().toISOString()};localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderMarketPage();marketStatus('⚠ '+msg,'error');throw e}finally{ioMarketBusy.delete(id);ioMarketSyncBusy()}}
 async function refreshMarket(force=false){
  if(ioMarketAllBusy||ioMarketBusy.size)return;
  if(!db.properties.length){marketStatus('Aucun bien à analyser.','warn');return}
- ioMarketAllBusy=true;ioMarketSyncBusy();marketSectionCacheClear();let ok=0,errors=0;
- try{for(const p of [...db.properties]){marketStatus('Analyse '+(ok+errors+1)+' / '+db.properties.length+' — '+(p.name||'bien'),'warn');try{await refreshMarketProperty(p.id,true);ok++}catch(e){errors++}}
- const st=marketLoad();st.checkedAt=new Date().toISOString();st.ok=ok;st.fail=errors;st.source=marketSourceLabel();st.security='address,surface,type only';marketSave(st);renderMarketPage();marketStatus(errors?('Analyse terminée : '+ok+' bien(s) analysé(s), '+errors+' erreur(s).'):'Analyse terminée : '+ok+' bien(s) analysé(s).',errors?'warn':'ok');
+ ioMarketAllBusy=true;ioMarketSyncBusy();marketSectionCacheClear();let ok=0,errors=0,skipped=0;
+ try{for(const p of [...db.properties]){marketStatus('Analyse '+(ok+errors+1)+' / '+db.properties.length+' — '+(p.name||'bien'),'warn');try{const result=await refreshMarketProperty(p.id,true);if(result?.skipped)skipped++;else ok++}catch(e){errors++}}
+ const st=marketLoad();st.checkedAt=new Date().toISOString();st.ok=ok;st.fail=errors;st.skipped=skipped;st.source=marketSourceLabel();st.security='address,surface,type only';marketSave(st);renderMarketPage();marketStatus('Analyse terminée : '+ok+' bien(s) analysé(s).'+(skipped?' '+skipped+' bien(s) hors comparatif de logements.':'')+(errors?' '+errors+' analyse(s) à vérifier.':''),errors?'warn':'ok');
  }finally{ioMarketAllBusy=false;ioMarketSyncBusy()}
 }
 function marketSectionCacheClear(){Object.keys(marketGeoCache).forEach(k=>delete marketGeoCache[k]);Object.keys(marketSectionCache).forEach(k=>delete marketSectionCache[k]);Object.keys(marketMutationCache).forEach(k=>delete marketMutationCache[k])}
 let ioMarketOpenId=null,ioMarketAllBusy=false;const ioMarketBusy=new Set();
 function ioMarketResult(p,results={}){return p.marketAnalysis||results[p.id]||{}}
 function ioMarketSummary(props,results={}){
- const analyzed=props.map(p=>({p,m:ioMarketResult(p,results)})).filter(r=>Number.isFinite(Number(r.m.estimate))&&Number(r.m.estimate)>0);
+ const analyzed=props.filter(p=>typeof ImmOptimaReadiness==='undefined'||ImmOptimaReadiness.housing(p)).map(p=>({p,m:ioMarketResult(p,results)})).filter(r=>Number.isFinite(Number(r.m.estimate))&&Number(r.m.estimate)>0);
  const comparable=analyzed.filter(r=>Number.isFinite(Number(r.p.purchase))&&Number(r.p.purchase)>0),purchase=comparable.reduce((sum,r)=>sum+Number(r.p.purchase),0),comparedValue=comparable.reduce((sum,r)=>sum+Number(r.m.estimate),0);
  return {count:analyzed.length,total:analyzed.reduce((sum,r)=>sum+Number(r.m.estimate),0),compared:comparable.length,purchase,comparedValue,gap:purchase>0?comparedValue-purchase:null,percent:purchase>0?(comparedValue/purchase-1)*100:null};
 }
@@ -1399,8 +1434,8 @@ function renderMarketPage(){
  document.getElementById('marketCheckedAt').textContent=st.checkedAt?'Contrôle du '+dateFR(st.checkedAt.slice(0,10)):'Aucune actualisation';
  overview.innerHTML='<div class="io-market-banner"><div class="io-market-banner-count">'+ioIcon('home')+'<div><b>'+stats.count+' / '+db.properties.length+' biens analysés</b><small>Estimation DVF</small></div></div><div class="io-market-banner-value"><strong>'+(stats.count?euro(stats.total):'—')+'</strong><span>Valeur marché estimée</span>'+ioMarketGapBadge(stats.percent)+'<small>Écart depuis l’achat'+(stats.compared!==stats.count?' · '+stats.compared+' bien(s) comparable(s)':'')+'</small></div></div>';
  if(ioMarketOpenId&&!db.properties.some(p=>p.id===ioMarketOpenId))ioMarketOpenId=null;
- table.innerHTML=db.properties.map(p=>{const m=ioMarketResult(p,results),estimate=Number.isFinite(Number(m.estimate))&&Number(m.estimate)>0?Number(m.estimate):0,purchase=Number(p.purchase)>0?Number(p.purchase):0,percent=estimate&&purchase?(estimate/purchase-1)*100:null,range=Number(m.low)>0&&Number(m.high)>=Number(m.low)?euro(m.low)+' – '+euro(m.high):'À renseigner',confidence=m.confidence?esc(m.confidence)+' · '+(Number(m.comparables)||0)+' ventes':'Non disponible';
- return '<details class="io-market-property" data-market-property="'+esc(p.id)+'" '+(ioMarketOpenId===p.id?'open':'')+'><summary><span class="io-market-building">'+ioIcon('home')+'</span><span class="io-market-summary"><strong>'+esc(p.name||'Bien immobilier')+'</strong><small>'+esc(Number(p.surface)>0?p.surface+' m²':'Surface à renseigner')+' · '+esc(p.dpe?'DPE '+p.dpe:'DPE à renseigner')+'</small><span class="io-market-price"><b>'+(estimate?euro(estimate):'Non analysé')+'</b>'+ioMarketGapBadge(percent)+'</span>'+(m.error?'<span class="io-market-attempt-warning">Dernière actualisation en échec'+(estimate?' · estimation précédente conservée':'')+'</span>':'')+'</span><span class="io-market-chevron" aria-hidden="true">⌄</span></summary><div class="io-market-body"><p class="io-market-address">'+esc(p.address||'Adresse à renseigner')+'</p><div class="io-market-grid"><div><span>Prix d’achat</span><b>'+money(p.purchase)+'</b><small>'+(purchase&&Number(p.surface)>0?euro(Math.round(purchase/Number(p.surface)))+' / m²':'Prix au m² non disponible')+'</small></div><div><span>Marché / m²</span><b>'+money(m.priceM2)+'</b></div><div><span>Fourchette estimée</span><b>'+range+'</b></div><div><span>Confiance</span><b>'+confidence+'</b></div></div><p class="io-market-result-note">'+(m.updatedAt?'Estimation du '+esc(dateFR(m.updatedAt.slice(0,10)))+' · ':'')+(estimate?marketFreshLabel(m.updatedAt):'Aucune estimation disponible')+(estimate&&purchase?'<br>Écart depuis l’achat : <b>'+(estimate-purchase>=0?'+':'')+euro(estimate-purchase)+'</b>':'')+'</p>'+(m.error?'<p class="io-market-error">'+esc(m.error)+'</p>':'')+'<button type="button" class="secondary market-refresh-btn" data-market-refresh="'+esc(p.id)+'">↻ Actualiser ce bien</button></div></details>';
+ table.innerHTML=db.properties.map(p=>{const supported=typeof ImmOptimaReadiness==='undefined'||ImmOptimaReadiness.housing(p);const m=ioMarketResult(p,results),estimate=Number.isFinite(Number(m.estimate))&&Number(m.estimate)>0?Number(m.estimate):0,purchase=Number(p.purchase)>0?Number(p.purchase):0,percent=estimate&&purchase?(estimate/purchase-1)*100:null,range=Number(m.low)>0&&Number(m.high)>=Number(m.low)?euro(m.low)+' – '+euro(m.high):'À renseigner',confidence=m.confidence?esc(m.confidence)+' · '+(Number(m.comparables)||0)+' ventes':'Non disponible';
+ return '<details class="io-market-property" data-market-property="'+esc(p.id)+'" '+(ioMarketOpenId===p.id?'open':'')+'><summary><span class="io-market-building">'+ioIcon('home')+'</span><span class="io-market-summary"><strong>'+esc(p.name||'Bien immobilier')+'</strong><small>'+esc(Number(p.surface)>0?p.surface+' m²':'Surface à renseigner')+' · '+esc(!supported?'Hors comparatif de logements':p.dpe?'DPE '+p.dpe:'DPE à renseigner')+'</small><span class="io-market-price"><b>'+(estimate?euro(estimate):'Non analysé')+'</b>'+ioMarketGapBadge(percent)+'</span>'+(m.error?'<span class="io-market-attempt-warning">Dernière actualisation en échec'+(estimate?' · estimation précédente conservée':'')+'</span>':'')+'</span><span class="io-market-chevron" aria-hidden="true">⌄</span></summary><div class="io-market-body"><p class="io-market-address">'+esc(p.address||'Adresse à renseigner')+'</p><div class="io-market-grid"><div><span>Prix d’achat</span><b>'+money(p.purchase)+'</b><small>'+(purchase&&Number(p.surface)>0?euro(Math.round(purchase/Number(p.surface)))+' / m²':'Prix au m² non disponible')+'</small></div><div><span>Marché / m²</span><b>'+money(m.priceM2)+'</b></div><div><span>Fourchette estimée</span><b>'+range+'</b></div><div><span>Confiance</span><b>'+confidence+'</b></div></div><p class="io-market-result-note">'+(m.updatedAt?'Estimation du '+esc(dateFR(m.updatedAt.slice(0,10)))+' · ':'')+(estimate?marketFreshLabel(m.updatedAt):'Aucune estimation disponible')+(estimate&&purchase?'<br>Écart depuis l’achat : <b>'+(estimate-purchase>=0?'+':'')+euro(estimate-purchase)+'</b>':'')+'</p>'+(m.error?'<p class="io-market-error">'+esc(m.error)+'</p>':'')+'<button type="button" class="secondary market-refresh-btn" data-market-refresh="'+esc(p.id)+'" '+(!supported?'disabled':'')+'>'+(!supported?'Comparatif réservé aux logements':'↻ Actualiser ce bien')+'</button></div></details>';
  }).join('')||'<div class="empty">Aucun bien enregistré. Ajoute un bien dans l’onglet Biens pour consulter son marché.</div>';
  document.getElementById('marketSummaryDetails').innerHTML='<p><b>'+stats.count+' bien(s) analysé(s) sur '+db.properties.length+'</b><br>Moyenne par bien analysé : '+(stats.count?euro(stats.total/stats.count):'—')+'<br>Périmètre de comparaison : '+stats.compared+' bien(s), prix d’achat '+euro(stats.purchase)+', estimations '+euro(stats.comparedValue)+'.'+(stats.gap!==null?'<br>Écart total comparable : '+(stats.gap>=0?'+':'')+euro(stats.gap):'')+'</p>';
  table.querySelectorAll('.io-market-property').forEach(card=>card.addEventListener('toggle',()=>{if(!card.isConnected)return;if(card.open){ioMarketOpenId=card.dataset.marketProperty;table.querySelectorAll('.io-market-property').forEach(other=>{if(other!==card)other.open=false})}else if(ioMarketOpenId===card.dataset.marketProperty)ioMarketOpenId=null;immoptimaScheduleMarketFit()}));
@@ -1410,39 +1445,40 @@ function renderMarketPage(){
 
 function renderValuation(){renderMarketPage()}
 async function initMarketAuto(){if(marketAgeDays()>MARKET_MAX_AGE_DAYS){marketStatus('Vérification du marché à l’ouverture…','warn');try{await refreshMarket(false)}catch(e){marketStatus('Actualisation automatique interrompue : '+(e?.message||e),'error')}}else renderMarketPage()}
-function bankValueHC(p){const v=Number(p.rentHC)||0;return v>0?v:null}
-function bankCharges(p){const v=Number(p.recoverable)||0;return v>0?v:null}
+function bankValueHC(p){return bankReportKnown(p,'rentHC')?Number(p.rentHC):null}
+function bankCharges(p){return bankReportKnown(p,'recoverable')?Number(p.recoverable):null}
 function bankCC(p){const hc=bankValueHC(p),ch=bankCharges(p);return hc===null?null:hc+(ch||0)}
 function bankMoney(v){return v===null||v===undefined?'À renseigner':euro(v)}
 function propertyLoanPayment(p){return db.loans.filter(l=>l.propertyId===p.id).reduce((s,l)=>s+monthlyLoanPayment(l),0)}
+function ioMarkEntered(record,keys){if(Array.isArray(record.guidanceEnteredFields))record.guidanceEnteredFields=[...new Set([...record.guidanceEnteredFields,...keys])]}
 function bankSetProperty(propertyId,field,value){
  const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
  if(field==='name'||field==='address'||field==='holder'||field==='structure')p[field]=String(value||'');
  else if(field==='rentHC')p.rentHC=Math.max(0,Number(value)||0);
  else if(field==='recoverable')p.recoverable=Math.max(0,Number(value)||0);
- save();
+ ioMarkEntered(p,[field]);save();
 }
 function updateBankCredit(propertyId,value){
  const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
  const amount=Math.max(0,Number(value)||0);
  const loans=db.loans.filter(l=>l.propertyId===propertyId);
  if(!loans.length){db.loans.push({id:id(),propertyId,initial:0,remaining:0,years:20,rate:0,insuranceRate:0,insuranceAmount:0,payment:amount,paymentOverride:true,startDate:'',bank:''});}
- else{const total=loans.reduce((s,l)=>s+monthlyLoanPayment(l),0);loans.forEach((l,i)=>{l.payment=total>0?amount*monthlyLoanPayment(l)/total:amount/loans.length;l.paymentOverride=true;});}
+ else{const total=loans.reduce((s,l)=>s+monthlyLoanPayment(l),0);loans.forEach((l,i)=>{l.payment=total>0?amount*monthlyLoanPayment(l)/total:amount/loans.length;l.paymentOverride=true;ioMarkEntered(l,['payment']);});}
  save();
 }
 function updateBankCC(propertyId,value){
  const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
  const cc=Math.max(0,Number(value)||0),hc=Math.max(0,Number(p.rentHC)||0);
- p.recoverable=Math.max(0,cc-hc);save();
+ p.recoverable=Math.max(0,cc-hc);ioMarkEntered(p,['recoverable']);save();
 }
 function updateBankAnnualHC(propertyId,value){
  const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
- p.rentHC=Math.max(0,(Number(value)||0)/12);save();
+ p.rentHC=Math.max(0,(Number(value)||0)/12);ioMarkEntered(p,['rentHC']);save();
 }
 function updateBankAnnualCC(propertyId,value){
  const p=db.properties.find(x=>x.id===propertyId);if(!p)return;
  const cc=Math.max(0,(Number(value)||0)/12),hc=Math.max(0,Number(p.rentHC)||0);
- p.recoverable=Math.max(0,cc-hc);save();
+ p.recoverable=Math.max(0,cc-hc);ioMarkEntered(p,['recoverable']);save();
 }
 function bankPrintNumber(value){const n=Number(value)||0;return n.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:2})}
 function bankTextInput(propertyId,field,value){return `<input type="text" value="${esc(value??'')}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:150px;box-sizing:border-box;font-weight:600"><span class="bank-print-value">${esc(value??'')}</span>`}
@@ -1505,7 +1541,7 @@ function ioBankSaveEdit(event){
  event.preventDefault();const form=event.target,p=db.properties.find(p=>p.id===form.dataset.propertyId);if(!p)return;
  ioBankSyncEditor(form,form.dataset.lastField||'rentHC');const f=new FormData(form),credit=Math.max(0,Number(f.get('credit'))||0);
  ['name','address','holder','structure'].forEach(key=>p[key]=String(f.get(key)||''));p.rentHC=Math.max(0,Number(f.get('rentHC'))||0);p.recoverable=Math.max(0,Number(f.get('recoverable'))||0);
- ioBankEditorId=null;ioBankOpenId=p.id;if(Math.abs(credit-propertyLoanPayment(p))>1e-8)updateBankCredit(p.id,credit);else save();
+ ioMarkEntered(p,['name','address','holder','structure','rentHC','recoverable']);ioBankEditorId=null;ioBankOpenId=p.id;if(Math.abs(credit-propertyLoanPayment(p))>1e-8)updateBankCredit(p.id,credit);else save();
  const card=[...document.querySelectorAll('#bankMobile [data-bank-property]')].find(card=>card.dataset.bankProperty===p.id);card?.querySelector('[data-bank-edit]')?.focus({preventScroll:true});
 }
 function ioBankCancelEdit(){ioBankEditorId=null;renderBankSummary()}
@@ -1534,7 +1570,7 @@ function exportBankCSV(){
 }
 let ioBankPrintMode='summary';
 function bankReportMoney(value){return Number.isFinite(Number(value))&&value!==null&&value!==undefined&&value!==''?Number(value).toLocaleString('fr-FR',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2}):'NR'}
-function bankReportKnown(obj,key){return obj[key]!==null&&obj[key]!==undefined&&obj[key]!==''&&Number.isFinite(Number(obj[key]))}
+function bankReportKnown(obj,key){if(Array.isArray(obj.guidanceEnteredFields)&&!obj.guidanceEnteredFields.includes(key))return false;return obj[key]!==null&&obj[key]!==undefined&&obj[key]!==''&&Number.isFinite(Number(obj[key]))}
 function bankReportCharges(p){return ['ownerCharges','tax','pno','otherMonthly'].every(key=>bankReportKnown(p,key))?ioOwnerCharges(p):null}
 function bankReportValue(p){return Number(p.retainedValue)>0?Number(p.retainedValue):Number(p.currentValue)>0?Number(p.currentValue):null}
 function bankReportDebt(p){const loans=propertyLoans(p);return loans.every(l=>bankReportKnown(l,'remaining'))?loans.reduce((s,l)=>s+Number(l.remaining),0):null}
@@ -1680,6 +1716,7 @@ window.immoptimaNativeCloudResult=async function(event){
   if(IMMOPTIMA_CLOUD_WRITE_ENABLED)immoptimaScheduleSync();
   return;
  }
+ const previousPortfolio=db,previousMeta=structuredClone(meta),previousRevision=immoptimaCloudState.revision;
  try{
   const remote=JSON.parse(event.data);
   if(!remote||!Number.isSafeInteger(remote.revision)||remote.revision<1||
@@ -1687,7 +1724,7 @@ window.immoptimaNativeCloudResult=async function(event){
     !Array.isArray(remote.payload.loans)||!Array.isArray(remote.payload.assets)||
     !remote.payload.settings||typeof remote.payload.settings!=='object')
     throw Error('Structure distante invalide');
-  if(!await ioAccessAuthorize(remote.payload)){immoptimaCloudState.loaded=false;return;}
+  ioValidatePortfolio(remote.payload);if(!await ioAccessAuthorize(remote.payload)){immoptimaCloudState.loaded=false;return;}
   immoptimaCloudState.revision=remote.revision;
   // Compare content independent of Firestore map key ordering.
   const canonical=(value)=>JSON.stringify(value,function(key,v){
@@ -1735,7 +1772,7 @@ window.immoptimaNativeCloudResult=async function(event){
   meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;
   localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
   renderAll();
- }catch(error){console.warn('Patrimoine cloud refusé :',error.message)}
+ }catch(error){if(db!==previousPortfolio){db=previousPortfolio;try{localStorage.setItem(KEY,JSON.stringify(db));renderAll()}catch(restoreError){console.warn('Restauration locale à vérifier')}}immoptimaCloudState.loaded=false;immoptimaCloudState.revision=previousRevision;try{localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(previousMeta))}catch{}immoptimaCloudState.error='Sauvegarde cloud refusée : données locales conservées.';immoptimaCloudUpdateStatus();console.warn('Patrimoine cloud refusé :',error.message)}
 };
 window.addEventListener('online',()=>{if(IMMOPTIMA_CLOUD_WRITE_ENABLED){if(!immoptimaCloudState.loaded&&immoptimaAuthState.status==='signed_in')immoptimaCloudAfterLogin(immoptimaAuthState.uid);else immoptimaScheduleSync();}});
 function immoptimaCloudAfterLogin(uid){
@@ -1845,7 +1882,7 @@ async function immoptimaRecoverBeforeRestore(){
   candidate.settings={...structuredClone(empty.settings),...(data.settings&&typeof data.settings==='object'?data.settings:{})};
   candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders:[...DEFAULT_HOLDERS];
   candidate.properties=candidate.properties.map(normalizeHolder);
-  if(!await ioAccessAuthorize(candidate))return;
+  ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;
   try{
    localStorage.setItem('immoptima_pre_restore_v1',current);
    db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();
@@ -1870,7 +1907,7 @@ async function immoptimaRestoreFromDriveBase64(encoded){
   candidate.properties=candidate.properties.map(normalizeHolder);
   candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];
   candidate.otherDebt=Number(candidate.otherDebt)||0;
-  if(!await ioAccessAuthorize(candidate))return;
+  ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;
   const previous=db;
   try{localStorage.setItem('immoptima_pre_restore_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();alert('Patrimoine restauré depuis Google. Une copie de secours locale du patrimoine précédent a été conservée.');}
   catch(e){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw e;}
@@ -1942,7 +1979,7 @@ function exportData(destination='local'){
   closeBackupOptions();
  }catch(error){alert('Sauvegarde impossible : '+(error.message||'erreur inconnue'))}
 }
-function importData(e){const input=e?.target,file=input?.files?.[0];if(!file)return;const resetInput=()=>{if(input)input.value=''};if(file.size>10*1024*1024){alert('Fichier trop volumineux : la sauvegarde doit faire moins de 10 Mo.');resetInput();return}const r=new FileReader();r.onerror=()=>{alert('Lecture impossible. Votre patrimoine actuel est conservé.');resetInput()};r.onload=async()=>{try{const x=JSON.parse(String(r.result||''));if(!x||typeof x!=='object'||Array.isArray(x)||!Array.isArray(x.properties)||!Array.isArray(x.loans)||!Array.isArray(x.assets))throw Error('structure');if(!x.properties.every(p=>p&&typeof p==='object'&&!Array.isArray(p))||!x.loans.every(l=>l&&typeof l==='object'&&!Array.isArray(l))||!x.assets.every(a=>a&&typeof a==='object'&&!Array.isArray(a)))throw Error('records');const candidate={...structuredClone(empty),...x};candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];if(JSON.stringify(candidate.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))candidate.settings.holders=[];candidate.properties=candidate.properties.map(normalizeHolder);candidate.loans=candidate.loans;candidate.assets=candidate.assets;candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];candidate.otherDebt=Number(candidate.otherDebt)||0;if(!await ioAccessAuthorize(candidate))return;if(!confirm('Importer cette sauvegarde et remplacer le patrimoine actuel ? Une copie de secours locale sera conservée avant le remplacement.'))return;const previous=db;try{localStorage.setItem('immoptima_pre_import_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();alert('Sauvegarde importée avec succès. Une copie locale du patrimoine précédent a été conservée.')}catch(renderError){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw renderError}}catch(err){alert('Fichier de sauvegarde invalide ou incompatible. Votre patrimoine actuel est conservé.')}};r.readAsText(file);resetInput()}
+function importData(e){const input=e?.target,file=input?.files?.[0];if(!file)return;const resetInput=()=>{if(input)input.value=''};if(file.size>10*1024*1024){alert('Fichier trop volumineux : la sauvegarde doit faire moins de 10 Mo.');resetInput();return}const r=new FileReader();r.onerror=()=>{alert('Lecture impossible. Votre patrimoine actuel est conservé.');resetInput()};r.onload=async()=>{try{const x=JSON.parse(String(r.result||''));if(!x||typeof x!=='object'||Array.isArray(x)||!Array.isArray(x.properties)||!Array.isArray(x.loans)||!Array.isArray(x.assets))throw Error('structure');if(!x.properties.every(p=>p&&typeof p==='object'&&!Array.isArray(p))||!x.loans.every(l=>l&&typeof l==='object'&&!Array.isArray(l))||!x.assets.every(a=>a&&typeof a==='object'&&!Array.isArray(a)))throw Error('records');const candidate={...structuredClone(empty),...x};candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];if(JSON.stringify(candidate.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))candidate.settings.holders=[];candidate.properties=candidate.properties.map(normalizeHolder);candidate.loans=candidate.loans;candidate.assets=candidate.assets;candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];candidate.otherDebt=Number(candidate.otherDebt)||0;ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;if(!confirm('Importer cette sauvegarde et remplacer le patrimoine actuel ? Une copie de secours locale sera conservée avant le remplacement.'))return;const previous=db;try{localStorage.setItem('immoptima_pre_import_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();alert('Sauvegarde importée avec succès. Une copie locale du patrimoine précédent a été conservée.')}catch(renderError){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw renderError}}catch(err){alert('Fichier de sauvegarde invalide ou incompatible. Votre patrimoine actuel est conservé.')}};r.readAsText(file);resetInput()}
 const DEMO_MARK='immoptima_demo_v1';
 function installDemoData(){
  if(db.properties.length||db.loans.length||db.assets.length){alert('Pour protéger vos données, le jeu fictif ne peut être chargé que dans un patrimoine vide. Exportez d’abord vos données et utilisez une installation de test vierge.');return;}
