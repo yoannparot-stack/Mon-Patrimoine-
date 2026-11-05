@@ -1125,7 +1125,6 @@ function totalsFor(properties){
 }
 
 function showUpgradePrompt(){
- if(Array.isArray(p.guidanceEnteredFields))for(const key of window.ImmOptimaReadiness?.required||[])if(!p.guidanceEnteredFields.includes(key))p[key]='';
  const wrap=document.getElementById('propertyFormWrap');
  wrap.innerHTML=`<div class="card plan-card"><div><div class="label">Limite de la version découverte</div><div class="metric">1 logement complet</div><div class="hint">Votre premier logement reste entièrement exploitable : rentabilité, crédit, valorisation, optimisation et synthèse.</div></div><button class="primary" onclick="closeForm('propertyFormWrap')">Compris</button></div>`;
 }
@@ -1148,6 +1147,7 @@ function immoptimaWireCurveReadiness(containerId,type){
 async function openPropertyForm(editId=null){
  if(!await ioAccessAuthorize({properties:editId?db.properties:[...db.properties,{}]}))return;
  const p=editId?{...db.properties.find(x=>x.id===editId)}:{id:'',name:'',address:'',structure:'Nom propre',holder:'À attribuer',type:'Appartement',surface:'',floor:'',dpe:'',acquisitionDate:'',purchase:'',notary:'',works:'',furniture:'',otherCost:'',currentValue:'',retainedValue:'',rentHC:'',recoverable:'',ownerCharges:'',tax:'',pno:'',otherMonthly:'',occupancy:'100',autoEstimate:'',estimateLow:'',estimateHigh:'',estimateSource:'',estimateDate:'',market12m:'',priceM2:'',sources:[],notes:''};
+ if(Array.isArray(p.guidanceEnteredFields))for(const key of window.ImmOptimaReadiness?.required||[])if(!p.guidanceEnteredFields.includes(key))p[key]='';
  const wrap=document.getElementById('propertyFormWrap');
  wrap.innerHTML=`<div class="card"><div class="section-title"><h3>${editId?'Modifier le bien':'Nouveau bien'}</h3><button class="secondary" onclick="closeForm('propertyFormWrap')">Fermer</button></div>
  <form data-property-id="${p.id}" onsubmit="saveProperty(event,'${p.id}')">
