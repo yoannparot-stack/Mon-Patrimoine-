@@ -29,5 +29,12 @@ function env(channel='commercial',allowed=false){
  const e=env();e.ctx.AndroidBridge=null;assert(await e.ctx.ioAccessAuthorize(backup(1)));assert.equal(await e.ctx.ioAccessAuthorize(backup(2)),false);
  const race=env();let request;race.ctx.AndroidBridge.immoptimaAccessCheck=id=>request=id;const result=race.ctx.ioAccessAuthorize(backup(3));race.ctx.immoptimaAuthState.uid='b';race.ctx.immoptimaNativeAccessResult({requestId:request,uid:'a',allowed:true});assert.equal(await result,false);
  const throwing=env();throwing.ctx.AndroidBridge.immoptimaAccessCheck=()=>{throw Error('offline')};assert.equal(await throwing.ctx.ioAccessAuthorize(backup(3)),false);
+ for(const failure of ['metadata','portfolio','render']){
+  const {ctx,store,data}=env('personal-test');store.set('test',JSON.stringify(data));const write=ctx.localStorage.setItem;
+  ctx.localStorage.setItem=(k,v)=>{if((failure==='metadata'&&k==='meta')||(failure==='portfolio'&&k==='test'&&v.includes('p0')))throw Error('QA storage refused');write(k,v)};
+  if(failure==='render')ctx.renderAll=()=>{throw Error('QA rendering refused')};
+  await ctx.immoptimaNativeCloudResult({uid:'a',event:'snapshot',data:JSON.stringify({revision:1,payload:backup(2)})});
+  assert.equal(JSON.stringify(ctx.db),JSON.stringify(data),'cloud '+failure+' keeps active portfolio');assert.equal(store.get('test'),JSON.stringify(data),'cloud '+failure+' keeps persisted portfolio');
+ }
  console.log('PASS access: active/expired/owner policy; local, Drive, recovery and cloud imports; forged backup ignored; denied operations preserve data; personal bypass; single property; account switch and bridge failure');
 })().catch(e=>{console.error(e);process.exit(1)});

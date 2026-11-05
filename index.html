@@ -1434,7 +1434,7 @@ function renderMarketPage(){
  document.getElementById('marketCheckedAt').textContent=st.checkedAt?'Contrôle du '+dateFR(st.checkedAt.slice(0,10)):'Aucune actualisation';
  overview.innerHTML='<div class="io-market-banner"><div class="io-market-banner-count">'+ioIcon('home')+'<div><b>'+stats.count+' / '+db.properties.length+' biens analysés</b><small>Estimation DVF</small></div></div><div class="io-market-banner-value"><strong>'+(stats.count?euro(stats.total):'—')+'</strong><span>Valeur marché estimée</span>'+ioMarketGapBadge(stats.percent)+'<small>Écart depuis l’achat'+(stats.compared!==stats.count?' · '+stats.compared+' bien(s) comparable(s)':'')+'</small></div></div>';
  if(ioMarketOpenId&&!db.properties.some(p=>p.id===ioMarketOpenId))ioMarketOpenId=null;
- table.innerHTML=db.properties.map(p=>{const supported=typeof ImmOptimaReadiness==='undefined'||ImmOptimaReadiness.housing(p);const m=ioMarketResult(p,results),estimate=Number.isFinite(Number(m.estimate))&&Number(m.estimate)>0?Number(m.estimate):0,purchase=Number(p.purchase)>0?Number(p.purchase):0,percent=estimate&&purchase?(estimate/purchase-1)*100:null,range=Number(m.low)>0&&Number(m.high)>=Number(m.low)?euro(m.low)+' – '+euro(m.high):'À renseigner',confidence=m.confidence?esc(m.confidence)+' · '+(Number(m.comparables)||0)+' ventes':'Non disponible';
+ table.innerHTML=db.properties.map(p=>{const supported=typeof ImmOptimaReadiness==='undefined'||ImmOptimaReadiness.housing(p);const m=supported?ioMarketResult(p,results):{},estimate=Number.isFinite(Number(m.estimate))&&Number(m.estimate)>0?Number(m.estimate):0,purchase=Number(p.purchase)>0?Number(p.purchase):0,percent=estimate&&purchase?(estimate/purchase-1)*100:null,range=Number(m.low)>0&&Number(m.high)>=Number(m.low)?euro(m.low)+' – '+euro(m.high):'À renseigner',confidence=m.confidence?esc(m.confidence)+' · '+(Number(m.comparables)||0)+' ventes':'Non disponible';
  return '<details class="io-market-property" data-market-property="'+esc(p.id)+'" '+(ioMarketOpenId===p.id?'open':'')+'><summary><span class="io-market-building">'+ioIcon('home')+'</span><span class="io-market-summary"><strong>'+esc(p.name||'Bien immobilier')+'</strong><small>'+esc(Number(p.surface)>0?p.surface+' m²':'Surface à renseigner')+' · '+esc(!supported?'Hors comparatif de logements':p.dpe?'DPE '+p.dpe:'DPE à renseigner')+'</small><span class="io-market-price"><b>'+(estimate?euro(estimate):'Non analysé')+'</b>'+ioMarketGapBadge(percent)+'</span>'+(m.error?'<span class="io-market-attempt-warning">Dernière actualisation en échec'+(estimate?' · estimation précédente conservée':'')+'</span>':'')+'</span><span class="io-market-chevron" aria-hidden="true">⌄</span></summary><div class="io-market-body"><p class="io-market-address">'+esc(p.address||'Adresse à renseigner')+'</p><div class="io-market-grid"><div><span>Prix d’achat</span><b>'+money(p.purchase)+'</b><small>'+(purchase&&Number(p.surface)>0?euro(Math.round(purchase/Number(p.surface)))+' / m²':'Prix au m² non disponible')+'</small></div><div><span>Marché / m²</span><b>'+money(m.priceM2)+'</b></div><div><span>Fourchette estimée</span><b>'+range+'</b></div><div><span>Confiance</span><b>'+confidence+'</b></div></div><p class="io-market-result-note">'+(m.updatedAt?'Estimation du '+esc(dateFR(m.updatedAt.slice(0,10)))+' · ':'')+(estimate?marketFreshLabel(m.updatedAt):'Aucune estimation disponible')+(estimate&&purchase?'<br>Écart depuis l’achat : <b>'+(estimate-purchase>=0?'+':'')+euro(estimate-purchase)+'</b>':'')+'</p>'+(m.error?'<p class="io-market-error">'+esc(m.error)+'</p>':'')+'<button type="button" class="secondary market-refresh-btn" data-market-refresh="'+esc(p.id)+'" '+(!supported?'disabled':'')+'>'+(!supported?'Comparatif réservé aux logements':'↻ Actualiser ce bien')+'</button></div></details>';
  }).join('')||'<div class="empty">Aucun bien enregistré. Ajoute un bien dans l’onglet Biens pour consulter son marché.</div>';
  document.getElementById('marketSummaryDetails').innerHTML='<p><b>'+stats.count+' bien(s) analysé(s) sur '+db.properties.length+'</b><br>Moyenne par bien analysé : '+(stats.count?euro(stats.total/stats.count):'—')+'<br>Périmètre de comparaison : '+stats.compared+' bien(s), prix d’achat '+euro(stats.purchase)+', estimations '+euro(stats.comparedValue)+'.'+(stats.gap!==null?'<br>Écart total comparable : '+(stats.gap>=0?'+':'')+euro(stats.gap):'')+'</p>';
@@ -1725,7 +1725,7 @@ window.immoptimaNativeCloudResult=async function(event){
     !remote.payload.settings||typeof remote.payload.settings!=='object')
     throw Error('Structure distante invalide');
   ioValidatePortfolio(remote.payload);if(!await ioAccessAuthorize(remote.payload)){immoptimaCloudState.loaded=false;return;}
-  immoptimaCloudState.revision=remote.revision;
+  immoptimaCloudState.revision=remote.revision;const candidate={...structuredClone(empty),...remote.payload};
   // Compare content independent of Firestore map key ordering.
   const canonical=(value)=>JSON.stringify(value,function(key,v){
    if(v&&typeof v==='object'&&!Array.isArray(v)){
@@ -1745,11 +1745,9 @@ window.immoptimaNativeCloudResult=async function(event){
   // there are no unsent local edits. Preserve a local rollback before replacement.
   if(!meta.dirty&&meta.uploadConsent===true&&Number(meta.revision)===remote.revision){
    localStorage.setItem('immoptima_pre_cloud_restore_v1',JSON.stringify(db));
-   db={...structuredClone(empty),...remote.payload};
-   localStorage.setItem(KEY,JSON.stringify(db));
    meta.revision=remote.revision;
    localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
-   renderAll();immoptimaCloudUpdateStatus();return;
+   localStorage.setItem(KEY,JSON.stringify(candidate));db=candidate;renderAll();immoptimaCloudUpdateStatus();return;
   }
   // No automatic replacement, including on a new device: request explicit consent.
   if(meta.dirty){
@@ -1757,22 +1755,18 @@ window.immoptimaNativeCloudResult=async function(event){
    const useCloud=confirm('Conflit : les données locales et le cloud sont différentes. OK : récupérer la version cloud en conservant une copie locale. Annuler : conserver les données locales sans écraser le cloud.');
    if(!useCloud)return;
    localStorage.setItem('immoptima_pre_cloud_restore_v1',JSON.stringify(db));
-   db={...structuredClone(empty),...remote.payload};
-   localStorage.setItem(KEY,JSON.stringify(db));
    meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;
    localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
-   immoptimaCloudState.loaded=true;
+   localStorage.setItem(KEY,JSON.stringify(candidate));db=candidate;immoptimaCloudState.loaded=true;
    renderAll();
    return;
   }
   if(!confirm('Un patrimoine existe sur votre compte ImmOptima. Le charger sur cet appareil ? Une copie de secours locale sera conservée.')){immoptimaCloudState.loaded=false;return;}
   localStorage.setItem('immoptima_pre_cloud_restore_v1',JSON.stringify(db));
-  db={...structuredClone(empty),...remote.payload};
-  localStorage.setItem(KEY,JSON.stringify(db));
   meta.dirty=false;meta.revision=remote.revision;meta.uploadConsent=true;
   localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(meta));
-  renderAll();
- }catch(error){if(db!==previousPortfolio){db=previousPortfolio;try{localStorage.setItem(KEY,JSON.stringify(db));renderAll()}catch(restoreError){console.warn('Restauration locale à vérifier')}}immoptimaCloudState.loaded=false;immoptimaCloudState.revision=previousRevision;try{localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(previousMeta))}catch{}immoptimaCloudState.error='Sauvegarde cloud refusée : données locales conservées.';immoptimaCloudUpdateStatus();console.warn('Patrimoine cloud refusé :',error.message)}
+  localStorage.setItem(KEY,JSON.stringify(candidate));db=candidate;renderAll();
+ }catch(error){try{localStorage.setItem(IMMOPTIMA_SYNC_META_KEY,JSON.stringify(previousMeta))}catch{}if(db!==previousPortfolio){db=previousPortfolio;try{localStorage.setItem(KEY,JSON.stringify(db));renderAll()}catch(restoreError){console.warn('Restauration locale à vérifier')}}immoptimaCloudState.loaded=false;immoptimaCloudState.revision=previousRevision;immoptimaCloudState.error='Sauvegarde cloud refusée : données locales conservées.';immoptimaCloudUpdateStatus();console.warn('Patrimoine cloud refusé :',error.message)}
 };
 window.addEventListener('online',()=>{if(IMMOPTIMA_CLOUD_WRITE_ENABLED){if(!immoptimaCloudState.loaded&&immoptimaAuthState.status==='signed_in')immoptimaCloudAfterLogin(immoptimaAuthState.uid);else immoptimaScheduleSync();}});
 function immoptimaCloudAfterLogin(uid){
