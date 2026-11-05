@@ -190,7 +190,7 @@ let qaStage='startup',failurePage;const qaWatchdog=setTimeout(()=>{console.error
    assert(geometry.helpTop>=0&&geometry.helpBottom<=height,'property calculations help visible');assert(geometry.width<=width,'property width');
    assert(geometry.photoHeight<=90,'photo stays discreet');if(tab!==3)assert(geometry.chartHeight>=70,'property chart remains readable '+JSON.stringify(geometry));
    await page.locator('#ioPropertyDetailOverlay .io-property-help summary').click();await page.waitForTimeout(100);
-   assert(await page.evaluate(()=>{const o=document.getElementById('ioPropertyDetailOverlay');return o.scrollHeight>o.clientHeight+20}),'property help expands tab '+tab);
+   await page.waitForFunction(()=>document.querySelector('#ioPropertyDetailOverlay .io-property-help').open&&!document.getElementById('ioPropertyDetailOverlay').classList.contains('io-property-fit'));await page.locator('#ioPropertyDetailOverlay .io-property-help').evaluate(el=>el.lastElementChild.scrollIntoView({block:'nearest',behavior:'instant'}));assert(await page.evaluate(()=>{const o=document.getElementById('ioPropertyDetailOverlay'),r=o.querySelector('.io-property-help').lastElementChild.getBoundingClientRect();return r.bottom<=o.getBoundingClientRect().bottom+1}),'property help readable to the end tab '+tab);
    await page.locator('#ioPropertyDetailOverlay .io-property-help summary').click();await page.waitForTimeout(100);
    assert(await page.evaluate(()=>{const o=document.getElementById('ioPropertyDetailOverlay');return o.scrollTop===0&&o.scrollHeight<=o.clientHeight+1}),'property help closes to one screen');
   }
