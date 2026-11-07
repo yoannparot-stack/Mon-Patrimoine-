@@ -141,7 +141,7 @@ function ioOptGuidance(p,mode){
 async function ioOptDoNext(pid){
  const p=db.properties.find(x=>x.id===pid);if(!p)return;const g=ioOptGuidance(p,ioOptMode(p));
  if(g.kind==='field'){await window.ioSimpMissing?.(pid,g.key);const msg=document.querySelector('#propertyFormWrap [data-missing-explanation]');if(msg)msg.textContent=g.why;return}
- ioOptOpenCompare(pid,true);if(g.kind==='analyze')await ioOptRefreshCompare(p);else ioOptModalStatus(g.why||'Consultez les sources et la période des références.');
+ ioOptOpenCompare(pid,true);if(g.kind==='analyze')await ioOptRefreshCompare(p);else {ioOptModalStatus(g.why||'Consultez les sources et la période des références.');const root=document.getElementById('ioOptCompare'),message=root.querySelector('#ioOptModalStatus');message.className='io-opt-law';root.querySelector('.io-opt-current').after(message);}
 }
 function ioOptScenario(p,mode){
  const c=ioOptConfig(p),s=c.scenarios[mode]||{},evidence=ioOptEvidence(p,mode),legacy=mode===(c.currentMode||'nu')?ioOptNumber(p.optimizationTargetRent):null,manual=ioOptNumber(s.target),target=manual!==null?manual:legacy!==null?legacy:evidence.target;
