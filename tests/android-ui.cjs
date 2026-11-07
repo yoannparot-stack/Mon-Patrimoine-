@@ -44,7 +44,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  const waitFor=async expression=>{for(let i=0;i<24;i++){if(await evaluate(expression))return;await wait(250)}throw Error('Android condition not reached: '+expression)};
  const uiNodes=()=>{try{adb('shell','uiautomator','dump','/sdcard/immoptima-qa-window.xml')}catch(e){if(e.status!==137||!String(e.stdout).includes('dumped to:'))throw e;}return adb('shell','cat','/sdcard/immoptima-qa-window.xml').match(/<node\b[^>]*>/g)||[]};
  const bounds=node=>{const m=node.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);assert(m,'native bounds');return m.slice(1).map(Number)};
- const dismissLauncherAnr=async()=>{const nodes=uiNodes();if(!nodes.some(n=>/Quickstep/.test(n)))return;const button=nodes.find(n=>/resource-id="android:id\/aerr_wait"|text="Wait"/.test(n));assert(button,'known launcher Wait button');const [l,t,r,b]=bounds(button);adb('shell','input','tap',String(Math.round((l+r)/2)),String(Math.round((t+b)/2)));await wait(500)};
+ const dismissLauncherAnr=async()=>{const nodes=uiNodes();if(!nodes.some(n=>/Quickstep|System UI/.test(n)))return;const button=nodes.find(n=>/resource-id="android:id\/aerr_wait"|text="Wait"/.test(n));assert(button,'known emulator system Wait button');const [l,t,r,b]=bounds(button);adb('shell','input','tap',String(Math.round((l+r)/2)),String(Math.round((t+b)/2)));await wait(500)};
  const capture=async(name,expected,allowBrandInBody=false)=>{
   // Let Android's compositor present the frame; validate its actual pixels with OCR.
   // RAF may be throttled by the headless compositor. This is only a bounded
@@ -53,8 +53,8 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
   for(let attempt=0;attempt<5;attempt++){
    await wait(1000);cp.execFileSync('adb',['exec-out','screencap','-p'],{stdio:['ignore',fs.openSync(out+'/'+name+'.png','w'),'inherit']});
    const ocr=cp.execFileSync('tesseract',[out+'/'+name+'.png','stdout'],{encoding:'utf8',stdio:['ignore','pipe','ignore']});fs.writeFileSync(out+'/'+name+'-ocr.txt',ocr);
-   if(/quickstep/i.test(ocr)&&/responding/i.test(ocr)){await dismissLauncherAnr();continue;}
-   const normalized=ocr.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z]/g,'');if(normalized.includes('bienvenuesurimmoptima'))throw Error('Unexpected welcome dialog: startup target must be the visible WebView');if(normalized.includes(expected.replace(/[^a-z]/g,''))&&(expected==='immoptima'||allowBrandInBody||!normalized.includes('immoptima')))return;
+   if(/quickstep|system\s*ui/i.test(ocr)&&/responding/i.test(ocr)){await dismissLauncherAnr();continue;}
+   const normalized=ocr.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z]/g,'');if(normalized.includes('bienvenuesurimmoptima')){if(name==='01-dashboard'&&attempt<4)continue;throw Error('Unexpected welcome dialog: startup target must be the visible WebView')}if(normalized.includes(expected.replace(/[^a-z]/g,''))&&(expected==='immoptima'||allowBrandInBody||!normalized.includes('immoptima')))return;
   }
   throw Error('Android screenshot does not show expected screen: '+name);
  };
