@@ -46,10 +46,16 @@ s=s[:a]+'''
             if (webView.canGoBack()) { webView.goBack(); immoptimaLastExitBack = 0; return; }
             long now = android.os.SystemClock.uptimeMillis();
             if (immoptimaLastExitBack != 0 && now - immoptimaLastExitBack < 2000) {
-                finish();
+                immoptimaLastExitBack = 0;
+                new android.app.AlertDialog.Builder(this)
+                    .setTitle("Quitter ImmOptima ?")
+                    .setMessage("Souhaitez-vous quitter l’application ?")
+                    .setNegativeButton("Rester", (dialog, which) -> dialog.dismiss())
+                    .setPositiveButton("Quitter", (dialog, which) -> finish())
+                    .show();
             } else {
                 immoptimaLastExitBack = now;
-                android.widget.Toast.makeText(this, "Appuyez de nouveau sur Retour pour quitter", android.widget.Toast.LENGTH_SHORT).show();
+                android.widget.Toast.makeText(this, "Appuyez de nouveau sur Retour pour afficher la confirmation", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
     }
