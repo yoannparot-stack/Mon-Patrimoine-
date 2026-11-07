@@ -508,6 +508,13 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 @media(max-width:360px){header #nav [data-page=optimisation] span{font-size:8px}}
 
 #immobilier .io-properties-title{gap:7px}.io-properties-title>div:first-child{min-width:0;flex:1}.io-properties-title .io-landlord-toolbar{margin:0;gap:5px;flex-shrink:0}.io-properties-title .io-landlord-toolbar button{flex:none;min-width:44px;min-height:40px;padding:6px;font-size:11px}
+
+/* Accès principal à la gestion du bien : proposition visuelle validée. */
+#ioPropertyDetailOverlay .io-property-manage{margin:8px 0 11px}
+#ioPropertyDetailOverlay .io-property-detail-rental{display:flex;align-items:center;gap:12px;width:100%;min-height:50px;margin:0;padding:10px 15px;border:0;border-radius:12px;background:#0865d6;color:#fff;font-size:17px;line-height:1.2;font-weight:750;text-align:left}
+#ioPropertyDetailOverlay .io-property-detail-rental .io-icon{height:25px;width:25px;flex-shrink:0}
+#ioPropertyDetailOverlay .io-property-detail-rental>span:last-child{margin-left:auto;font-size:30px;line-height:1}
+#ioPropertyDetailOverlay .io-property-manage>small{display:block;margin:5px 0 0;color:#60718b;font-size:10px;line-height:1.35}
 </style>
 </head>
 <body>
@@ -1169,7 +1176,7 @@ function immoptimaRenderPropertyDetail(){
  const t=totalsFor([p]),loans=propertyLoans(p),value=t.gross,debt=t.debt,purchase=Number(p.purchase)||0,gain=purchase>0?(value/purchase-1)*100:null,series=ioGetSeries('wealth',ioPropertyDetailPeriod,p),tab=ioPropertyDetailTab;
  const defs={all:[['value','debt','net'],['#0967dd','#f36414','#099550'],['Valeur du bien','Capital restant dû','Patrimoine net']],value:[['value'],['#0967dd'],['Valeur du bien']],debt:[['debt'],['#f36414'],['Capital restant dû']],net:[['net'],['#099550'],['Patrimoine net']],cashNet:[['cashNet'],['#099550'],['Cash-flow net / mois']]},d=defs[ioPropertyCurve];
  const photo='<button type="button" class="io-property-photo" onclick="immoptimaChoosePropertyPhoto()" aria-label="Ajouter ou remplacer la photo du bien">'+ioPropertyPhoto(p)+'</button>';
- const hero='<div class="io-property-hero">'+photo+'<div class="io-property-identity"><h3>'+esc(p.type||'Bien immobilier')+(p.surface?' · '+Number(p.surface)+' m²':'')+'</h3><p class="io-property-location" title="'+esc(p.address||'Adresse à renseigner')+'">'+esc(p.address||'Adresse à renseigner')+'</p><p class="io-property-holder" title="'+esc(p.holder||p.structure||'À renseigner')+'">'+esc(p.holder||p.structure||'À renseigner')+(p.dpe?' · DPE '+esc(p.dpe):'')+'</p><p>Achat : '+(ioDate(p.acquisitionDate)?dateFR(p.acquisitionDate):'À renseigner')+' <button type="button" class="io-property-detail-rental" data-rental-pid="'+esc(p.id)+'" onclick="ioClientManageOpen(this.dataset.rentalPid)">Gérer la location</button></p></div></div>';
+ const hero='<div class="io-property-hero">'+photo+'<div class="io-property-identity"><h3>'+esc(p.type||'Bien immobilier')+(p.surface?' · '+Number(p.surface)+' m²':'')+'</h3><p class="io-property-location" title="'+esc(p.address||'Adresse à renseigner')+'">'+esc(p.address||'Adresse à renseigner')+'</p><p class="io-property-holder" title="'+esc(p.holder||p.structure||'À renseigner')+'">'+esc(p.holder||p.structure||'À renseigner')+(p.dpe?' · DPE '+esc(p.dpe):'')+'</p><p>Achat : '+(ioDate(p.acquisitionDate)?dateFR(p.acquisitionDate):'À renseigner')+'</p></div></div><div class="io-property-manage"><button type="button" class="io-property-detail-rental primary" data-rental-pid="'+esc(p.id)+'" onclick="ioClientManageOpen(this.dataset.rentalPid)"><svg class="io-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="7" cy="12" r="5"/><path d="M12 12h10m-3 0v3m-3-3v2"/></svg><span>Gérer le bien</span><span aria-hidden="true">›</span></button><small>Location, loyers, bail et documents</small></div>';
  const summary='<div class="io-property-value">'+ioIcon('home')+'<div><span>Valeur actuelle</span><strong>'+euro(value)+'</strong></div><div class="io-property-gain"><b class="io-badge">'+(gain===null?'—':ioSigned(gain,true))+'</b><small>depuis l’achat</small></div></div>'+ioFooter([['home',euro(purchase),'Prix d’achat'],['coins',euro(debt),'Capital restant dû'],['wallet',euro(value-debt),'Patrimoine net']]);
  let content='',extra='';
  if(tab==='finance'){
