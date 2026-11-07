@@ -1099,6 +1099,7 @@ function immoptimaWireCurveReadiness(containerId,type){
 
 async function openPropertyForm(editId=null){
  if(!await ioAccessAuthorize({properties:editId?db.properties:[...db.properties,{}]}))return;
+ window.ioSimpBeforeClose?.('propertyFormWrap');window.ioFirstUseClosed?.('propertyFormWrap');
  const p=editId?{...db.properties.find(x=>x.id===editId)}:{id:'',name:'',address:'',structure:'Nom propre',holder:'À attribuer',type:'Appartement',surface:'',floor:'',dpe:'',acquisitionDate:'',purchase:'',notary:'',works:'',furniture:'',otherCost:'',currentValue:'',retainedValue:'',rentHC:'',recoverable:'',ownerCharges:'',tax:'',pno:'',otherMonthly:'',occupancy:'100',autoEstimate:'',estimateLow:'',estimateHigh:'',estimateSource:'',estimateDate:'',market12m:'',priceM2:'',sources:[],notes:''};
  if(Array.isArray(p.guidanceEnteredFields))for(const key of window.ImmOptimaReadiness?.required||[])if(!p.guidanceEnteredFields.includes(key))p[key]='';
  const wrap=document.getElementById('propertyFormWrap');
@@ -1231,6 +1232,7 @@ function renderProperties(){
 function deleteProperty(i){if(confirm('Supprimer ce bien ?')){db.properties=db.properties.filter(x=>x.id!==i);db.loans.forEach(l=>{if(l.propertyId===i)l.propertyId=''});save()}}
 
 function openLoanForm(editId=null){
+ window.ioSimpBeforeClose?.('loanFormWrap');window.ioFirstUseClosed?.('loanFormWrap');
  immoptimaOpenBankFinancing();
  const l=editId?{...db.loans.find(x=>x.id===editId)}:{id:'',propertyId:'',bank:'',initial:'',years:20,rate:3.3,insuranceRate:.5,insuranceAmount:'',payment:'',startDate:'',remaining:'',notes:''};
  if(!l)return;
