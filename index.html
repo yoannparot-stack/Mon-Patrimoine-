@@ -555,30 +555,7 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 
 </section>
 
-<section id="direction" class="page">
-  <div class="section-title"><h2>🎯 Direction patrimoniale</h2><span class="pill">Pilotage global</span></div>
-  <div class="notice">Cette vue répond à 5 questions : <b>où en sommes-nous ?</b> · <b>sommes-nous solides ?</b> · <b>créons-nous de la richesse ?</b> · <b>quels sont les risques ?</b> · <b>que faut-il faire ?</b></div>
-
-  <div class="card"><h3>① Où en sommes-nous ?</h3><div id="directionKpis" class="direction-grid"></div><div id="directionWealth" class="direction-subgrid"></div></div>
-
-  <div class="grid2">
-    <div class="card"><h3>② Sommes-nous solides ?</h3><div id="directionSolidarity"></div></div>
-    <div class="card"><h3>③ Création de richesse</h3><div id="directionCreation"></div></div>
-  </div>
-
-  <div class="grid2">
-    <div class="card"><h3>④ Risques & résistance</h3><div id="directionRisk"></div><div id="directionStress" class="stress-grid"></div></div>
-    <div class="card"><h3>Répartition du patrimoine</h3><div id="directionHolders"></div></div>
-  </div>
-
-  <div class="card"><div class="section-title"><h3>⑤ Plan d'action</h3><span class="pill">Priorités</span></div><div id="directionAlerts"></div></div>
-  <div class="card"><h3>📘 Comprendre les indicateurs</h3><div class="glossary-grid">
-    <div><b>Niveau d’endettement immobilier (LTV)</b><p class="muted small">Dette immobilière ÷ valeur des biens. Plus il est bas, plus le patrimoine est désendetté.</p></div>
-    <div><b>Couverture des crédits (DSCR)</b><p class="muted small">Revenus immobiliers disponibles ÷ mensualités de crédit. Au-dessus de 1, les revenus couvrent les crédits selon cette définition.</p></div>
-    <div><b>Réserve de sécurité</b><p class="muted small">Nombre de mois de mensualités couvertes par les liquidités renseignées.</p></div>
-    <div><b>Patrimoine net</b><p class="muted small">Valeur des actifs moins les dettes. C’est la richesse nette estimée.</p></div>
-  </div></div>
-</section>
+<section id="direction" class="page"><div class="io-bilan"><h2>Mon bilan</h2><p>Vos repères patrimoniaux sont en préparation.</p></div></section>
 
 <section id="immobilier" class="page">
 
@@ -678,6 +655,7 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 <script src="client-guidance.js" defer></script>
 <script src="first-use.js" defer></script>
 <script src="client-experience.js" defer></script>
+<script src="client-simplicity.js" defer></script>
 <script>
 const KEY='mon_patrimoine_v13_1_clean';
 // Internal validation build: no purchase or subscription required.
@@ -773,7 +751,7 @@ function dateFR(s){if(!s)return '';return new Date(s+'T12:00:00').toLocaleDateSt
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
-const pages=[['dashboard','Dashboard'],['direction','🎯 Direction'],['immobilier','Immobilier'],['finances','Finances'],['historique','Historique'],['projection','Projection'],['valorisation','📊 Marché immobilier'],['optimisation','🎯 Optimisation'],['banque','🏦 Banque / Financement'],['parametres','Paramètres']];
+const pages=[['dashboard','Dashboard'],['direction','Mon bilan'],['immobilier','Immobilier'],['finances','Finances'],['historique','Historique'],['projection','Projection'],['valorisation','📊 Marché immobilier'],['optimisation','🎯 Optimisation'],['banque','🏦 Banque / Financement'],['parametres','Paramètres']];
 const ioMainPages=[['dashboard','Dashboard','home'],['immobilier','Biens','building'],['banque','Banque','bank'],['valorisation','Marché','chart'],['optimisation','Optimisation','arrow'],['more','Plus','more']];
 document.getElementById('nav').innerHTML=ioMainPages.map(([page,label,icon])=>`<button type="button" data-page="${page}" onclick="${page==='more'?'immoptimaMore()':"showPage('"+page+"')"}">${ioIcon(icon)}<span>${label}</span></button>`).join('');
 function dashboardGo(pageId){showPage(pageId);const page=document.getElementById(pageId==='financement'?'banque':pageId);if(page){window.setTimeout(()=>page.scrollIntoView({behavior:'smooth',block:'start'}),30);}}
@@ -785,62 +763,7 @@ function liquidAssets(){
  const cats=['Livret A','Épargne','Compte bancaire'];
  return db.assets.filter(a=>cats.includes(a.category)).reduce((s,a)=>s+(Number(a.value)||0),0);
 }
-function directionMetrics(){
- const propValue=db.properties.reduce((s,p)=>s+(Number(p.retainedValue)||Number(p.currentValue)||0),0);
- const debt=db.loans.reduce((s,l)=>s+(Number(l.remaining)||0),0)+(Number(db.otherDebt)||0);
- const monthlyDebt=db.loans.reduce((s,l)=>s+monthlyLoanPayment(l),0);
- const noi=db.properties.reduce((s,p)=>s+(Number(p.rentHC)||0)-(Number(p.ownerCharges)||0)-(Number(p.tax)||0)/12-(Number(p.pno)||0)-(Number(p.otherMonthly)||0),0);
- const annualNOI=noi*12, annualDebt=monthlyDebt*12;
- const dscr=annualDebt>0?annualNOI/annualDebt:null;
- const ltv=propValue>0?debt/propValue*100:null;
- const liquid=liquidAssets(), runway=monthlyDebt>0?liquid/monthlyDebt:null;
- const occupancy=db.properties.length?db.properties.reduce((s,p)=>s+(Number(p.occupancy)||0),0)/db.properties.length:null;
- const dpeBad=db.properties.filter(p=>['F','G'].includes(String(p.dpe||'').toUpperCase().trim())).length;
- const dpeE=db.properties.filter(p=>String(p.dpe||'').toUpperCase().trim()==='E').length;
- return {propValue,debt,monthlyDebt,noi,dscr,ltv,liquid,runway,occupancy,dpeBad,dpeE};
-}
-function ratioClass(type,v){
- if(v===null)return 'direction-status';
- if(type==='ltv')return v<=50?'direction-status direction-good':v<=70?'direction-status direction-warn':'direction-status direction-bad';
- if(type==='dscr')return v>=1.3?'direction-status direction-good':v>=1?'direction-status direction-warn':'direction-status direction-bad';
- if(type==='runway')return v>=6?'direction-status direction-good':v>=3?'direction-status direction-warn':'direction-status direction-bad';
- if(type==='occupancy')return v>=95?'direction-status direction-good':v>=90?'direction-status direction-warn':'direction-status direction-bad';
- return 'direction-status';
-}
-function renderDirection(){
- const el=document.getElementById('directionKpis'); if(!el)return;
- const m=directionMetrics();
- const t=totals();
- const netWorth=t.net;
- const creation=t.principal;
- const riskParts=[];
- if(m.ltv!==null && m.ltv>70)riskParts.push('🔴 Endettement immobilier élevé : niveau d’endettement supérieur à 70 %.'); else if(m.ltv!==null && m.ltv>50)riskParts.push('🟠 Endettement à surveiller : niveau d’endettement supérieur à 50 %.');
- if(m.dscr!==null && m.dscr<1)riskParts.push('🔴 Les revenus immobiliers disponibles ne couvrent pas entièrement les crédits.'); else if(m.dscr!==null && m.dscr<1.3)riskParts.push('🟠 La couverture des crédits est correcte mais mérite une marge de sécurité.');
- if(m.runway!==null && m.runway<3)riskParts.push('🔴 Réserve de sécurité inférieure à 3 mois de crédits.'); else if(m.runway!==null && m.runway<6)riskParts.push('🟠 Réserve de sécurité inférieure à 6 mois de crédits.');
- if(m.occupancy!==null && m.occupancy<90)riskParts.push('🔴 Taux d’occupation inférieur à 90 %.'); else if(m.occupancy!==null && m.occupancy<95)riskParts.push('🟠 Taux d’occupation inférieur à 95 %.');
- if(m.dpeBad)riskParts.push('🔴 '+m.dpeBad+' bien(s) classé(s) F/G : à traiter en priorité.');
- if(m.dpeE)riskParts.push('🟠 '+m.dpeE+' bien(s) classé(s) E : anticiper les travaux et la réglementation.');
- if(!db.assets.length)riskParts.push('🟠 Aucun actif financier renseigné : la diversification financière n’est pas encore mesurable.');
- const score=Math.min(10,(m.ltv>70?2:m.ltv>50?1:0)+(m.dscr!==null?(m.dscr<1?3:m.dscr<1.3?1:0):0)+(m.runway!==null?(m.runway<3?2:m.runway<6?1:0):0)+(m.occupancy!==null?(m.occupancy<90?2:m.occupancy<95?1:0):0)+Math.min(2,m.dpeBad)+(m.dpeE?1:0));
- const scoreLabel=score<=2?'Faible':score<=4?'Modéré':score<=6?'À surveiller':'Élevé';
- const scoreCls=score<=2?'direction-status direction-good':score<=4?'direction-status direction-warn':'direction-status direction-bad';
- const kpi=(title,value,hint,cls='')=>`<div class="direction-kpi"><div class="direction-label">${title}</div><div class="metric ${cls}">${value}</div><div class="hint">${hint}</div></div>`;
- el.innerHTML=kpi('Patrimoine net',euro(netWorth),'Valeur des actifs − dettes','positive')+
-   kpi('Valeur des actifs',euro(t.gross),'Immobilier + financier + autres actifs')+
-   kpi('Dette totale',euro(t.debt),'Crédits + autres dettes','negative')+
-   kpi('Cash-flow net / mois',euro(t.cashNet),'Après charges et crédits',t.cashNet>=0?'positive':'negative');
- document.getElementById('directionWealth').innerHTML=`<div class="direction-subitem"><b>Capital déjà remboursé</b><strong>${euro(creation)}</strong><span class="hint">Depuis le début des crédits</span></div><div class="direction-subitem"><b>Loyers HC / mois</b><strong>${euro(t.rent)}</strong><span class="hint">Revenus locatifs hors charges</span></div><div class="direction-subitem"><b>Rendement brut</b><strong>${pct(t.grossYield)}</strong><span class="hint">Sur coût total renseigné</span></div><div class="direction-subitem"><b>Rendement net</b><strong>${pct(t.netYield)}</strong><span class="hint">Après charges propriétaires</span></div>`;
- document.getElementById('directionSolidarity').innerHTML=`<div class="direction-grid"><div class="direction-kpi"><div class="direction-label">Niveau d’endettement immobilier (LTV)</div><div class="metric">${m.ltv===null?'À renseigner':m.ltv.toFixed(1).replace('.',',')+' %'}</div><span class="${ratioClass('ltv',m.ltv)}">${m.ltv===null?'Données manquantes':m.ltv<=50?'Très confortable':m.ltv<=70?'À surveiller':'Élevé'}</span><div class="hint">Dette ÷ valeur immobilière</div></div><div class="direction-kpi"><div class="direction-label">Couverture des crédits (DSCR)</div><div class="metric">${m.dscr===null?'À renseigner':m.dscr.toFixed(2).replace('.',',')}</div><span class="${ratioClass('dscr',m.dscr)}">${m.dscr===null?'Données manquantes':m.dscr>=1.3?'Solide':m.dscr>=1?'Correct':'Insuffisant'}</span><div class="hint">Revenus disponibles ÷ crédits</div></div><div class="direction-kpi"><div class="direction-label">Taux d’occupation</div><div class="metric">${m.occupancy===null?'À renseigner':m.occupancy.toFixed(1).replace('.',',')+' %'}</div><span class="${ratioClass('occupancy',m.occupancy)}">${m.occupancy===null?'Données manquantes':m.occupancy>=95?'Excellent':m.occupancy>=90?'Correct':'À améliorer'}</span></div><div class="direction-kpi"><div class="direction-label">Réserve de sécurité</div><div class="metric">${m.runway===null?'À renseigner':m.runway.toFixed(1).replace('.',',')+' mois'}</div><span class="${ratioClass('runway',m.runway)}">${m.runway===null?'Données manquantes':m.runway>=6?'Confortable':m.runway>=3?'À renforcer':'Faible'}</span><div class="hint">Liquidités ÷ mensualités</div></div></div>`;
- document.getElementById('directionCreation').innerHTML=`<div class="direction-grid"><div class="direction-kpi"><div class="direction-label">Capital remboursé</div><div class="metric positive">${euro(creation)}</div><div class="hint">Richesse créée par désendettement</div></div><div class="direction-kpi"><div class="direction-label">Cash-flow net annuel</div><div class="metric ${t.cashNet>=0?'positive':'negative'}">${euro(t.cashNet*12)}</div><div class="hint">Avant fiscalité personnelle</div></div></div><p class="muted small">La création de richesse complète le cash-flow : une partie de l’enrichissement vient du capital remboursé par les loyers, pas uniquement de l’argent restant chaque mois.</p>`;
- document.getElementById('directionRisk').innerHTML=`<div class="metric">${score}/10</div><span class="${scoreCls}">Risque ${scoreLabel.toLowerCase()}</span><p class="muted small">Score indicatif combinant endettement, couverture des crédits, liquidité, occupation et DPE. Il ne remplace pas une analyse bancaire.</p>`;
- const stressBase=m.monthlyDebt, liquid=m.liquid;
- const scenarios=[['Situation actuelle',0],['1 mois de mensualités imprévu',1],['3 mois de mensualités imprévus',3],['6 mois de mensualités imprévus',6]];
- document.getElementById('directionStress').innerHTML=stressBase>0?scenarios.map(([label,months])=>{const remaining=liquid-stressBase*months;return `<div class="stress-item"><b>${label}</b><span class="${remaining>=0?'direction-status direction-good':'direction-status direction-bad'}">${remaining>=0?'Réserve suffisante':'Réserve insuffisante'}</span><small>${euro(Math.max(0,remaining))} restante${remaining>1?'s':''}</small></div>`}).join(''):'<div class="empty">Ajoutez des crédits pour activer le test de résistance.</div>';
- const holders={}; db.properties.forEach(p=>{const h=p.holder||((p.structure==='SARL de famille')?'SARL':'À définir');holders[h]=(holders[h]||0)+(Number(p.retainedValue)||Number(p.currentValue)||0)}); const total=Object.values(holders).reduce((a,b)=>a+b,0);
- document.getElementById('directionHolders').innerHTML=total?Object.entries(holders).map(([h,v])=>`<div style="margin-bottom:10px"><div class="section-title"><b>${esc(h)}</b><span>${euro(v)} · ${(v/total*100).toFixed(1).replace('.',',')} %</span></div><div class="direction-progress"><span style="width:${Math.min(100,v/total*100)}%"></span></div></div>`).join(''):'<div class="empty">Aucun bien enregistré.</div>';
- document.getElementById('directionAlerts').innerHTML=riskParts.length?'<div class="action-list">'+riskParts.map(x=>'<div class="action-item">'+esc(x)+'</div>').join('')+'</div>':'<div class="positive">✓ Aucun point d’alerte majeur détecté avec les données renseignées.</div>';
-}
-
+function renderDirection(){window.ioSimpBalance?.()}
 function propertyCost(p){return (Number(p.purchase)||0)+(Number(p.notary)||0)+(Number(p.works)||0)+(Number(p.furniture)||0)+(Number(p.otherCost)||0)}
 function monthlyLoanPayment(l){
   const entered=Number(l.payment)||0;
@@ -892,7 +815,7 @@ function optimizationRows(){
 }
 function renderOptimization(){ioOptRender()}
 
-function renderAll(){const mode=localStorage.getItem('immoptima_dashboard_view_v1')||'graph';const modeEl=document.getElementById('dashboardViewMode');if(modeEl){modeEl.value=['compact','graph','detailed'].includes(mode)?mode:'compact';immoptimaDashboardModeChange();}renderHolderControls();renderDashboard();renderProperties();renderLoans();renderAssets();renderHistory();renderValuation();renderBankSummary();renderDirection();renderOptimization();document.getElementById('appName').value=db.settings.name||'Mon Patrimoine';document.getElementById('otherDebt').value=db.otherDebt||0;document.getElementById('otherDebtNote').value=db.otherDebtNote||'';document.title=db.settings.name||'Mon Patrimoine';}
+function renderAll(){const mode=localStorage.getItem('immoptima_dashboard_view_v1')||'graph';const modeEl=document.getElementById('dashboardViewMode');if(modeEl){modeEl.value=['compact','graph','detailed'].includes(mode)?mode:'compact';immoptimaDashboardModeChange();}renderHolderControls();renderDashboard();renderProperties();renderLoans();renderAssets();renderHistory();renderValuation();renderBankSummary();renderDirection();renderOptimization();window.ioSimpRefresh?.();document.getElementById('appName').value=db.settings.name||'Mon Patrimoine';document.getElementById('otherDebt').value=db.otherDebt||0;document.getElementById('otherDebtNote').value=db.otherDebtNote||'';document.title=db.settings.name||'Mon Patrimoine';}
 
 function dashboardProperties(){const f=document.getElementById('ioHolderFilter')?.value||document.getElementById('dashboardHolder')?.value||'Tous';return f==='Tous'?db.properties:db.properties.filter(p=>(p.holder||((p.structure==='SARL de famille')?'SARL de famille':'À attribuer'))===f);}
 function immoptimaDashboardModeChange(){const mode=document.getElementById('dashboardViewMode')?.value||'graph';document.getElementById('dashboardCompact').hidden=mode!=='compact';document.getElementById('dashboardGraph').hidden=mode!=='graph';document.getElementById('dashboardDetailed').hidden=mode!=='detailed';localStorage.setItem('immoptima_dashboard_view_v1',mode);immoptimaScheduleDashboardFit();}
@@ -1060,7 +983,7 @@ function immoptimaRenderAnalysis(){
 function immoptimaMore(){let el=document.getElementById('ioMore');if(!el){el=document.createElement('div');el.id='ioMore';el.className='backup-choices';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Mon espace ImmOptima');document.body.appendChild(el)}const advanced=['direction','historique','projection'];el.innerHTML='<div class="backup-choices-panel"><div class="section-title"><h2>Mon espace ImmOptima</h2><button class="secondary" onclick="immoptimaCloseMore()" aria-label="Fermer le menu">✕</button></div><div class="io-more-grid"><button class="secondary" type="button" onclick="showPage(\'finances\')">Épargne et autres dettes</button><button class="secondary" type="button" onclick="showPage(\'parametres\')">Compte et paramètres</button></div><details data-client-advanced><summary>Analyses avancées</summary><div class="io-advanced-grid io-more-grid">'+pages.filter(([id])=>advanced.includes(id)).map(([id,label])=>'<button class="secondary" type="button" onclick="showPage(\''+id+'\')">'+label+'</button>').join('')+'</div></details><hr><div class="actions"><button class="primary" onclick="immoptimaCloseMore();openBackupOptions()">Sauvegarder</button><button class="secondary" onclick="document.getElementById(\'importFile\').click()">Importer</button></div></div>';el.hidden=false;el.querySelector('button').focus()}
 
 function immoptimaCloseMore(){const el=document.getElementById('ioMore');if(el)el.hidden=true}
-function immoptimaHandleBack(){if(window.ioClientBack?.())return true;if(window.ioFirstUseBack?.())return true;if(window.ioGuidanceBack?.())return true;if(window.ioRentalManagementBack?.())return true;if(window.ioLandlordBack?.())return true;if(window.ioLoanBack?.())return true;const optModal=document.getElementById('ioOptCompare');if(optModal&&!optModal.hidden){const expanded=[...optModal.querySelectorAll('details[open]')];if(expanded.length){expanded.at(-1).open=false;if(!optModal.querySelector('details[open]'))optModal.scrollTop=0;return true}ioOptCloseCompare();return true}const exportDialog=document.getElementById('bankExportOptions');if(exportDialog&&!exportDialog.hidden){exportDialog.hidden=true;return true}for(const id of ['backupChoices','ioMore','ioPropertyDetailOverlay','ioAnalysisOverlay']){const el=document.getElementById(id);if(el&&!el.hidden){if(id==='ioAnalysisOverlay')immoptimaCloseAnalysis();else if(id==='ioPropertyDetailOverlay')immoptimaClosePropertyDetail();else el.hidden=true;return true}}if(document.getElementById('optimisation')?.classList.contains('active')){const optOpen=document.querySelector('#optimizationMobile details[open]');if(optOpen){optOpen.open=false;return true}}if(document.getElementById('valorisation')?.classList.contains('active')){const card=document.querySelector('#marketTable details[open]');if(card){card.open=false;return true}const help=document.getElementById('marketHelp');if(help.open){help.open=false;return true}}if(document.getElementById('banque')?.classList.contains('active')){if(ioBankView==='finance'){const menu=document.querySelector('#loans .io-loan-menu[open]');if(menu){menu.open=false;return true}const loanForm=document.getElementById('loanFormWrap');if(loanForm?.children.length){closeForm('loanFormWrap');return true}const help=document.getElementById('bankFinanceHelp');if(help.open){help.open=false;return true}ioBankSetView('summary');return true}if(ioBankEditorId){ioBankCancelEdit();return true}const bankOpen=document.querySelector('#bankMobile details[open]');if(bankOpen){bankOpen.open=false;return true}}const propertyMenu=document.querySelector('#immobilier.active .io-property-menu[open]');if(propertyMenu){propertyMenu.open=false;return true}const propertyForm=document.querySelector('#immobilier.active #propertyFormWrap');if(propertyForm?.children.length){closeForm('propertyFormWrap');return true}const p=document.querySelector('.page.active');if(p&&p.id!=='dashboard'){showPage('dashboard');return true}return false}
+function immoptimaHandleBack(){if(window.ioSimpBack?.())return true;if(window.ioClientBack?.())return true;if(window.ioFirstUseBack?.())return true;if(window.ioGuidanceBack?.())return true;if(window.ioRentalManagementBack?.())return true;if(window.ioLandlordBack?.())return true;if(window.ioLoanBack?.())return true;const optModal=document.getElementById('ioOptCompare');if(optModal&&!optModal.hidden){const expanded=[...optModal.querySelectorAll('details[open]')];if(expanded.length){expanded.at(-1).open=false;if(!optModal.querySelector('details[open]'))optModal.scrollTop=0;return true}ioOptCloseCompare();return true}const exportDialog=document.getElementById('bankExportOptions');if(exportDialog&&!exportDialog.hidden){exportDialog.hidden=true;return true}for(const id of ['backupChoices','ioMore','ioPropertyDetailOverlay','ioAnalysisOverlay']){const el=document.getElementById(id);if(el&&!el.hidden){if(id==='ioAnalysisOverlay')immoptimaCloseAnalysis();else if(id==='ioPropertyDetailOverlay')immoptimaClosePropertyDetail();else el.hidden=true;return true}}if(document.getElementById('optimisation')?.classList.contains('active')){const optOpen=document.querySelector('#optimizationMobile details[open]');if(optOpen){optOpen.open=false;return true}}if(document.getElementById('valorisation')?.classList.contains('active')){const card=document.querySelector('#marketTable details[open]');if(card){card.open=false;return true}const help=document.getElementById('marketHelp');if(help.open){help.open=false;return true}}if(document.getElementById('banque')?.classList.contains('active')){if(ioBankView==='finance'){const menu=document.querySelector('#loans .io-loan-menu[open]');if(menu){menu.open=false;return true}const loanForm=document.getElementById('loanFormWrap');if(loanForm?.children.length){closeForm('loanFormWrap');return true}const help=document.getElementById('bankFinanceHelp');if(help.open){help.open=false;return true}ioBankSetView('summary');return true}if(ioBankEditorId){ioBankCancelEdit();return true}const bankOpen=document.querySelector('#bankMobile details[open]');if(bankOpen){bankOpen.open=false;return true}}const propertyMenu=document.querySelector('#immobilier.active .io-property-menu[open]');if(propertyMenu){propertyMenu.open=false;return true}const propertyForm=document.querySelector('#immobilier.active #propertyFormWrap');if(propertyForm?.children.length){closeForm('propertyFormWrap');return true}const p=document.querySelector('.page.active');if(p&&p.id!=='dashboard'){showPage('dashboard');return true}return false}
 // Each analysis starts with the closed explanation visible in the first viewport.
 // The graph uses the remaining height; its coordinates are redrawn to keep text readable.
 let ioAnalysisHelpOpen=false,ioAnalysisChartState=null;
@@ -1115,7 +1038,7 @@ function immoptimaInitializeUX(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape')immoptimaHandleBack();if(e.key!=='Tab')return;const modal=[...document.querySelectorAll('[role="dialog"]')].reverse().find(x=>!x.hidden&&x.getClientRects().length);if(!modal)return;const list=[...modal.querySelectorAll('button,select,input,summary,[tabindex="0"]')].filter(x=>x.getClientRects().length&&!x.disabled);if(!list.length)return;if(e.shiftKey&&document.activeElement===list[0]){e.preventDefault();list[list.length-1].focus()}else if(!e.shiftKey&&document.activeElement===list[list.length-1]){e.preventDefault();list[0].focus()}});
 }
 
-function renderDashboard(){
+function renderDashboard(){queueMicrotask(()=>window.ioSimpSummaryLinks?.());
  const props=dashboardProperties();
  const t=totalsFor(props);
  const consensus=props.reduce((s,p)=>s+consensusValue(p),0);
@@ -1195,10 +1118,10 @@ async function openPropertyForm(editId=null){
  <div class="field"><label>Autres bases comparées</label><textarea name="valuationSources" placeholder="Une ligne par source : Source | Prix estimé (€) | Prix/m² (€) | Date | Note">${esc(valuationSourcesText(p))}</textarea><span class="hint">Ex. DVF | 185000 | 9250 | 2026-09-01 | ventes comparables · puis autres sources si vous en avez. Le consensus est calculé sur les valeurs renseignées.</span></div>
  <div class="io-curve-readiness" style="background:#f1f8f6;border:1px solid #d6e9e1;border-radius:12px;padding:12px;margin:14px 0" aria-live="polite"></div><div class="actions"><button class="primary">${editId?'Enregistrer les modifications':'Ajouter le bien'}</button></div>
  </form></div>`;
- immoptimaWireCurveReadiness('propertyFormWrap','property');
+ immoptimaWireCurveReadiness('propertyFormWrap','property');window.ioGuidanceRefresh?.();window.ioSimpForm?.(document.querySelector('#propertyFormWrap form'),'property',editId);
 }
-function closeForm(id){window.ioFirstUseClosed?.(id);document.getElementById(id).innerHTML='';if(id==='loanFormWrap')immoptimaScheduleBankFit()}
-async function saveProperty(e,editId){e.preventDefault();if(e.target.dataset.saving==='true')return;e.target.dataset.saving='true';try{const guided=e.target.dataset.guided==='true';if(!await ioAccessAuthorize({properties:editId?db.properties:[...db.properties,{}]}))return;const previous=structuredClone(db);if(editId&&!db.properties.some(p=>p.id===editId)){alert('Ce bien a été supprimé. Fermez sa fiche et choisissez un bien existant.');return}const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();if(typeof o.dpe==='string')o.dpe=o.dpe.trim().toUpperCase();o.guidanceEnteredFields=Object.entries(o).filter(([,v])=>String(v).trim()!=='').map(([k])=>k);if(!o.holder||!o.holder.trim()){alert('Veuillez choisir un détenteur dans le formulaire du bien.');return;}['surface','rooms','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;if(db.properties[i].optimization)o.optimization={...db.properties[i].optimization,rooms:o.rooms};db.properties[i]={...db.properties[i],...o}}else db.properties.push(o);try{save()}catch(error){db=previous;return}closeForm('propertyFormWrap');window.dispatchEvent(new CustomEvent('immoptima-property-saved',{detail:{id:o.id,guided}}))}finally{e.target.dataset.saving='false'}}
+function closeForm(id){window.ioSimpBeforeClose?.(id);window.ioFirstUseClosed?.(id);document.getElementById(id).innerHTML='';if(id==='loanFormWrap')immoptimaScheduleBankFit()}
+async function saveProperty(e,editId){e.preventDefault();if(e.target.dataset.saving==='true')return;e.target.dataset.saving='true';try{const guided=e.target.dataset.guided==='true';if(!await ioAccessAuthorize({properties:editId?db.properties:[...db.properties,{}]}))return;const previous=structuredClone(db);if(editId&&!db.properties.some(p=>p.id===editId)){alert('Ce bien a été supprimé. Fermez sa fiche et choisissez un bien existant.');return}const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();if(typeof o.dpe==='string')o.dpe=o.dpe.trim().toUpperCase();o.guidanceEnteredFields=Object.entries(o).filter(([,v])=>String(v).trim()!=='').map(([k])=>k);if(!o.holder||!o.holder.trim()){alert('Veuillez choisir un détenteur dans le formulaire du bien.');return;}['surface','rooms','purchase','notary','works','furniture','otherCost','currentValue','retainedValue','rentHC','recoverable','ownerCharges','tax','pno','otherMonthly','occupancy','autoEstimate','estimateLow','estimateHigh','market12m','priceM2'].forEach(k=>o[k]=Number(o[k])||0);o.sources=parseValuationSources(o.valuationSources);delete o.valuationSources;if(editId){const i=db.properties.findIndex(x=>x.id===editId);if(!o.sources.length&&db.properties[i].sources)o.sources=db.properties[i].sources;if(db.properties[i].optimization)o.optimization={...db.properties[i].optimization,rooms:o.rooms};db.properties[i]={...db.properties[i],...o}}else db.properties.push(o);try{save()}catch(error){db=previous;return}window.ioSimpSaved?.('property',editId);closeForm('propertyFormWrap');window.dispatchEvent(new CustomEvent('immoptima-property-saved',{detail:{id:o.id,guided}}))}finally{e.target.dataset.saving='false'}}
 
 function propertyLoans(p){return db.loans.filter(l=>l.propertyId===p.id)}
 function cashflowGross(p){return (Number(p.rentHC)||0)-(Number(p.ownerCharges)||0)-(Number(p.tax)||0)/12-(Number(p.pno)||0)-(Number(p.otherMonthly)||0)}
@@ -1274,6 +1197,7 @@ function ioPropertyDisplayState(p){
  return {value,debt:state.credit!=='unknown'&&(state.credit!=='has'||loans.length>0)&&loans.every(l=>r.filled(l,'remaining')),cash:state.ready.cash,gross:r.missing(p,r.groups.cash).length===0,yield:state.ready.yield,rent:r.filled(p,'rentHC')};
 }
 function renderProperties(){
+ queueMicrotask(()=>window.ioSimpSearch?.());
  const wrap=document.getElementById('properties'),count=document.getElementById('ioPropertyCount');
  if(count)count.textContent=db.properties.length+' '+(db.properties.length>1?'biens':'bien');
  if(!db.properties.length){wrap.innerHTML='<div class="empty">Aucun bien. Commencez par ajouter votre premier appartement ou immeuble.</div>';return}
@@ -1316,10 +1240,10 @@ function openLoanForm(editId=null){
  <div class="grid3"><div class="field"><label>Assurance mensuelle (€) si fixe</label><input name="insuranceAmount" type="number" min="0" step=".01" value="${l.insuranceAmountOverride===true||l.insuranceAmountOverride===undefined&&l.guidanceEnteredFields?.includes('insuranceAmount')||Number(l.insuranceAmount)>0?l.insuranceAmount:''}"></div><div class="field"><label>Mensualité totale (€) si connue</label><input name="payment" type="number" min="0" step=".01" value="${l.paymentOverride?l.payment:(l.payment||'')}"></div><div class="field"><label>Date de début</label><input name="startDate" type="date" value="${l.startDate||''}"></div></div>
  <div class="grid3"><div class="field"><label>Capital restant dû (€) *</label><input name="remaining" type="number" min="0" step=".01" value="${l.remaining??''}"></div><div class="field"><label>Capital déjà remboursé</label><input value="${euro(principalRepaid(l))}" disabled></div><div class="field"><label>Note</label><input name="notes" value="${esc(l.notes)}"></div></div>
  <div class="io-curve-readiness" style="background:#f1f8f6;border:1px solid #d6e9e1;border-radius:12px;padding:12px;margin:14px 0" aria-live="polite"></div><div class="actions"><button class="primary">${editId?'Enregistrer les modifications':'Ajouter le crédit'}</button></div></form></div>`;
- immoptimaWireCurveReadiness('loanFormWrap','loan');
+ immoptimaWireCurveReadiness('loanFormWrap','loan');window.ioGuidanceRefresh?.();window.ioSimpForm?.(document.querySelector('#loanFormWrap form'),'loan',editId);
  immoptimaScheduleBankFit();requestAnimationFrame(()=>{const form=document.getElementById('loanFormWrap');if(ioBankView==='finance'&&form.querySelector('form'))form.scrollIntoView({block:'start',behavior:'instant'})});
 }
-function saveLoan(e,editId){e.preventDefault();const previous=structuredClone(db),guided=e.target.dataset.guided==='true';if(editId&&!db.loans.some(l=>l.id===editId)){alert('Ce crédit a été supprimé.');return}const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.guidanceEnteredFields=Object.entries(o).filter(([,v])=>String(v).trim()!=='').map(([k])=>k);['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'].forEach(k=>o[k]=Number(o[k])||0);o.paymentOverride=f.get('payment')!=='';o.insuranceAmountOverride=f.get('insuranceAmount')!=='';if(editId)db.loans[db.loans.findIndex(x=>x.id===editId)]={...db.loans.find(x=>x.id===editId),...o};else db.loans.push(o);try{save()}catch(error){db=previous;return}closeForm('loanFormWrap');window.dispatchEvent(new CustomEvent('immoptima-loan-saved',{detail:{id:o.id,propertyId:o.propertyId,guided}}))}
+function saveLoan(e,editId){e.preventDefault();const previous=structuredClone(db),guided=e.target.dataset.guided==='true';if(editId&&!db.loans.some(l=>l.id===editId)){alert('Ce crédit a été supprimé.');return}const f=new FormData(e.target),o=Object.fromEntries(f.entries());o.id=editId||id();o.guidanceEnteredFields=Object.entries(o).filter(([,v])=>String(v).trim()!=='').map(([k])=>k);['initial','years','rate','insuranceRate','insuranceAmount','payment','remaining'].forEach(k=>o[k]=Number(o[k])||0);o.paymentOverride=f.get('payment')!=='';o.insuranceAmountOverride=f.get('insuranceAmount')!=='';if(editId)db.loans[db.loans.findIndex(x=>x.id===editId)]={...db.loans.find(x=>x.id===editId),...o};else db.loans.push(o);try{save()}catch(error){db=previous;return}window.ioSimpSaved?.('loan',editId);closeForm('loanFormWrap');window.dispatchEvent(new CustomEvent('immoptima-loan-saved',{detail:{id:o.id,propertyId:o.propertyId,guided}}))}
 function immoptimaOpenBankFinancing(){
  if(!document.getElementById('banque').classList.contains('active'))showPage('banque');
  ioBankSetView('finance');
@@ -1486,7 +1410,7 @@ function bankPrintNumber(value){const n=Number(value)||0;return n.toLocaleString
 function bankTextInput(propertyId,field,value){return `<input type="text" value="${esc(value??'')}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:150px;box-sizing:border-box;font-weight:600"><span class="bank-print-value">${esc(value??'')}</span>`}
 function bankNumberInput(propertyId,field,value){return `<input type="number" min="0" step="0.01" value="${Number(value)||0}" onchange="bankSetProperty('${propertyId}','${field}',this.value)" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${bankPrintNumber(value)}</span>`}
 function bankEditableNumber(value,onchange){const shown=bankPrintNumber(value);return `<input type="number" min="0" step="0.01" value="${Number(shown.replace(/\s/g,'').replace(',','.'))||0}" onchange="${onchange}" style="width:105px;box-sizing:border-box;font-weight:700"><span class="bank-print-value">${shown}</span>`}
-function renderBankSummary(){
+function renderBankSummary(){queueMicrotask(()=>window.ioSimpSummaryLinks?.());
  const body=document.getElementById('bankTableBody'),kpis=document.getElementById('bankKpis');if(!body)return;
  if(!db.properties.length){body.innerHTML='<tr><td colspan="10" class="muted">Aucun bien enregistré.</td></tr>';if(kpis)kpis.innerHTML='';renderBankMobile([], {hc:0,ch:0,cc:0,credit:0,annualHC:0,annualCC:0});ioBuildBankReport();return}
  const rows=db.properties.map((p,i)=>{const hc=bankValueHC(p),ch=bankCharges(p),cc=bankCC(p),credit=propertyLoanPayment(p);return{p,i,hc,ch,cc,credit,annualHC:hc===null?null:hc*12,annualCC:cc===null?null:cc*12}});
@@ -1788,7 +1712,7 @@ function immoptimaCloudAfterLogin(uid){
 }
 window.immoptimaNativeAuthResult=function(payload){
  if(!payload||typeof payload!=='object')return;
- immoptimaAuthState={status:String(payload.status||'error'),uid:String(payload.uid||''),detail:String(payload.detail||'')};
+ immoptimaAuthState={status:String(payload.status||'error'),uid:String(payload.uid||''),detail:String(payload.detail||'')};window.ioSimpRefresh?.();
  const button=document.getElementById('welcomeAccountInfo');
  if(button&&immoptimaAuthState.status==='signed_in')button.textContent='Compte Google connecté';
  if(immoptimaAuthState.status==='error')alert('Connexion ImmOptima : '+immoptimaAuthState.detail);
@@ -1882,7 +1806,7 @@ async function immoptimaRecoverBeforeRestore(){
   try{
    localStorage.setItem('immoptima_pre_restore_v1',current);
    db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();
-   ioAccessUpdateGate();alert('Copie de secours restaurée.');
+   ioAccessUpdateGate();window.ioSimpImportDone?.();
   }catch(err){
    localStorage.setItem('immoptima_pre_restore_v1',raw);
    localStorage.setItem(KEY,current);db=JSON.parse(current);renderAll();throw err;
@@ -1905,7 +1829,7 @@ async function immoptimaRestoreFromDriveBase64(encoded){
   candidate.otherDebt=Number(candidate.otherDebt)||0;
   ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;
   const previous=db;
-  try{localStorage.setItem('immoptima_pre_restore_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();alert('Patrimoine restauré depuis Google. Une copie de secours locale du patrimoine précédent a été conservée.');}
+  try{localStorage.setItem('immoptima_pre_restore_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();window.ioSimpImportDone?.();}
   catch(e){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw e;}
  }catch(e){alert('Sauvegarde Google invalide ou incompatible : patrimoine conservé.');}
 }
@@ -1975,7 +1899,7 @@ function exportData(destination='local'){
   closeBackupOptions();
  }catch(error){alert('Sauvegarde impossible : '+(error.message||'erreur inconnue'))}
 }
-function importData(e){const input=e?.target,file=input?.files?.[0];if(!file)return;const resetInput=()=>{if(input)input.value=''};if(file.size>10*1024*1024){alert('Fichier trop volumineux : la sauvegarde doit faire moins de 10 Mo.');resetInput();return}const r=new FileReader();r.onerror=()=>{alert('Lecture impossible. Votre patrimoine actuel est conservé.');resetInput()};r.onload=async()=>{try{const x=JSON.parse(String(r.result||''));if(!x||typeof x!=='object'||Array.isArray(x)||!Array.isArray(x.properties)||!Array.isArray(x.loans)||!Array.isArray(x.assets))throw Error('structure');if(!x.properties.every(p=>p&&typeof p==='object'&&!Array.isArray(p))||!x.loans.every(l=>l&&typeof l==='object'&&!Array.isArray(l))||!x.assets.every(a=>a&&typeof a==='object'&&!Array.isArray(a)))throw Error('records');const candidate={...structuredClone(empty),...x};candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];if(JSON.stringify(candidate.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))candidate.settings.holders=[];candidate.properties=candidate.properties.map(normalizeHolder);candidate.loans=candidate.loans;candidate.assets=candidate.assets;candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];candidate.otherDebt=Number(candidate.otherDebt)||0;ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;if(!confirm('Importer cette sauvegarde et remplacer le patrimoine actuel ? Une copie de secours locale sera conservée avant le remplacement.'))return;const previous=db;try{localStorage.setItem('immoptima_pre_import_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();alert('Sauvegarde importée avec succès. Une copie locale du patrimoine précédent a été conservée.')}catch(renderError){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw renderError}}catch(err){alert('Fichier de sauvegarde invalide ou incompatible. Votre patrimoine actuel est conservé.')}};r.readAsText(file);resetInput()}
+function importData(e){const input=e?.target,file=input?.files?.[0];if(!file)return;const resetInput=()=>{if(input)input.value=''};if(file.size>10*1024*1024){alert('Fichier trop volumineux : la sauvegarde doit faire moins de 10 Mo.');resetInput();return}const r=new FileReader();r.onerror=()=>{alert('Lecture impossible. Votre patrimoine actuel est conservé.');resetInput()};r.onload=async()=>{try{const x=JSON.parse(String(r.result||''));if(!x||typeof x!=='object'||Array.isArray(x)||!Array.isArray(x.properties)||!Array.isArray(x.loans)||!Array.isArray(x.assets))throw Error('structure');if(!x.properties.every(p=>p&&typeof p==='object'&&!Array.isArray(p))||!x.loans.every(l=>l&&typeof l==='object'&&!Array.isArray(l))||!x.assets.every(a=>a&&typeof a==='object'&&!Array.isArray(a)))throw Error('records');const candidate={...structuredClone(empty),...x};candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];if(JSON.stringify(candidate.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))candidate.settings.holders=[];candidate.properties=candidate.properties.map(normalizeHolder);candidate.loans=candidate.loans;candidate.assets=candidate.assets;candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];candidate.otherDebt=Number(candidate.otherDebt)||0;ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;if(!confirm('Importer cette sauvegarde et remplacer le patrimoine actuel ? Une copie de secours locale sera conservée avant le remplacement.'))return;const previous=db;try{localStorage.setItem('immoptima_pre_import_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();window.ioSimpImportDone?.()}catch(renderError){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw renderError}}catch(err){alert('Fichier de sauvegarde invalide ou incompatible. Votre patrimoine actuel est conservé.')}};r.readAsText(file);resetInput()}
 const DEMO_MARK='immoptima_demo_v1';
 function installDemoData(){
  if(db.properties.length||db.loans.length||db.assets.length){alert('Pour protéger vos données, le jeu fictif ne peut être chargé que dans un patrimoine vide. Exportez d’abord vos données et utilisez une installation de test vierge.');return;}
@@ -1997,7 +1921,7 @@ function removeDemoData(){
  if(!db.properties.some(p=>p.holder==='Détenteur fictif'))db.settings.holders=(db.settings.holders||[]).filter(h=>h!=='Détenteur fictif');
  save();alert('Données fictives supprimées.');
 }
-function resetAll(){if(confirm('ATTENTION : toutes les données locales seront effacées. Continuer ?')){localStorage.removeItem(KEY);db=structuredClone(empty);renderAll()}}
+function resetAll(){if(confirm('ATTENTION : toutes les données locales seront effacées. Continuer ?')){window.ioSimpClearDrafts?.();closeForm('propertyFormWrap');closeForm('loanFormWrap');localStorage.removeItem(KEY);db=structuredClone(empty);renderAll()}}
 
 window.addEventListener('resize',()=>{drawHistory();if(document.getElementById('projection').classList.contains('active'))renderProjection()});
 db=load();
