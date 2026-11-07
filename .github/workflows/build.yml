@@ -15,6 +15,7 @@ on:
       - 'client-guidance.js'
       - 'property-readiness.js'
       - 'first-use.js'
+      - 'client-experience.js'
       - 'android-access-patch.py'
       - 'access-policy.js'
       - 'scripts/prepare-commercial.py'
@@ -96,6 +97,7 @@ jobs:
           cp landlord-tools.js "$(dirname "$ASSET_FILE")/landlord-tools.js"
           cp rental-management.js "$(dirname "$ASSET_FILE")/rental-management.js"
           cp property-readiness.js "$(dirname "$ASSET_FILE")/property-readiness.js"
+          cp client-experience.js "$(dirname "$ASSET_FILE")/client-experience.js"
           cp first-use.js "$(dirname "$ASSET_FILE")/first-use.js"
           cp client-guidance.js "$(dirname "$ASSET_FILE")/client-guidance.js"
           cp bank-simulator.js "$(dirname "$ASSET_FILE")/bank-simulator.js"
@@ -108,7 +110,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 29/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 30/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -152,6 +154,7 @@ jobs:
           node qa_firebase_preflight.js
           node qa_portfolio_sync.js
           node qa_cloud_sync_gate.js
+          node tests/client-experience.cjs
           node tests/audit-regressions.cjs
           node tests/property-readiness.cjs
           node tests/loan-simulator.cjs
