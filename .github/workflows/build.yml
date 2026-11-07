@@ -256,6 +256,10 @@ jobs:
           if-no-files-found: error
 
   android-ui:
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [34, 36]
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -285,7 +289,7 @@ jobs:
       - name: Verify installed APK and capture real Android screens
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: ${{ matrix.api }}
           arch: x86_64
           profile: pixel_6
           disable-animations: true
@@ -294,7 +298,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ImmOptima-Android-Verification
+          name: ImmOptima-Android-Verification-API-${{ matrix.api }}
           path: qa-out/android/
           if-no-files-found: warn
 

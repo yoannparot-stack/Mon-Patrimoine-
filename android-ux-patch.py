@@ -33,15 +33,40 @@ s=s.replace(anchor,'''        // Insets belong to the native container: WebView 
         setContentView(rootView);
         rootView.requestApplyInsets();''',1)
 a=s.index('    @Override public void onBackPressed() {');b=s.index('\n    }',a)+6
-s=s[:a]+'''    @Override public void onBackPressed() {
-        if (webView == null) { super.onBackPressed(); return; }
+s=s[:a]+'''
+    private long immoptimaLastExitBack = 0;
+    private boolean immoptimaBackPending = false;
+
+    private void immoptimaNavigateBack() {
+        if (webView == null || immoptimaBackPending) return;
+        immoptimaBackPending = true;
         webView.evaluateJavascript("typeof immoptimaHandleBack==='function' && immoptimaHandleBack()", result -> {
-            if (!"true".equals(result)) {
-                if (webView.canGoBack()) webView.goBack(); else MainActivity.super.onBackPressed();
+            immoptimaBackPending = false;
+            if ("true".equals(result)) { immoptimaLastExitBack = 0; return; }
+            if (webView.canGoBack()) { webView.goBack(); immoptimaLastExitBack = 0; return; }
+            long now = android.os.SystemClock.uptimeMillis();
+            if (immoptimaLastExitBack != 0 && now - immoptimaLastExitBack < 2000) {
+                finish();
+            } else {
+                immoptimaLastExitBack = now;
+                android.widget.Toast.makeText(this, "Appuyez de nouveau sur Retour pour quitter", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
-    }'''+s[b:]
+    }
+
+    @Override public void onBackPressed() { immoptimaNavigateBack(); }
+'''+s[b:]
+# Android 13+ back gestures, including targetSdk 36 where legacy dispatch is ignored.
+anchor='        rootView.requestApplyInsets();'
+assert anchor in s
+s=s.replace(anchor,anchor+'''
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                () -> immoptimaNavigateBack());
+        }
+''',1)
 java.write_text(s)
 manifest=root/'app/src/main/AndroidManifest.xml'
-manifest.write_text(manifest.read_text().replace('android:label="Mon Patrimoine — Aperçu V1.3.2"','android:label="ImmOptima"'))
+manifest.write_text(manifest.read_text().replace('<application ', '<application android:enableOnBackInvokedCallback="true" ',1).replace('android:label="Mon Patrimoine — Aperçu V1.3.2"','android:label="ImmOptima"'))
 print('ImmOptima native insets and Back navigation installed')
