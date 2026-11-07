@@ -1185,6 +1185,7 @@ function immoptimaRenderPropertyDetail(){
  const help=ioHelp(series,'La photo est enregistrée avec le bien et incluse dans les sauvegardes.').replace('class="io-analysis-help"','class="io-analysis-help io-property-help"').replace('</details>',fullInfo+'</details>');
  ioPropertyChartState={points:series.points,keys:d[0],colors:d[1],labels:d[2]};
  overlay.innerHTML='<div class="io-analysis-panel"><div class="io-analysis-header"><button type="button" onclick="immoptimaClosePropertyDetail()" aria-label="Fermer la fiche du bien">'+ioIcon('back')+'</button><h2 title="'+esc(p.name)+'">'+esc(p.name)+'</h2><button type="button" onclick="ioPropertyTab(3)" aria-label="Récapitulatif du bien">⋮</button></div><div class="io-property-body">'+hero+ioSegments(['Vue globale','Financement','Loyers','Récap'],['global','finance','rents','detail'].indexOf(tab),'ioPropertyTab')+(tab==='detail'?'':periods)+(tab==='global'?summary:content)+(tab==='detail'?'':plot)+help+'</div></div>';
+ window.ioSimpDetailLinks?.(p.id);
  const helpElement=overlay.querySelector('.io-property-help');helpElement.open=ioPropertyHelpOpen;helpElement.ontoggle=()=>{ioPropertyHelpOpen=helpElement.open;immoptimaSchedulePropertyFit()};
  immoptimaSchedulePropertyFit();
 }
