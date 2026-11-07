@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-11-07T15:33:18.078109+00:00",
+  "source": "data.gouv.fr / ANIL - Résultats nationaux des observatoires locaux des loyers",
+  "license": "lov2",
+  "resourceId": "21543ae5-7d6e-4c49-8719-e7f725d441da",
+  "request": {
+    "agglomeration__contains": "Tours",
+    "nombre_pieces_homogene__exact": "Appart 1P",
+    "Type_habitat__exact": "Appartement",
+    "page_size": 50
+  },
+  "httpStatus": 200,
+  "returnedRows": 8,
+  "newTenantSegment": {
+    "year": 2025,
+    "tenantAge": "1. Moins de 1 an",
+    "observations": 909,
+    "referenceSurface": 27,
+    "geography": "Agglomération de Tours",
+    "mode": "nu",
+    "basis": "HC"
+  },
+  "liveAdvertisementsCollected": false,
+  "providerSubscriptionCreated": false,
+  "optimizationUiChanged": false,
+  "conclusion": "Accès automatique public confirmé, statistiques annuelles. Pas une preuve de collecte d’annonces du jour ni de comparabilité avec un studio de 16 m²."
+}

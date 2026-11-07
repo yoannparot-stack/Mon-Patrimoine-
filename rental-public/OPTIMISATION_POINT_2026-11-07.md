@@ -28,3 +28,9 @@ Sources consultées :
 - https://www.observatoires-des-loyers.org/decouvrir-le-reseau/publications/details/metropole-tourangelle-resultats-2025
 - https://www.data.gouv.fr/datasets/carte-des-loyers-indicateurs-de-loyers-dannonce-par-commune-en-2025/
 - https://portail.documentation.developpement-durable.gouv.fr/pub/MPDOUV00268491-guide-utilisation-carte-des-loyers.html
+
+## Appel réel de l’API publique
+
+Le catalogue data.gouv.fr et l’API tabulaire ont répondu en HTTP 200. La ressource 2025 est publiée sous Licence Ouverte 2.0 (`lov2`). La requête Tours / Appartement / Appart 1P a renvoyé huit segments. Parmi eux : locataires installés depuis moins d’un an, 909 observations, surface moyenne de 27 m², données 2025. Voir `source-public-live-2026-11-07.json`. Il s’agit d’observations statistiques, pas de 909 annonces disponibles à la date de consultation.
+
+Cette preuve d’accès permet de proposer une sélection automatique des emménagés récents. Elle ne suffit pas à valider un loyer cible pour 16 m², ni à déclarer opérationnel le comparatif d’annonces actuelles demandé.
