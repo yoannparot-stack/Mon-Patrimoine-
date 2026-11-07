@@ -74,7 +74,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  await capture('08-biens-liste-b','tourscentre',true);
  await tap('#properties .io-property-card .io-property-menu summary');await waitFor('document.querySelector("#properties .io-property-menu").open');
  adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#properties .io-property-menu").open');assert.equal(await evaluate('document.querySelector(".page.active").id'),'immobilier');
- await tap('#properties .io-property-menu>summary');await tap('#properties [data-property-action=edit]');await waitFor('!document.getElementById("ioPropertyDetailOverlay").hidden');adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioPropertyDetailOverlay").hidden');
+ await tap('#properties .io-property-menu>summary');await tap('#properties [data-property-action=edit]');await waitFor('!!document.querySelector("#propertyFormWrap form")');adb('shell','input','keyevent','4');await waitFor('!document.querySelector("#propertyFormWrap form")');
  await evaluate("db.properties=db.properties.filter(p=>p.id!=='qa-list-third');renderProperties();showPage('dashboard');true");
  await evaluate("showPage('banque');true");await waitFor('document.body.classList.contains("io-bank-fit")');
  assert(await evaluate('(()=>{const h=document.querySelector("#bankMobile .io-bank-help summary").getBoundingClientRect(),n=document.getElementById("nav").getBoundingClientRect();return document.documentElement.scrollHeight<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth&&h.bottom<=n.top})()'),'bank C fits the Android screen');
