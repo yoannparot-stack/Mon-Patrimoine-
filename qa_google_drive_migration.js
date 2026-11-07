@@ -99,7 +99,7 @@ check('visible and private Google backups are clearly distinguished', () => {
 
 check('JSON import preserves previous portfolio and does not trigger private auto-backup', () => {
  assert.match(html,/immoptima_pre_import_v1/);
- assert.match(html,/localStorage\.setItem\(KEY,JSON\.stringify\(db\)\);immoptimaSyncMarkDirty\(\);renderAll\(\);(?:ioAccessUpdateGate\(\);)?alert\('Sauvegarde importée avec succès/);
+ assert.match(html,/localStorage\.setItem\(KEY,JSON\.stringify\(db\)\);immoptimaSyncMarkDirty\(\);renderAll\(\);ioAccessUpdateGate\(\);if\(window\.ioSimpImportDone\)window\.ioSimpImportDone\(\);else alert\('Sauvegarde importée avec succès/);
 });
 
 check('JSON import requires explicit user approval before replacing portfolio', () => {
