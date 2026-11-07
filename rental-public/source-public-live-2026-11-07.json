@@ -23,5 +23,12 @@
   "liveAdvertisementsCollected": false,
   "providerSubscriptionCreated": false,
   "optimizationUiChanged": false,
-  "conclusion": "Accès automatique public confirmé, statistiques annuelles. Pas une preuve de collecte d’annonces du jour ni de comparabilité avec un studio de 16 m²."
+  "conclusion": "Accès automatique public confirmé, statistiques annuelles. Pas une preuve de collecte d’annonces du jour ni de comparabilité avec un studio de 16 m².",
+  "androidWebViewOriginCheck": {
+    "requestOrigin": "https://appassets.androidplatform.net",
+    "httpStatus": 200,
+    "accessControlAllowOrigin": "*",
+    "filteredNullConstructionAndTenantAgeRows": 1,
+    "note": "Contrôle HTTP/CORS ; ne remplace pas un essai complet du nouveau parcours Optimisation dans l’APK."
+  }
 }
