@@ -109,13 +109,13 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  await evaluate(`db=${JSON.stringify(fixture())};renderAll();showPage('dashboard');true`);
  await tap('#dashboardGraph article');await waitFor('document.getElementById("ioAnalysisOverlay")?.hidden===false');
  adb('shell','input','keyevent','4');await waitFor('document.getElementById("ioAnalysisOverlay").hidden');
- await evaluate(`db=${JSON.stringify(rentalFixture())};renderAll();showPage('dashboard');true`);await tap('#nav [data-page=optimisation]');await waitFor('document.body.classList.contains("io-opt-fit")');
+ await evaluate(`window.immoptimaRentalProviderEnabled=true;db=${JSON.stringify(rentalFixture())};renderAll();showPage('dashboard');true`);await tap('#nav [data-page=optimisation]');await waitFor('document.body.classList.contains("io-opt-fit")');
  assert(await evaluate('(()=>{const h=document.querySelector("#optimizationHelp summary").getBoundingClientRect(),n=document.getElementById("nav").getBoundingClientRect();return document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight+1&&h.bottom<=n.top})()'),'Optimization fits Android');
  await capture('15-optimisation-c','immoptima');await tap('#optimizationTable .io-opt-property summary');await waitFor('document.querySelector(".io-opt-property").open');
  await tap('#optimizationTable [data-opt-compare]');await waitFor('document.getElementById("ioOptCompare")?.hidden===false');assert.equal(await evaluate('ioOptScenario(db.properties[0],"meuble").net'),50);await capture('16-optimisation-comparatif','studio');
  // Exercise the actual native bridge without a signed-in account or paid calls.
  assert.equal(await evaluate('typeof AndroidBridge.immoptimaRentalCollect'),'function');
- await evaluate('window.__rentalNative=null;window.__rentalOriginal=window.immoptimaNativeRentalResult;window.immoptimaNativeRentalResult=p=>{window.__rentalNative=p;window.__rentalOriginal(p)};AndroidBridge.immoptimaRentalCollect("qa_native","{}");true');
+ await evaluate('window.immoptimaRentalProviderEnabled=true;window.__rentalNative=null;window.__rentalOriginal=window.immoptimaNativeRentalResult;window.immoptimaNativeRentalResult=p=>{window.__rentalNative=p;window.__rentalOriginal(p)};AndroidBridge.immoptimaRentalCollect("qa_native","{}");true');
  await waitFor('window.__rentalNative!==null');assert.equal(await evaluate('window.__rentalNative.result.code'),'AUTH_REQUIRED');
  await evaluate('window.immoptimaNativeRentalResult=window.__rentalOriginal;document.getElementById("ioOptReferences").open=true;document.querySelector("[data-opt-collect]").scrollIntoView({block:"center"});true');
  await tap('[data-opt-collect]');await waitFor('!!db.properties[0].optimization.collectionError');
