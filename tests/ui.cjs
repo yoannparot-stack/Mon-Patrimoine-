@@ -320,6 +320,9 @@ let qaStage='startup',failurePage;const qaWatchdog=setTimeout(()=>{console.error
  assert.equal(await page.evaluate(()=>ioOptScenario(db.properties[0],'meuble').target),455);
  assert((await page.locator('.io-opt-column.meuble').textContent()).includes('simulée'));
  assert((await page.locator('.io-opt-model-note').textContent()).includes('Centre historique'));
+ assert((await page.locator('#ioOptCompare .io-opt-notice').textContent()).includes('ni une autorisation d’augmentation'));
+ assert((await page.locator('#optimisation .io-opt-disclaimer').textContent()).includes('Avis indicatif'));
+ assert.equal(await page.evaluate(()=>{const p=db.properties[0],before=p.rentHC,o=ioOptOpinion(p,'nu');return o.usable&&o.target>0&&p.rentHC===before}),true);
  for(const [width,height] of [[360,740],[393,851]]){await page.setViewportSize({width,height});await page.waitForTimeout(80);assert(await page.evaluate(()=>{const o=document.getElementById('ioOptCompare');return o.scrollWidth<=o.clientWidth&&o.scrollHeight<=o.clientHeight+1}),'model comparison fits '+width);}
  await shot('25-modele-meuble-10');
  await page.locator('#ioOptSettings summary').click();await page.locator('[name=furnishedPremiumPct]').fill('20');await page.locator('#ioOptSettingsForm button.primary').click();assert.equal(await page.evaluate(()=>ioOptScenario(db.properties[0],'meuble').target),500);assert.equal(await page.evaluate(()=>db.properties[0].rentHC),300);
