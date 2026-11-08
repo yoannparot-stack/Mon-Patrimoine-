@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),{state}=require('../account-ui.js');
+const now=Date.UTC(2026,10,8),base={connected:true,uid:'client-a',now};
+assert.equal(state({personal:true}).kind,'personal');
+assert.equal(state({...base,connected:false,access:{uid:'client-a',owner:true,checkedUntil:now+60000}}).kind,'disconnected');
+assert.equal(state(base).kind,'unknown');
+const access={uid:'client-a',expiresAt:now+86400000,checkedUntil:now+60000};
+assert.equal(state({...base,access}).kind,'premium');
+assert.equal(state({...base,access:{...access,uid:'client-b'}}).kind,'unknown');
+assert.equal(state({...base,access:{...access,checkedUntil:now-1}}).kind,'unknown');
+assert.equal(state({...base,access:{...access,expiresAt:now}}).kind,'unknown');
+assert.equal(state({...base,access:{...access,owner:true,expiresAt:0}}).kind,'owner');
+const trial={uid:'client-a',startedAt:now-89*86400000,allowed:true};
+assert.equal(state({...base,trial}).title,'1 jour pour découvrir Premium');
+assert.equal(state({...base,trial:{...trial,uid:'client-b'}}).kind,'unknown');
+assert.equal(state({...base,trial:{...trial,allowed:false}}).kind,'unknown');
+assert.equal(state({...base,trial:{...trial,startedAt:now-90*86400000}}).kind,'expired');
+assert.equal(state({...base,trial:{...trial,startedAt:now+1}}).kind,'unknown');
+console.log('PASS account status: personal, verified owner/premium, trial dates, expiration, unknown and account isolation');
