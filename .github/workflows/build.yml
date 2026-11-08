@@ -19,6 +19,10 @@ on:
       - 'client-simplicity.js'
       - 'client-journey.js'
       - 'solo-landlord.js'
+      - 'help-search.js'
+      - 'play-billing.js'
+      - 'android-billing-patch.py'
+      - 'billing/**'
       - 'android-access-patch.py'
       - 'access-policy.js'
       - 'scripts/prepare-commercial.py'
@@ -103,6 +107,8 @@ jobs:
           cp client-simplicity.js "$(dirname "$ASSET_FILE")/client-simplicity.js"
           cp client-journey.js "$(dirname "$ASSET_FILE")/client-journey.js"
           cp solo-landlord.js "$(dirname "$ASSET_FILE")/solo-landlord.js"
+          cp help-search.js "$(dirname "$ASSET_FILE")/help-search.js"
+          cp play-billing.js "$(dirname "$ASSET_FILE")/play-billing.js"
           cp client-experience.js "$(dirname "$ASSET_FILE")/client-experience.js"
           cp first-use.js "$(dirname "$ASSET_FILE")/first-use.js"
           cp client-guidance.js "$(dirname "$ASSET_FILE")/client-guidance.js"
@@ -116,7 +122,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 34/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 35/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -139,6 +145,7 @@ jobs:
           python3 android-access-patch.py "$ROOT"
           python3 android-rental-patch.py "$ROOT"
           python3 android-ux-patch.py "$ROOT"
+          python3 android-billing-patch.py "$ROOT"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -160,6 +167,8 @@ jobs:
           node qa_firebase_preflight.js
           node qa_portfolio_sync.js
           node qa_cloud_sync_gate.js
+          node tests/help-search.cjs
+          node tests/savings.cjs
           node tests/client-experience.cjs
           node tests/client-simplicity.cjs
           node tests/client-journey.cjs
@@ -200,7 +209,9 @@ jobs:
           journey_status=$?
           node tests/solo-ui.cjs
           solo_status=$?
-          exit $((legacy_status || simplicity_status || journey_status || solo_status))
+          node tests/navigation-ui.cjs
+          navigation_status=$?
+          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status))
       - name: Upload browser verification
         if: always()
         uses: actions/upload-artifact@v4

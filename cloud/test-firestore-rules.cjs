@@ -27,7 +27,7 @@ require('firebase/compat/firestore');
   await assertFails(doc.delete());
   await assertFails(owner.doc('users/owner/portfolios/other').set(create));
   // Paid collection must never be enabled or its quotas reset by an APK client.
-  for(const adminPath of ['rentalService/config','rentalAccess/owner','rentalQuota/global-2026-11-01']){
+  for(const adminPath of ['rentalService/config','rentalAccess/owner','rentalQuota/global-2026-11-01','billingService/config','playPurchases/token-hash']){
    await env.withSecurityRulesDisabled(async context=>context.firestore().doc(adminPath).set({enabled:true,calls:4}));
    for(const client of [owner,intruder,anon]){
     await assertFails(client.doc(adminPath).get());

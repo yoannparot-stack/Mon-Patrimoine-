@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parents[1]
 out=Path(sys.argv[1]).resolve()
 if out==root or out in root.parents: raise SystemExit('Output must be separate from source')
 out.mkdir(parents=True,exist_ok=True)
-for name in ['index.html','rental-local-data.js','rental-optimization.js','bank-simulator.js','landlord-tools.js','rental-management.js','client-guidance.js','property-readiness.js','first-use.js','client-experience.js','client-simplicity.js','client-journey.js','solo-landlord.js']:
+for name in ['index.html','rental-local-data.js','rental-optimization.js','bank-simulator.js','landlord-tools.js','rental-management.js','client-guidance.js','property-readiness.js','first-use.js','client-experience.js','client-simplicity.js','client-journey.js','solo-landlord.js','help-search.js','play-billing.js']:
     shutil.copy2(root/name,out/name)
 p=out/'index.html';s=p.read_text()
 assert "const IMMOPTIMA_BUILD_CHANNEL='personal-test';" in s

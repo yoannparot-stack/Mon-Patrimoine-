@@ -1,0 +1,1 @@
+{"enabled":false,"packageName":"com.immoptima.app","subscriptionId":"immoptima_premium","basePlans":["mensuel","annuel"],"verificationUrl":"https://europe-west1-immoptima-6af3b.cloudfunctions.net/verifyPlaySubscription"}

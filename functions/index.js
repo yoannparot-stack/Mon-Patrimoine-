@@ -35,3 +35,6 @@ exports.rentalComparables=onRequest({region:'europe-west1',secrets:[vendorToken]
  catch(e){return res.status(502).json({code:['PROVIDER_AUTH','PROVIDER_RATE_LIMIT','PROVIDER_SCHEMA','PROVIDER_UNAVAILABLE'].includes(e.code)?e.code:'SERVICE_UNAVAILABLE'})}
  finally{await userRef.update({lockUntil:0}).catch(()=>{})}
 });
+
+// Disabled by billingService/config until Play Console and server access are configured.
+Object.assign(exports,require('./play-billing.cjs'));
