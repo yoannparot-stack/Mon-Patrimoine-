@@ -14,14 +14,17 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  adb('shell','wm','dismiss-keyguard');
  adb('shell','am','force-stop','com.immoptima.app');
  adb('shell','am','start','-W','-n','com.immoptima.app/com.monpatrimoine.app.MainActivity');
+ // First-boot system configuration can relaunch an activity after am start
+ // returns. Settle before attaching CDP, never during a tested interaction.
+ await wait(15000);
  fs.writeFileSync(out+'/window-focus.txt',adb('shell','dumpsys','window','windows').split('\n').filter(x=>/mCurrentFocus|mFocusedApp|mHasSurface|com.immoptima/.test(x)).join('\n'));
  // API-35 can recreate WebView while installing its first provider/configuration.
  // Reconnect only during startup; once user-interaction assertions begin, errors fail normally.
- let ws,seq=0,activeWebView=null;const pending=new Map();
+ let ws,seq=0,activeWebView=null,activeTargetId=null;const pending=new Map();
  const connect=async()=>{
   ws?.close();let target;
   for(let i=0;i<40;i++){await wait(500);try{const pid=adb('shell','pidof','com.immoptima.app');adb('forward','tcp:9222','localabstract:webview_devtools_remote_'+pid);const targets=await fetch('http://127.0.0.1:9222/json').then(r=>r.json());fs.writeFileSync(out+'/webview-targets.json',JSON.stringify(targets,null,2));const info=t=>{try{return JSON.parse(t.description||'{}')}catch{return {}}};target=targets.filter(t=>{const d=info(t);return t.url.includes('appassets')&&d.attached!==false&&d.visible!==false&&d.width!==0&&d.height!==0}).sort((a,b)=>{const x=info(a),y=info(b);return Number(y.visible===true)-Number(x.visible===true)||(y.width||0)*(y.height||0)-(x.width||0)*(x.height||0)})[0];if(target)break}catch{}}
-  assert(target,'WebView debugging target unavailable');activeWebView=JSON.parse(target.description||'{}');const socket=new WebSocket(target.webSocketDebuggerUrl);ws=socket;
+  assert(target,'WebView debugging target unavailable');activeWebView=JSON.parse(target.description||'{}');activeTargetId=target.id;const socket=new WebSocket(target.webSocketDebuggerUrl);ws=socket;
   await new Promise((r,j)=>{socket.once('open',r);socket.once('error',j)});
   socket.on('message',d=>{const msg=JSON.parse(d);if(msg.id&&pending.has(msg.id)){const {r,j,t}=pending.get(msg.id);clearTimeout(t);pending.delete(msg.id);msg.error?j(Error(msg.error.message)):r(msg.result)}});
   socket.on('close',()=>{if(socket!==ws)return;for(const {j,t} of pending.values()){clearTimeout(t);j(Error('CDP connection closed'))}pending.clear()});
@@ -33,13 +36,12 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  for(let attempt=0;attempt<3&&!initialized;attempt++){
   try{
    await connect();
-   // The API-36 emulator can recreate the activity while boot-time configuration
-   // changes settle. A loaded but unfocused WebView is not a usable native target.
-   // Require sustained focus before fixture injection or any interaction; never
-   // reconnect or retry a failed user-action assertion later in the suite.
-   let stableFrames=0;
-   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,width:innerWidth,height:innerHeight,visibility:document.visibilityState,focused:document.hasFocus(),save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&(ready.width===0||ready.height===0||ready.visibility!=='visible'))throw Error('Inactive startup WebView');const usable=ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net'&&ready.focused;stableFrames=usable?stableFrames+1:0;if(stableFrames>=10)break;await wait(500)}
-   if(stableFrames<10)throw Error('Inactive startup WebView: foreground focus did not stabilize');
+   // A WebView need not have DOM focus before the first touch. Check its
+   // actual attached/visible target instead, including stable physical bounds.
+   // This startup-only check never retries a failed user-action assertion.
+   let stableFrames=0,lastBounds='';
+   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,width:innerWidth,height:innerHeight,visibility:document.visibilityState,focused:document.hasFocus(),save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&(ready.width===0||ready.height===0||ready.visibility!=='visible'))throw Error('Inactive startup WebView');const targets=await fetch('http://127.0.0.1:9222/json').then(r=>r.json()),target=targets.find(t=>t.id===activeTargetId),physical=target?JSON.parse(target.description||'{}'):{};if(physical.attached!==true||physical.visible!==true||!physical.width||!physical.height)throw Error('Inactive startup WebView: native target detached');const bounds=JSON.stringify([physical.screenX,physical.screenY,physical.width,physical.height]);const usable=ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net';stableFrames=usable&&bounds===lastBounds?stableFrames+1:0;lastBounds=bounds;activeWebView=physical;if(stableFrames>=10)break;await wait(500)}
+   if(stableFrames<10)throw Error('Inactive startup WebView: native target did not stabilize');
    fs.writeFileSync(out+'/webview-ready.json',JSON.stringify(ready,null,2));assert.equal(ready.state,'complete','wait for the full application document before injecting data');assert.equal(ready.save,'function');
    await evaluate(`localStorage.setItem('immoptima_welcome_v1','seen');localStorage.setItem('immoptima_tutorial_v1','later');window.ioGuidanceClose?.();document.getElementById('immoptimaWelcome')?.remove();db=(${fixture.toString()})();localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll();showPage('dashboard');true`);
    // A second response confirms that the renderer survived startup/recreation.
