@@ -33,7 +33,13 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  for(let attempt=0;attempt<3&&!initialized;attempt++){
   try{
    await connect();
-   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,width:innerWidth,height:innerHeight,visibility:document.visibilityState,focused:document.hasFocus(),save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&(ready.width===0||ready.height===0||ready.visibility!=='visible'))throw Error('Inactive startup WebView');if(ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net')break;await wait(500)}
+   // The API-36 emulator can recreate the activity while boot-time configuration
+   // changes settle. A loaded but unfocused WebView is not a usable native target.
+   // Require sustained focus before fixture injection or any interaction; never
+   // reconnect or retry a failed user-action assertion later in the suite.
+   let stableFrames=0;
+   for(let i=0;i<60;i++){ready=await evaluate('({url:location.href,origin:location.origin,state:document.readyState,width:innerWidth,height:innerHeight,visibility:document.visibilityState,focused:document.hasFocus(),save:typeof save,html:document.documentElement?.outerHTML.slice(0,600)})');if(ready.state==='complete'&&(ready.width===0||ready.height===0||ready.visibility!=='visible'))throw Error('Inactive startup WebView');const usable=ready.state==='complete'&&ready.save==='function'&&ready.origin==='https://appassets.androidplatform.net'&&ready.focused;stableFrames=usable?stableFrames+1:0;if(stableFrames>=10)break;await wait(500)}
+   if(stableFrames<10)throw Error('Inactive startup WebView: foreground focus did not stabilize');
    fs.writeFileSync(out+'/webview-ready.json',JSON.stringify(ready,null,2));assert.equal(ready.state,'complete','wait for the full application document before injecting data');assert.equal(ready.save,'function');
    await evaluate(`localStorage.setItem('immoptima_welcome_v1','seen');localStorage.setItem('immoptima_tutorial_v1','later');window.ioGuidanceClose?.();document.getElementById('immoptimaWelcome')?.remove();db=(${fixture.toString()})();localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('immoptima_dashboard_view_v1','graph');renderAll();showPage('dashboard');true`);
    // A second response confirms that the renderer survived startup/recreation.
