@@ -285,6 +285,8 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
  body.io-dashboard-tight #dashboardGraph .io-gauge small{font-size:8.5px}
 }
 
+@media(max-width:749px){body.io-dashboard-extra-tight #dashboardGraph .io-tile{padding:3px 9px}body.io-dashboard-extra-tight #dashboardGraph .io-tile-title{margin-bottom:2px;gap:5px}body.io-dashboard-extra-tight #dashboardGraph .io-tile-title .io-icon{width:14px;height:14px}body.io-dashboard-extra-tight #dashboardGraph .io-hero{font-size:18px}}
+
 /* Four analysis screens: the explanation stays visible while closed. */
 @media(max-width:749px){
  #ioAnalysisOverlay.io-analysis-layout .io-analysis-panel{padding:8px 14px;min-height:var(--io-analysis-viewport,100dvh)}
@@ -1027,12 +1029,13 @@ function immoptimaFitAnalysis(){
 function immoptimaFitDashboard(){
  const graph=document.getElementById('dashboardGraph'),page=document.getElementById('dashboard');
  const active=page?.classList.contains('active')&&!page.classList.contains('io-client-empty')&&!graph.hidden&&innerWidth<750;
- document.body.classList.toggle('io-dashboard-fit',active);document.body.classList.remove('io-dashboard-tight');
+ document.body.classList.toggle('io-dashboard-fit',active);document.body.classList.remove('io-dashboard-tight','io-dashboard-extra-tight');
  if(!active)return;
  const nav=document.getElementById('nav'),height=window.visualViewport?.height||innerHeight;
  document.body.style.setProperty('--io-nav-height',nav.getBoundingClientRect().height+'px');
  const top=graph.getBoundingClientRect().top,available=Math.floor(height-nav.getBoundingClientRect().height-top-8);
- if(available<300){document.body.classList.remove('io-dashboard-fit');return;}
+ if(available<260){document.body.classList.remove('io-dashboard-fit');return;}
+ document.body.classList.toggle('io-dashboard-extra-tight',available<320);
  document.body.classList.toggle('io-dashboard-tight',available<=460);
  document.body.style.setProperty('--io-cockpit-height',available+'px');
  document.body.style.setProperty('--io-dashboard-scale',String(Math.min(1,available/640)));
