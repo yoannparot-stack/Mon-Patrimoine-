@@ -35,6 +35,24 @@ require('firebase/compat/firestore');
     await assertFails(client.doc(adminPath).delete());
    }
   }
+  const trial=owner.doc('rentalTrials/owner'),probe=owner.doc('rentalTrials/owner/access/current');
+  await assertFails(probe.get());
+  await assertFails(anon.doc('rentalTrials/owner').set({startedAt:firebase.firestore.FieldValue.serverTimestamp()}));
+  await assertFails(intruder.doc('rentalTrials/owner').get());
+  await assertFails(trial.set({startedAt:firebase.firestore.Timestamp.fromMillis(Date.now()+86400000)}));
+  await assertFails(trial.set({startedAt:firebase.firestore.FieldValue.serverTimestamp(),owner:true}));
+  await assertSucceeds(trial.set({startedAt:firebase.firestore.FieldValue.serverTimestamp()}));
+  await assertSucceeds(trial.get());await assertSucceeds(probe.get());
+  await assertFails(trial.set({startedAt:firebase.firestore.FieldValue.serverTimestamp()}));
+  await assertFails(trial.delete());await assertFails(probe.set({allowed:true}));
+  await assertFails(intruder.doc('rentalTrials/owner/access/current').get());
+  // The active trial never permits a multi-property cloud write.
+  await assertFails(doc.set({...create,revision:3,payload:{...payload,properties:[{id:'one'},{id:'two'}]}}));
+  for(const since of [Date.now()-90*86400000-1000,Date.now()+86400000]){
+   await env.withSecurityRulesDisabled(async c=>c.firestore().doc('rentalTrials/owner').set({startedAt:firebase.firestore.Timestamp.fromMillis(since)}));
+   await assertSucceeds(trial.get());await assertFails(probe.get());
+  }
+  console.log('PASS 90-day account trial: explicit server timestamp, immutable activation, own-account reads, active server probe, expired/future denied, no multi entitlement');
   const accessPath='accountAccess/owner';
   const multi={...create,revision:3,payload:{...payload,properties:[{id:'one'},{id:'two'}]}};
   await assertFails(doc.set(multi));
