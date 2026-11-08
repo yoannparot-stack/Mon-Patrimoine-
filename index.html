@@ -552,6 +552,11 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 
 @media(max-width:749px){body.io-dashboard-tight:not(.io-dashboard-mini) #dashboardGraph .io-chevron{width:16px;height:16px;line-height:13px;font-size:20px}}
 
+
+/* Secondary screens share the compact mobile card language. */
+#historyCards{display:none}.io-history-card{border:1px solid #dce5f0;border-radius:12px;padding:13px;background:white;margin-top:10px}.io-history-card h3{font-size:14px;margin:0 0 10px}.io-history-card dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0}.io-history-card dt{font-size:10px;color:#60718b;line-height:1.4}.io-history-card dd{font-size:14px;font-weight:750;color:#172344;margin:5px 0;overflow-wrap:anywhere}.io-history-card dl>div:last-child dd{color:#075fce}.io-history-card p{font-size:12px;line-height:1.5;overflow-wrap:anywhere}.io-history-card button{min-height:44px;margin-top:8px;font-size:11px}.io-history-empty{padding:15px;background:#edf5ff;border-radius:11px;margin-top:12px}.io-history-empty h3{font-size:15px}.io-history-empty p{font-size:12px;line-height:1.5;margin-bottom:0}#historique .notice,#projection .notice{font-size:12px;line-height:1.5;background:#edf5ff;border-color:#d6e6fa;color:#34536e}
+@media(max-width:749px){#historique .tablewrap{display:none}#historyCards{display:block}#historique>.section-title{gap:8px}#historique>.section-title button{min-height:44px;font-size:12px}#projection .io-projection-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#projection .io-projection-inputs>.grid3{display:contents}#projection .io-projection-inputs>.notice,#projection .io-projection-inputs>.primary{grid-column:1/-1}#projection .io-projection-inputs .field{min-width:0;margin:0}#projection .io-projection-inputs label{display:block;min-height:34px;font-size:12px;line-height:1.35;color:#34516e}#projection .io-projection-inputs input,#projection .io-projection-inputs select{width:100%;min-height:44px;font-size:14px}#projection .io-projection-inputs>.primary{min-height:44px;margin-top:3px}}
+
 </style>
 </head>
 <body>
@@ -620,22 +625,22 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 
 <section id="historique" class="page">
   <div class="section-title"><h2>Historique</h2><button class="primary" onclick="takeSnapshot()">+ Enregistrer un point</button></div>
-  <div class="card"><div class="notice">Les snapshots permettent de suivre la progression réelle de votre patrimoine. Ils ne modifient pas les données actuelles.</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Patrimoine brut</th><th>Dettes</th><th>Patrimoine net</th><th>Note</th><th></th></tr></thead><tbody id="historyTable"></tbody></table></div></div>
+  <div class="card"><div class="notice">Les points de suivi permettent de retrouver les montants de votre patrimoine à différentes dates. Ils ne modifient pas les données actuelles.</div><div class="tablewrap"><table><thead><tr><th>Date</th><th>Patrimoine brut</th><th>Dettes</th><th>Patrimoine net</th><th>Note</th><th></th></tr></thead><tbody id="historyTable"></tbody></table></div><div id="historyCards" aria-label="Points de suivi du patrimoine"></div></div>
 </section>
 
 <section id="projection" class="page">
   <h2>Projection</h2>
-  <div class="card">
+  <div class="card io-projection-inputs">
     <div class="notice">Projection indicative : elle ne prédit pas le marché. Modifiez les hypothèses pour tester différents scénarios.</div>
     <div class="grid3">
-      <div class="field"><label>Hausse annuelle immobilier (%)</label><input id="pProperty" type="number" step="0.1" value="1.5"></div>
-      <div class="field"><label>Rendement annuel financier (%)</label><input id="pFinancial" type="number" step="0.1" value="4"></div>
-      <div class="field"><label>Épargne mensuelle (€)</label><input id="pSavings" type="number" min="0" step="1" value="0"></div>
+      <div class="field"><label for="pProperty">Hausse annuelle immobilier (%)</label><input id="pProperty" type="number" step="0.1" value="1.5"></div>
+      <div class="field"><label for="pFinancial">Rendement annuel financier (%)</label><input id="pFinancial" type="number" step="0.1" value="4"></div>
+      <div class="field"><label for="pSavings">Épargne mensuelle (€)</label><input id="pSavings" type="number" min="0" step="1" value="0"></div>
     </div>
     <div class="grid3">
-      <div class="field"><label>Horizon</label><select id="pYears"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></div>
-      <div class="field"><label>Hausse annuelle des loyers (%)</label><input id="pRent" type="number" step="0.1" value="1.5"></div>
-      <div class="field"><label>Achats futurs / an (€)</label><input id="pFuture" type="number" min="0" step="1" value="0"></div>
+      <div class="field"><label for="pYears">Horizon</label><select id="pYears"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></div>
+      <div class="field"><label for="pRent">Hausse annuelle des loyers (%)</label><input id="pRent" type="number" step="0.1" value="1.5"></div>
+      <div class="field"><label for="pFuture">Achats futurs / an (€)</label><input id="pFuture" type="number" min="0" step="1" value="0"></div>
     </div>
     <button class="primary" onclick="renderProjection()">Calculer la projection</button>
   </div>
@@ -1339,7 +1344,7 @@ function saveOtherDebt(){const input=document.getElementById('otherDebt'),value=
 function saveSettings(){db.settings.name=document.getElementById('appName').value||'Mon Patrimoine';save()}
 
 function takeSnapshot(){const t=totals(),note=prompt('Note pour ce point (facultatif) :','');db.snapshots.push({id:id(),date:new Date().toISOString().slice(0,10),gross:t.gross,debt:t.debt,net:t.net,note:note||''});db.snapshots.sort((a,b)=>a.date.localeCompare(b.date));save()}
-function renderHistory(){const tb=document.getElementById('historyTable');tb.innerHTML=db.snapshots.length?db.snapshots.map(s=>`<tr><td>${dateFR(s.date)}</td><td>${euro(s.gross)}</td><td>${euro(s.debt)}</td><td><b>${euro(s.net)}</b></td><td>${esc(s.note)}</td><td><button class="danger" data-snapshot-id="${esc(s.id)}" onclick="deleteSnapshot(this.dataset.snapshotId)">Suppr.</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted">Aucun point historique.</td></tr>'}
+function renderHistory(){const tb=document.getElementById('historyTable');tb.innerHTML=db.snapshots.length?db.snapshots.map(s=>`<tr><td>${dateFR(s.date)}</td><td>${euro(s.gross)}</td><td>${euro(s.debt)}</td><td><b>${euro(s.net)}</b></td><td>${esc(s.note)}</td><td><button class="danger" data-snapshot-id="${esc(s.id)}" onclick="deleteSnapshot(this.dataset.snapshotId)">Suppr.</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted">Aucun point historique.</td></tr>';const cards=document.getElementById('historyCards');if(cards)cards.innerHTML=db.snapshots.length?db.snapshots.map(s=>'<article class="io-history-card"><h3>'+dateFR(s.date)+'</h3><dl><div><dt>Patrimoine brut</dt><dd>'+euro(s.gross)+'</dd></div><div><dt>Dettes</dt><dd>'+euro(s.debt)+'</dd></div><div><dt>Patrimoine net</dt><dd>'+euro(s.net)+'</dd></div></dl>'+(s.note?'<p>'+esc(s.note)+'</p>':'')+'<button type="button" class="danger" data-snapshot-id="'+esc(s.id)+'" onclick="deleteSnapshot(this.dataset.snapshotId)">Supprimer ce point</button></article>').join(''):'<div class="io-history-empty"><h3>Votre premier point de suivi</h3><p>Enregistrez un point pour retrouver le bilan de votre patrimoine à cette date. Les montants actuels ne sont pas modifiés.</p></div>';}
 function deleteSnapshot(i){db.snapshots=db.snapshots.filter(x=>x.id!==i);save()}
 
 function drawHistory(){
