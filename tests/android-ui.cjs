@@ -70,7 +70,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  // Touch the actual dashboard tile using screen coordinates derived from the DOM.
  const tap=async selector=>{
   // Scroll once before touching; wait for the physical target to stop moving.
-  await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Native target missing');e.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});window.__qaTapExpected=e;window.__qaTapHit=null;if(!window.__qaTapObserved){window.__qaTapObserved=true;document.addEventListener('click',event=>{window.__qaTapHit={matches:event.composedPath().includes(window.__qaTapExpected),tag:event.target.tagName,text:event.target.textContent.slice(0,100)}},true)}return true})()`);
+  await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Native target missing');e.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});window.__qaTapExpected=e;window.__qaTapSelector=${JSON.stringify(selector)};window.__qaTapHit=null;if(!window.__qaTapObserved){window.__qaTapObserved=true;document.addEventListener('click',event=>{window.__qaTapHit={matches:event.composedPath().some(node=>node.matches?.(window.__qaTapSelector)),tag:event.target.tagName,text:event.target.textContent.slice(0,100)}},true)}return true})()`);
   let r,last='',stable=0;
   for(let i=0;i<40;i++){
    r=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}),r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth,unobscured:!!hit&&(hit===e||e.contains(hit))}})()`);
