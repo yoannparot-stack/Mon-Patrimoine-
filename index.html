@@ -287,6 +287,9 @@ main{max-width:720px;padding:0 15px 90px}footer,.commercial-banner{display:none}
 
 @media(max-width:749px){body.io-dashboard-extra-tight #dashboardGraph .io-tile{padding:3px 9px}body.io-dashboard-extra-tight #dashboardGraph .io-tile-title{margin-bottom:2px;gap:5px}body.io-dashboard-extra-tight #dashboardGraph .io-tile-title .io-icon{width:14px;height:14px}body.io-dashboard-extra-tight #dashboardGraph .io-hero{font-size:18px}}
 
+
+@media(max-width:749px){body.io-dashboard-mini #dashboardGraph .io-tile{padding:2px 8px}body.io-dashboard-mini #dashboardGraph .io-tile-title{height:14px;min-height:14px;line-height:14px;margin-bottom:0}body.io-dashboard-mini #dashboardGraph .io-chevron{width:14px;height:14px;font-size:18px;line-height:11px}body.io-dashboard-mini #dashboardGraph .io-caption,body.io-dashboard-mini #dashboardGraph .io-delta{font-size:10px;line-height:1;margin:0}body.io-dashboard-mini #dashboardGraph .io-hero{font-size:18px;line-height:1;margin:0}body.io-dashboard-mini #dashboardGraph .io-gauge small{display:none}body.io-dashboard-mini #dashboardGraph .io-track{height:5px;margin-top:2px}}
+
 /* Four analysis screens: the explanation stays visible while closed. */
 @media(max-width:749px){
  #ioAnalysisOverlay.io-analysis-layout .io-analysis-panel{padding:8px 14px;min-height:var(--io-analysis-viewport,100dvh)}
@@ -1035,13 +1038,14 @@ function immoptimaFitAnalysis(){
 function immoptimaFitDashboard(){
  const graph=document.getElementById('dashboardGraph'),page=document.getElementById('dashboard');
  const active=page?.classList.contains('active')&&!page.classList.contains('io-client-empty')&&!graph.hidden&&innerWidth<750;
- document.body.classList.toggle('io-dashboard-fit',active);document.body.classList.remove('io-dashboard-tight','io-dashboard-extra-tight');
+ document.body.classList.toggle('io-dashboard-fit',active);document.body.classList.remove('io-dashboard-tight','io-dashboard-extra-tight','io-dashboard-mini');
  if(!active)return;
  const nav=document.getElementById('nav'),height=window.visualViewport?.height||innerHeight;
  document.body.style.setProperty('--io-nav-height',nav.getBoundingClientRect().height+'px');
  const top=graph.getBoundingClientRect().top,available=Math.floor(height-nav.getBoundingClientRect().height-top-8-(Number.parseFloat(getComputedStyle(document.body).getPropertyValue('--io-help-height'))||0));
- if(available<260){document.body.classList.remove('io-dashboard-fit');return;}
+ if(available<220){document.body.classList.remove('io-dashboard-fit');return;}
  document.body.classList.toggle('io-dashboard-extra-tight',available<320);
+ document.body.classList.toggle('io-dashboard-mini',available<280);
  document.body.classList.toggle('io-dashboard-tight',available<=460);
  document.body.style.setProperty('--io-cockpit-height',available+'px');
  document.body.style.setProperty('--io-dashboard-scale',String(Math.min(1,available/640)));
