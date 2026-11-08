@@ -68,14 +68,21 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  };
  assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);await capture('01-dashboard','immoptima');
  // Touch the actual dashboard tile using screen coordinates derived from the DOM.
- const tap=async selector=>{await evaluate('new Promise(resolve=>{const done=()=>resolve(true);setTimeout(done,750);requestAnimationFrame(()=>requestAnimationFrame(done))})');await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Native target missing');const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);if(!hit||!(e===hit||e.contains(hit)))e.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});return true})()`);await evaluate('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r(true))))');const r=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}),r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth,unobscured:!!hit&&(hit===e||e.contains(hit))}})()`);assert(r.unobscured,'native tap target must not be covered: '+selector);
-  // Accessibility can include an older detached WebView with larger bounds.
-  // Use the attached CDP target's observed physical position for native taps.
+ const tap=async selector=>{
+  // Scroll once before touching; wait for the physical target to stop moving.
+  await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Native target missing');e.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});window.__qaTapExpected=e;window.__qaTapHit=null;if(!window.__qaTapObserved){window.__qaTapObserved=true;document.addEventListener('click',event=>{window.__qaTapHit={matches:event.composedPath().includes(window.__qaTapExpected),tag:event.target.tagName,text:event.target.textContent.slice(0,100)}},true)}return true})()`);
+  let r,last='',stable=0;
+  for(let i=0;i<40;i++){
+   r=await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)}),r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth,unobscured:!!hit&&(hit===e||e.contains(hit))}})()`);
+   const key=JSON.stringify([Math.round(r.x*2),Math.round(r.y*2),r.w,r.unobscured]);stable=r.unobscured&&key===last?stable+1:0;last=key;if(stable>=3)break;await wait(60);
+  }
+  assert(stable>=3,'native target must be stable and unobscured: '+selector);
   assert(activeWebView?.attached===true&&activeWebView.width>0&&Number.isFinite(activeWebView.screenX)&&Number.isFinite(activeWebView.screenY),'attached native WebView bounds');
   assert(r.x>=0&&r.x<r.w&&r.y>=0&&r.y<await evaluate('innerHeight'),'native tap target is visible: '+selector);
-  const scale=activeWebView.width/r.w;
-  adb('shell','input','tap',String(Math.round(activeWebView.screenX+r.x*scale)),String(Math.round(activeWebView.screenY+r.y*scale)));
+  const scale=activeWebView.width/r.w;adb('shell','input','tap',String(Math.round(activeWebView.screenX+r.x*scale)),String(Math.round(activeWebView.screenY+r.y*scale)));
+  await waitFor('window.__qaTapHit?.matches===true');
  };
+
  await evaluate("showPage('immobilier');db.properties.push({...db.properties[1],id:'qa-list-third',name:'Studio · Validation liste',address:'Tours',surface:22});renderProperties();true");
  assert.equal(await evaluate('document.querySelectorAll("#properties .io-property-card").length'),3);
  await waitFor('innerWidth>0&&document.documentElement.scrollWidth<=innerWidth');assert(await evaluate('document.documentElement.scrollWidth<=innerWidth'));
