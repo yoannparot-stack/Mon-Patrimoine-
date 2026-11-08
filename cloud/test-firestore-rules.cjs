@@ -42,7 +42,7 @@ require('firebase/compat/firestore');
   await assertFails(trial.set({startedAt:firebase.firestore.Timestamp.fromMillis(Date.now()+86400000)}));
   await assertFails(trial.set({startedAt:firebase.firestore.FieldValue.serverTimestamp(),owner:true}));
   await assertSucceeds(trial.set({startedAt:firebase.firestore.FieldValue.serverTimestamp()}));
-  await assertSucceeds(trial.get());await assertSucceeds(probe.get());
+  await assertSucceeds(trial.get());console.log('TRIAL activation confirmed', (await trial.get()).data().startedAt.toMillis());await assertSucceeds(probe.get());
   await assertFails(trial.set({startedAt:firebase.firestore.FieldValue.serverTimestamp()}));
   await assertFails(trial.delete());await assertFails(probe.set({allowed:true}));
   await assertFails(intruder.doc('rentalTrials/owner/access/current').get());

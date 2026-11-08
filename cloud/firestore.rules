@@ -34,7 +34,7 @@ service cloud.firestore {
       let path = /databases/$(database)/documents/rentalTrials/$(uid);
       return exists(path) && get(path).data.startedAt is timestamp
         && get(path).data.startedAt <= request.time
-        && request.time < get(path).data.startedAt + duration.value(90, 'd');
+        && (request.time - get(path).data.startedAt) < duration.value(90, 'd');
     }
     function multiAccess(uid) {
       let path = /databases/$(database)/documents/accountAccess/$(uid);

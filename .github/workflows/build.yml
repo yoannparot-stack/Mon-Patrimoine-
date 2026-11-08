@@ -326,4 +326,9 @@ jobs:
       - name: Install security emulator dependencies
         run: npm install --no-save --no-package-lock firebase-tools@14 @firebase/rules-unit-testing@5 firebase@12
       - name: Verify account isolation and subscription gates without production writes
-        run: npx firebase emulators:exec --only firestore --project immoptima-rules-test 'node cloud/test-firestore-rules.cjs'
+        run: |
+          set +e
+          npx firebase emulators:exec --only firestore --project immoptima-rules-test 'node cloud/test-firestore-rules.cjs'
+          result=$?
+          if [ "$result" -ne 0 ]; then tail -n 100 firestore-debug.log; fi
+          exit "$result
