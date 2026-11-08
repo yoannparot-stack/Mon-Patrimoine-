@@ -331,4 +331,4 @@ jobs:
           npx firebase emulators:exec --only firestore --project immoptima-rules-test 'node cloud/test-firestore-rules.cjs'
           result=$?
           if [ "$result" -ne 0 ]; then tail -n 100 firestore-debug.log; fi
-          exit "$result
+          exit "$result"
