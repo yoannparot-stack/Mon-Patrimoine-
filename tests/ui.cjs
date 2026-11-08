@@ -26,6 +26,7 @@ let qaStage='startup',failurePage;const qaWatchdog=setTimeout(()=>{console.error
  await page.locator('#addPropertyButton').click();assert(await page.locator('#propertyFormWrap form').isVisible(),'multi-property addition unlocked');await page.evaluate(()=>immoptimaHandleBack());assert.equal(await page.locator('#propertyFormWrap form').count(),0);assert(await page.locator('#immobilier').isVisible());
 
  assert.equal(await page.locator('#properties .io-property-card').count(),2);
+ assert(await page.locator('#ioPropertyGuidance').isHidden(),'no redundant guided panel for complete properties');
  assert.equal(await page.locator('#immobilier .io-discovery,#immobilier .io-management-toolbar,#immobilier .io-landlord-toolbar').count(),0);
  const firstCard=page.locator('#properties .io-property-card').first();
  assert((await firstCard.locator('.io-list-cash').textContent()).includes('350'));assert((await firstCard.locator('.io-list-wealth').textContent()).includes('84'));
@@ -36,7 +37,7 @@ let qaStage='startup',failurePage;const qaWatchdog=setTimeout(()=>{console.error
  await page.evaluate(()=>{db.properties.push({...db.properties[1],id:'qa-list-third',name:'Studio · Validation liste',address:'Tours',surface:22});renderProperties()});
  await page.setViewportSize({width:393,height:851});await page.evaluate(()=>window.scrollTo(0,0));await shot('10-biens-liste-b');
  const cardsLayout=await page.locator('#properties .io-property-card').evaluateAll(cards=>cards.map(c=>({height:c.getBoundingClientRect().height,bottom:c.getBoundingClientRect().bottom})));
- assert(cardsLayout[0].height<300,'property card remains compact');assert(cardsLayout[1].bottom<790,'two complete property cards on a normal phone');
+ assert(cardsLayout[0].height<300,'property card remains compact');if(await page.locator('#ioPropertyGuidance').isHidden()){assert(cardsLayout[1].bottom<790,'two complete property cards on a normal phone')}else{assert(await page.locator('[data-property-guide-start]').isVisible(),'pending guidance is the visible priority');await page.locator('#properties .io-property-card').nth(1).scrollIntoViewIfNeeded();assert(await page.locator('#properties .io-property-card').nth(1).evaluate(e=>e.getBoundingClientRect().bottom<=document.querySelector('#nav').getBoundingClientRect().top),'second complete card remains reachable');await page.evaluate(()=>window.scrollTo(0,0))}
  for(const width of [320,360,393,430,800]){await page.setViewportSize({width,height:851});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'property list horizontal overflow '+width)}
  qaStage='A long imported name/address and an apostrophe in ID remain safe and readable.';console.log(qaStage);
  // A long imported name/address and an apostrophe in ID remain safe and readable.
