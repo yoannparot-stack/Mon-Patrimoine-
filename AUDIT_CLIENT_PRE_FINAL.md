@@ -37,14 +37,14 @@ Les réponses utilisées pour le nouveau parcours d’actualisation sont fictive
 
 La finalisation de l’usage personnel et la commercialisation sont deux jalons. Les contrôles d’accès multi-biens existent ; le véritable parcours d’achat/renouvellement/résiliation n’est pas encore intégré et validé. Cette revue ne doit pas être présentée comme une validation des paiements de production.
 
-## Pistes proposées le 8 novembre, à arbitrer avant implémentation
+## Améliorations approuvées et intégrées — V33
 
 - Démarrage rapide orienté vers une première tâche, en demandant seulement les informations utiles à celle-ci.
 - Termes homogènes en langage courant : solde mensuel avant impôts, loyer hors charges et repère estimé.
 - Petit bloc d’actions du mois s’appuyant sur les outils existants : vérifier les encaissements, préparer une quittance, compléter une information utile. Une absence de saisie ne doit pas être annoncée comme un impayé.
 - Présentation commerciale future du multi-biens au moment du deuxième bien : bénéfices concrets, aperçu fictif clairement identifié et limites explicites. Cela ne change ni l’offre gratuite ni les droits d’accès actuels.
 
-Ces pistes visent à réduire la saisie perçue et à rendre l’utilité récurrente visible ; aucun effet sur l’achat n’est démontré par les seuls tests techniques.
+Ces améliorations sont intégrées dans la V33. Elles réduisent la saisie initiale et rendent le suivi récurrent visible ; aucun effet sur l’achat n’est démontré par les seuls tests techniques. Le bloc « Ce mois-ci » indique les encaissements renseignés et les saisies à vérifier ; il ouvre le bon logement au bon mois. Les messages de réussite restent factuels et apparaissent après une action effectivement réussie.
 
 ## Preuves techniques
 
@@ -54,3 +54,16 @@ Ces pistes visent à réduire la saisie perçue et à rendre l’utilité récur
 - Aucun nouvel APK n’a été livré pendant cette revue. La génération destinée à l’utilisateur vient après son retour sur cette évaluation, conformément à sa demande.
 
 - Finitions du 8 novembre : source `5e8f85d2367eaec383305591b38b5314fa6c3ccd` ; deux suites navigateur réussies, aucune erreur JavaScript et captures inspectées : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/42463622088 .
+
+
+## Nouvelle évaluation après intégration — 8 novembre 2026
+
+- Le démarrage propose trois objectifs. Le parcours locatif demande six champs répartis en deux étapes ; le parcours bancaire évite les informations d’achat et de travaux inutiles pour sa première tâche. La reprise d’une saisie conserve son objectif et son étape.
+- La simulation navigateur part d’un patrimoine vide sans détenteur : création du bailleur, fiche locative, interruption/reprise, dossier locatif, encaissement confirmé, consultation du suivi mensuel et préparation d’une quittance.
+- Un mois sans encaissement enregistré reste « à vérifier ». Aucun impayé n’est déduit d’une absence de saisie. Une quittance conserve les conditions habituelles de validité et l’identité historique enregistrée ; une association de dossier exige un nouvel enregistrement explicite.
+- Le bilan mensuel signifie que les saisies sont renseignées, sans contrôle du compte bancaire. Les documents restent facultatifs.
+- L’aperçu multi-biens est fictif et laisse les données inchangées. La version personnelle reste débloquée ; les règles commerciales ne changent pas.
+- Avis client : l’entrée par tâche et le suivi du mois rendent l’application plus accessible et plus utile au quotidien. La saisie des données réelles et la confirmation des encaissements restent un effort. L’intérêt payant est plus convaincant pour plusieurs biens et des usages récurrents que pour un bien unique stable. Aucune intention d’achat réelle n’est mesurée.
+- Prochaine priorité : stabiliser la version et recueillir des retours de personnes extérieures, plutôt qu’ajouter des écrans. La facturation réelle demeure un chantier distinct avant commercialisation.
+
+Vérifications V33 : voir `LIVRAISON_V33.md` pour la source, la compilation et les périmètres de test.
