@@ -17,6 +17,7 @@ on:
       - 'first-use.js'
       - 'client-experience.js'
       - 'client-simplicity.js'
+      - 'client-journey.js'
       - 'android-access-patch.py'
       - 'access-policy.js'
       - 'scripts/prepare-commercial.py'
@@ -99,6 +100,7 @@ jobs:
           cp rental-management.js "$(dirname "$ASSET_FILE")/rental-management.js"
           cp property-readiness.js "$(dirname "$ASSET_FILE")/property-readiness.js"
           cp client-simplicity.js "$(dirname "$ASSET_FILE")/client-simplicity.js"
+          cp client-journey.js "$(dirname "$ASSET_FILE")/client-journey.js"
           cp client-experience.js "$(dirname "$ASSET_FILE")/client-experience.js"
           cp first-use.js "$(dirname "$ASSET_FILE")/first-use.js"
           cp client-guidance.js "$(dirname "$ASSET_FILE")/client-guidance.js"
@@ -112,7 +114,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 32/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 33/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -158,6 +160,7 @@ jobs:
           node qa_cloud_sync_gate.js
           node tests/client-experience.cjs
           node tests/client-simplicity.cjs
+          node tests/client-journey.cjs
           node tests/audit-regressions.cjs
           node tests/property-readiness.cjs
           node tests/loan-simulator.cjs
@@ -190,7 +193,9 @@ jobs:
           legacy_status=$?
           node tests/simplicity-ui.cjs
           simplicity_status=$?
-          exit $((legacy_status || simplicity_status))
+          node tests/journey-ui.cjs
+          journey_status=$?
+          exit $((legacy_status || simplicity_status || journey_status))
       - name: Upload browser verification
         if: always()
         uses: actions/upload-artifact@v4
