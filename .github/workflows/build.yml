@@ -22,6 +22,10 @@ on:
       - 'help-search.js'
       - 'play-billing.js'
       - 'account-ui.js'
+      - 'legal-content.js'
+      - 'legal-ui.js'
+      - 'offer-design.js'
+      - 'scripts/export-legal.cjs'
       - 'android-billing-patch.py'
       - 'billing/**'
       - 'android-access-patch.py'
@@ -111,6 +115,9 @@ jobs:
           cp help-search.js "$(dirname "$ASSET_FILE")/help-search.js"
           cp play-billing.js "$(dirname "$ASSET_FILE")/play-billing.js"
           cp account-ui.js "$(dirname "$ASSET_FILE")/account-ui.js"
+          cp legal-content.js "$(dirname "$ASSET_FILE")/legal-content.js"
+          cp legal-ui.js "$(dirname "$ASSET_FILE")/legal-ui.js"
+          cp offer-design.js "$(dirname "$ASSET_FILE")/offer-design.js"
           cp client-experience.js "$(dirname "$ASSET_FILE")/client-experience.js"
           cp first-use.js "$(dirname "$ASSET_FILE")/first-use.js"
           cp client-guidance.js "$(dirname "$ASSET_FILE")/client-guidance.js"
@@ -124,7 +131,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 36/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 37/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -169,6 +176,7 @@ jobs:
           node qa_firebase_preflight.js
           node qa_portfolio_sync.js
           node qa_cloud_sync_gate.js
+          node tests/legal.cjs
           node tests/account-ui.cjs
           node tests/help-search.cjs
           node tests/savings.cjs
@@ -214,7 +222,9 @@ jobs:
           solo_status=$?
           node tests/navigation-ui.cjs
           navigation_status=$?
-          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status))
+          node tests/offer-ui.cjs
+          offer_status=$?
+          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status || offer_status))
       - name: Upload browser verification
         if: always()
         uses: actions/upload-artifact@v4
