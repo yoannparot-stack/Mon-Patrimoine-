@@ -68,7 +68,7 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
  };
  assert.equal(await evaluate('totalsFor(db.properties).cashNet'),580);await capture('01-dashboard','immoptima');
  // Touch the actual dashboard tile using screen coordinates derived from the DOM.
- const tap=async selector=>{
+ const tap=async (selector,recoveredSystemDialog=false)=>{
   // Scroll once before touching; wait for the physical target to stop moving.
   await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Native target missing');e.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});window.__qaTapExpected=e;window.__qaTapSelector=${JSON.stringify(selector)};window.__qaTapHit=null;if(!window.__qaTapObserved){window.__qaTapObserved=true;document.addEventListener('click',event=>{window.__qaTapHit={matches:event.composedPath().some(node=>node.matches?.(window.__qaTapSelector)),tag:event.target.tagName,text:event.target.textContent.slice(0,100)}},true)}return true})()`);
   let r,last='',stable=0;
@@ -80,7 +80,13 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim(),wait=m
   assert(activeWebView?.attached===true&&activeWebView.width>0&&Number.isFinite(activeWebView.screenX)&&Number.isFinite(activeWebView.screenY),'attached native WebView bounds');
   assert(r.x>=0&&r.x<r.w&&r.y>=0&&r.y<await evaluate('innerHeight'),'native tap target is visible: '+selector);
   const scale=activeWebView.width/r.w;adb('shell','input','tap',String(Math.round(activeWebView.screenX+r.x*scale)),String(Math.round(activeWebView.screenY+r.y*scale)));
-  await waitFor('window.__qaTapHit?.matches===true');
+  try{await waitFor('window.__qaTapHit?.matches===true')}catch(error){
+   // Recover only a proven emulator launcher ANR that intercepted this touch.
+   // An application ANR, a wrong click or a second failure still fails the test.
+   const nodes=uiNodes(),untouched=await evaluate('window.__qaTapHit===null');
+   if(!recoveredSystemDialog&&untouched&&nodes.some(n=>/Quickstep|System UI/.test(n))&&nodes.some(n=>/resource-id="android:id\/aerr_wait"|text="Wait"/.test(n))){await dismissLauncherAnr();return tap(selector,true)}
+   throw error;
+  }
  };
 
  await evaluate("showPage('immobilier');db.properties.push({...db.properties[1],id:'qa-list-third',name:'Studio · Validation liste',address:'Tours',surface:22});renderProperties();true");
