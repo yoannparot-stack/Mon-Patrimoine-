@@ -14,3 +14,5 @@ const previous=new Date(now.getFullYear(),now.getMonth()-1,15);state=A.monthStat
 const original=JSON.stringify(base);A.monthState([base],now);assert.equal(JSON.stringify(base),original);assert(A.propertyFeedback({...base,surface:20},['surface']).includes('Surface enregistrée'));assert(!A.propertyFeedback(base,['surface']).includes('Surface enregistrée'));
 assert.deepEqual(A.GOALS.map(x=>x.id),['rental','bank','complete']);
 console.log('PASS client journey: missing versus partial/zero/confirmed, duplicates, scope, calendar rollover, preserved data, truthful feedback and goals');
+
+state=A.monthState([p({occupancy:0,guidanceEnteredFields:['name','type','rentHC']})],now);assert.equal(state.rows.length,1,'an unentered occupancy converted to zero is not a declaration of vacancy');

@@ -5,7 +5,7 @@
  function monthKey(now=new Date()){return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')}
  function monthState(properties,now=new Date()){
   const month=monthKey(now),rows=[];
-  for(const p of properties||[]){if(!R.housing(p)||p.isMainResidence||p.optimization?.usage==='residence'||!(Number(p.rentHC)>0)||p.occupancy!==''&&p.occupancy!==null&&p.occupancy!==undefined&&Number(p.occupancy)===0)continue;
+  for(const p of properties||[]){if(!R.housing(p)||p.isMainResidence||p.optimization?.usage==='residence'||!R.filled(p,'rentHC')||!(Number(p.rentHC)>0)||R.filled(p,'occupancy')&&Number(p.occupancy)===0)continue;
    const records=p.rentalManagement?.payments,items=Array.isArray(records)?records.filter(x=>x&&x.month===month):[],raw=items[0];let state='unknown',record=null,documentReady=false;const dossier=p.rentalManagement?.dossier||{},dossierReady=['ownerName','ownerAddress','tenantName','address'].every(k=>String(dossier[k]||'').trim());
    if(items.length>1||records!==undefined&&!Array.isArray(records))state='invalid';else if(raw){try{record=Rental.payment(raw);state=record.type==='quittance'?'confirmed':record.type==='recu'?'partial':'zero';if(state==='confirmed'){try{Rental.receipt(raw,raw.identity||p.rentalManagement?.dossier||{});documentReady=true}catch{}}}catch{state='invalid'}}
    const labels={unknown:'Encaissement à renseigner ou à vérifier',invalid:'Entrée à vérifier',zero:'Montant nul renseigné : à vérifier',partial:'Paiement partiel renseigné : solde à vérifier',confirmed:'Encaissement intégral confirmé'};
