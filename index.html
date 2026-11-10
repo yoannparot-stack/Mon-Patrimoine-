@@ -1862,7 +1862,7 @@ function immoptimaAccountInformation(){
  if(confirm('Se connecter avec Google ? La sauvegarde automatique du patrimoine dans Firebase peut être activée après votre accord.'))window.AndroidBridge.immoptimaSignIn();
 }
 function showImmoptimaWelcome(){
- if(!db.properties.length&&!db.assets.length){window.ioClientDashboard?.();return;}
+ if(!db.properties.length&&!db.assets.length){try{localStorage.setItem('immoptima_welcome_v1','seen')}catch{}window.ioClientDashboard?.();return;}
  if(immoptimaAuthState.status==='signed_in')return;
  if(localStorage.getItem('immoptima_welcome_v1')==='seen')return;
  const overlay=document.createElement('div');
