@@ -27,3 +27,9 @@ La page reprend cette palette et cette hiérarchie : résultat estimé en tête,
 ## Références déjà validées à conserver
 
 Dashboard : frise C. Biens : liste B et fiche A. Mon compte : organisation B, avec mise en avant Premium signature 3. Épargne : cartes mobiles. Banque, Marché, Optimisation et fenêtres associées : continuité de ces cartes, couleurs et boutons, avec informations comparables côte à côte lorsque possible.
+
+## Accueil initial — V39
+
+Le visuel immersif 3 et les étapes verticales 2 sont validés. Titre exact : « Le pilotage complet de votre patrimoine ». Description : « Centralisez vos informations, découvrez votre bilan et identifiez les leviers pour mieux piloter votre patrimoine. » La signature « Un seul outil pour tout votre patrimoine » doit ressortir sous le logo, avec davantage de contraste et une touche turquoise.
+
+Les trois étapes sont visibles dès l’arrivée : ajouter son patrimoine, compléter ses informations et découvrir son bilan. Le guidage propose bien immobilier ou épargne. L’exemple est fictif et en lecture seule ; il ne charge pas de patrimoine dans les données de l’utilisateur. L’import et les textes juridiques restent accessibles depuis l’accueil. Les données déjà présentes ne sont pas remplacées par le parcours de bienvenue.
