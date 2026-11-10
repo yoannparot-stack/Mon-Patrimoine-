@@ -16,6 +16,7 @@
  const key=k=>'immoptima_solo_'+k+'_v1:'+session();
  function read(k){try{return JSON.parse(localStorage.getItem(key(k))||'null')}catch{return null}}
  function write(k,v){localStorage.setItem(key(k),JSON.stringify(v))}
+ root.ioSoloClearDrafts=function(){clearTimeout(draftTimer);try{for(const k of Object.keys(localStorage))if(k.startsWith('immoptima_solo_draft_v1:'))localStorage.removeItem(k)}catch{}};
  function close(){clearTimeout(draftTimer);const el=document.getElementById('ioSolo');if(el)el.hidden=true;before?.focus({preventScroll:true})}
  function modal(title,body){root.ioGuidanceClose?.();let el=document.getElementById('ioSolo');if(!el){el=document.createElement('div');el.id='ioSolo';el.className='backup-choices';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el)}el.classList.remove('io-offer-mode');before=document.activeElement;modalSession=session();el.setAttribute('aria-label',title);el.innerHTML='<div class="backup-choices-panel"><div class="section-title"><h2>'+esc(title)+'</h2><button class="secondary" type="button" data-solo-close aria-label="Fermer">✕</button></div>'+body+'</div>';el.hidden=false;el.querySelector('[data-solo-close]').onclick=close;el.querySelector('button').focus({preventScroll:true});return el}
  const current=pid=>db.properties.find(p=>p.id===pid);

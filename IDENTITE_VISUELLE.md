@@ -33,3 +33,9 @@ Dashboard : frise C. Biens : liste B et fiche A. Mon compte : organisation B, av
 Le visuel immersif 3 et les étapes verticales 2 sont validés. Titre exact : « Le pilotage complet de votre patrimoine ». Description : « Centralisez vos informations, découvrez votre bilan et identifiez les leviers pour mieux piloter votre patrimoine. » La signature « Un seul outil pour tout votre patrimoine » doit ressortir sous le logo, avec davantage de contraste et une touche turquoise.
 
 Les trois étapes sont visibles dès l’arrivée : ajouter son patrimoine, compléter ses informations et découvrir son bilan. Le guidage propose bien immobilier ou épargne. L’exemple est fictif et en lecture seule ; il ne charge pas de patrimoine dans les données de l’utilisateur. L’import et les textes juridiques restent accessibles depuis l’accueil. Les données déjà présentes ne sont pas remplacées par le parcours de bienvenue.
+
+## Première ouverture et Mon compte — V40
+
+Page de découverte validée avant les onglets : logo complet toit/barres/courbe, mot-symbole en dégradé cyan/vert et photo d’immeuble de la plaquette. Choix entre découverte et Premium ; tarifs 3,99 € / mois et 39,99 € / an. Le choix est une préférence de navigation, jamais une attribution de droits. Consulter une offre ou choisir la découverte ne lance ni achat ni essai automatique. L’activation de l’essai reste volontaire après connexion ; les achats restent désactivés tant que la préparation commerciale n’est pas finalisée.
+
+Menu « Mon espace » : bandeau bleu nuit/bleu avec logo, trois accès illustrés en lignes, analyses avancées repliables et groupe Mes données avec sauvegarde/import. Mon compte : sauvegardes mises en avant, informations d’état et dates réelles, trois réglages illustrés et textes juridiques accessibles. Les statuts ne sont pas ceux d’une maquette : l’état confirmé dépend du compte connecté et de la réponse cloud effective.

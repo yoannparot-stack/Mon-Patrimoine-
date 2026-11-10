@@ -563,8 +563,9 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 #parametres>.io-premium-signature{background:linear-gradient(135deg,#0667dc 0%,#0748a4 53%,#101744 100%);color:white;border:0;padding:20px;border-radius:18px}.io-premium-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}#parametres .io-premium-heading h3{color:white;font-size:27px;font-weight:850;line-height:1.08;margin:0}.io-premium-heading svg{width:82px;flex:0 0 82px}#parametres .io-premium-signature h4{font-size:19px;line-height:1.3;margin:10px 0;color:white}#parametres .io-premium-signature p{color:white;font-size:12px;line-height:1.5;margin:9px 0 14px}.io-premium-prices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.io-premium-prices>div{background:#0665d9;border:1px solid #ffffff26;border-radius:13px;padding:13px 6px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-width:0}.io-premium-prices strong{font-size:clamp(25px,8vw,40px);line-height:1.1;white-space:nowrap;letter-spacing:-1px;font-weight:850}.io-premium-prices span{font-size:16px;font-weight:700;margin-top:5px}.io-premium-prices .io-premium-annual{background:linear-gradient(135deg,#d6ffe9,#95efd2);color:#131e43}.io-premium-prices small{background:#a3f4cc;border-radius:20px;margin-top:9px;padding:5px 3px;font-size:9px;font-weight:750;line-height:1.3}#parametres .io-premium-signature>button{width:100%;background:white;color:#121c43;font-size:15px;font-weight:800;margin-top:13px;border:0}#parametres .io-premium-signature .io-premium-price-note{font-size:9px;text-align:center;margin:9px 0 0;line-height:1.5;color:#e0ebff}#parametres>#ioAccountPlan{background:#effaf6;border:1px solid #d0eee2;color:#174a3e;padding:13px}#ioAccountPlan .io-account-plan-heading h3{color:#174a3e;font-size:13px}#ioAccountPlan .io-account-plan-heading span{color:#174a3e;background:#d3f4e6}#ioAccountPlan h4{color:#174a3e;font-size:17px;margin:10px 0 5px}#ioAccountPlan p{color:#315f53!important;font-size:11px}#ioAccountPlan button{font-size:12px;background:white;color:#0758bf;border:1px solid #cfe2df;margin-top:7px}#ioAccountPlan #ioAccountCheck{color:#0758bf;background:white}#ioAccountPlan :focus-visible{outline-color:#075fce}
 #projection{max-width:680px;margin:0 auto}#projection>h2{font-size:24px;margin-bottom:13px}#projection>.card{margin:12px 0;padding:15px;border-radius:16px}.io-projection-hero{border-radius:18px;padding:19px;background:linear-gradient(135deg,#0765d7,#083c83 55%,#101b43);color:white}.io-projection-kicker{font-size:9px;font-weight:750;letter-spacing:.5px;display:flex;justify-content:space-between;gap:10px;align-items:center}.io-projection-kicker span{background:#d5faed;color:#134941;padding:5px 9px;border-radius:20px;letter-spacing:0;white-space:nowrap}.io-projection-hero h3{font-size:23px;line-height:1.2;margin:12px 0 5px;color:white}.io-projection-hero>p{font-size:12px;line-height:1.5;margin:5px 0 13px;color:#dbe9ff}.io-projection-main small{display:block;font-size:12px;color:#dbe9ff}.io-projection-main strong{display:block;font-size:clamp(28px,8.5vw,40px);font-weight:800;margin-top:3px;overflow-wrap:anywhere;color:#a2f1d6}.io-projection-repers{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #ffffff26;margin-top:13px;padding-top:11px}.io-projection-repers small{font-size:10px;display:block;color:#dbe9ff}.io-projection-repers b{display:block;font-size:16px;margin-top:4px;overflow-wrap:anywhere}.io-projection-hero .io-projection-disclaimer{font-size:10px;margin:12px 0 0;color:#dbe9ff}.io-projection-chart-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.io-projection-chart-title h3{font-size:15px;margin:0 0 10px;color:#142343}.io-projection-chart-title span{font-size:10px;color:#087a78;background:#e4f9f2;padding:5px 8px;border-radius:20px;white-space:nowrap}#projectionChart{display:block;width:100%;height:200px}#projection summary{cursor:pointer;font-size:15px;font-weight:750;color:#142343;min-height:32px;line-height:1.4}#projection summary span{display:block;font-size:11px;font-weight:400;color:#60718b;margin:4px 0 0 18px}#projection .io-projection-inputs{margin-top:12px}#projection .io-projection-inputs .notice{font-size:11px;line-height:1.5;background:#edf7fd;color:#38566f;margin-bottom:3px;padding:10px;border-radius:10px}#projection .io-projection-inputs input,#projection .io-projection-inputs select{background:#f8fbfe;border-color:#d5e2ef;border-radius:10px}#projection .io-projection-inputs>.primary{border:0;background:linear-gradient(110deg,#0764d4,#087eac);border-radius:11px;font-weight:750}#projectionTable .hint{font-size:11px;line-height:1.5}#projection details[open]>summary{margin-bottom:8px}@media(min-width:750px){#projection .io-projection-inputs>.primary{width:100%;min-height:44px}}
 </style>
+<style>body.io-entry-checking>header,body.io-entry-checking>main,body.io-entry-checking>#nav{visibility:hidden}</style>
 </head>
-<body>
+<body class="io-entry-checking">
 <header>
   <div class="top"><div><h1>Imm<span>Optima</span></h1><small>Un seul outil pour tout votre patrimoine</small></div><button class="io-account" type="button" onclick="showPage('parametres')" aria-label="Mon compte et mes sauvegardes">⌁</button><div class="actions header-backup-actions"><button type="button" class="secondary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div></div>
   <nav id="nav"></nav>
@@ -706,7 +707,7 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
   <details class="card io-account-settings" id="ioAccountPersonalize"><summary>Personnaliser mon espace</summary><h3>Nom du tableau</h3><div class="field"><label for="appName">Nom de votre espace</label><input id="appName"></div><button class="primary" onclick="saveSettings()">Enregistrer</button><h3>Détenteurs des biens</h3><p>Personnes ou sociétés qui détiennent vos biens. Un détenteur par ligne.</p><div class="field"><label for="holderList">Liste des détenteurs</label><textarea id="holderList" rows="5" placeholder="Ex. : Personne, société, SCI…"></textarea></div><button class="primary" onclick="saveHolders()">Enregistrer les détenteurs</button><p class="hint">Les détenteurs déjà affectés à un bien restent visibles pour conserver leur identification.</p></details>
   <details class="card io-account-settings" id="ioAccountData"><summary>Données et confidentialité</summary><p>Effacer les données de cet appareil ne supprime pas votre compte ni les copies sauvegardées. Exportez une sauvegarde avant toute suppression.</p><button type="button" class="danger" onclick="resetAll()">Effacer les données de cet appareil</button></details>
   <details class="card io-account-settings" id="ioAccountDemo"><summary>Essayer avec des données fictives</summary><p>Données 100 % fictives, ajoutées uniquement sur demande. Un seul bien est créé. Sauvegardez vos vraies données avant tout test.</p><div class="actions"><button class="secondary" onclick="installDemoData()">Charger le patrimoine fictif</button><button class="danger" onclick="removeDemoData()">Supprimer les données fictives</button></div></details>
-  <p class="io-account-version">ImmOptima · version de test V39</p>
+  <p class="io-account-version">ImmOptima · version de test V40</p>
 </section>
 </main>
 <footer>Prototype commercial — les données patrimoniales restent locales sur cet appareil. Le moteur marché n'envoie que les informations immobilières strictement nécessaires aux sources publiques.</footer>
@@ -730,6 +731,7 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
 <script src="help-search.js" defer></script>
 <script src="play-billing.js" defer></script>
 <script src="account-ui.js" defer></script>
+<script src="presentation-ui.js" defer></script>
 <script>
 const KEY='mon_patrimoine_v13_1_clean';
 // Internal validation build: no purchase or subscription required.
@@ -1833,13 +1835,13 @@ function immoptimaCloudUpdateStatus(){
  if(connected){
   if(immoptimaCloudState.error)status='Erreur : '+immoptimaCloudState.error;
   else if(immoptimaCloudState.busy)status='Synchronisation en cours…';
-  else if(!immoptimaCloudState.loaded)status='Vérification Firebase nécessaire';
+  else if(!immoptimaCloudState.loaded)status='Vérification du compte nécessaire';
   else if(!meta.uploadConsent)status='Autorisation de sauvegarde nécessaire';
   else if(meta.dirty)status='Modifications en attente de sauvegarde';
   else if(meta.lastSavedAt)status='Sauvegarde automatique active';
   else status='Connecté — première sauvegarde à confirmer';
  }
- cloud.textContent='Sauvegarde Firebase : '+status;
+ cloud.textContent='Sauvegarde du compte : '+status;
  last.textContent='Dernière sauvegarde confirmée : '+(meta.lastSavedAt?new Date(meta.lastSavedAt).toLocaleString('fr-FR'):'aucune');
  window.ioAccountRefresh?.();
 }
@@ -2014,7 +2016,7 @@ function removeDemoData(){
  if(!db.properties.some(p=>p.holder==='Détenteur fictif'))db.settings.holders=(db.settings.holders||[]).filter(h=>h!=='Détenteur fictif');
  save();alert('Données fictives supprimées.');
 }
-function resetAll(){if(confirm('ATTENTION : toutes les données locales seront effacées. Continuer ?')){window.ioSimpClearDrafts?.();closeForm('propertyFormWrap');closeForm('loanFormWrap');localStorage.removeItem(KEY);db=structuredClone(empty);renderAll()}}
+function resetAll(){if(confirm('ATTENTION : toutes les données locales seront effacées. Continuer ?')){window.ioSimpClearDrafts?.();window.ioSoloClearDrafts?.();closeForm('propertyFormWrap');closeForm('loanFormWrap');localStorage.removeItem(KEY);localStorage.removeItem('immoptima_entry_v1');db=structuredClone(empty);renderAll();window.ioDiscoveryMaybe?.(true)}}
 
 window.addEventListener('resize',()=>{drawHistory();if(document.getElementById('projection').classList.contains('active'))renderProjection()});
 db=load();
