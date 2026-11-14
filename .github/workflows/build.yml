@@ -23,6 +23,10 @@ on:
       - 'play-billing.js'
       - 'account-ui.js'
       - 'presentation-ui.js'
+      - 'account-deletion-ui.js'
+      - 'android-account-deletion-patch.py'
+      - 'account-deletion/**'
+      - 'public-account/**'
       - 'legal-content.js'
       - 'legal-ui.js'
       - 'offer-design.js'
@@ -116,6 +120,7 @@ jobs:
           cp help-search.js "$(dirname "$ASSET_FILE")/help-search.js"
           cp play-billing.js "$(dirname "$ASSET_FILE")/play-billing.js"
           cp account-ui.js "$(dirname "$ASSET_FILE")/account-ui.js"
+          cp account-deletion-ui.js "$(dirname "$ASSET_FILE")/account-deletion-ui.js"
           cp presentation-ui.js "$(dirname "$ASSET_FILE")/presentation-ui.js"
           cp legal-content.js "$(dirname "$ASSET_FILE")/legal-content.js"
           cp legal-ui.js "$(dirname "$ASSET_FILE")/legal-ui.js"
@@ -133,7 +138,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 40/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 41/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -157,6 +162,7 @@ jobs:
           python3 android-rental-patch.py "$ROOT"
           python3 android-ux-patch.py "$ROOT"
           python3 android-billing-patch.py "$ROOT"
+          python3 android-account-deletion-patch.py "$ROOT"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -226,7 +232,9 @@ jobs:
           navigation_status=$?
           node tests/offer-ui.cjs
           offer_status=$?
-          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status || offer_status))
+          node tests/account-deletion-ui.cjs
+          deletion_status=$?
+          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status || offer_status || deletion_status))
       - name: Upload browser verification
         if: always()
         uses: actions/upload-artifact@v4

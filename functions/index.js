@@ -22,7 +22,7 @@ exports.rentalComparables=onRequest({region:'europe-west1',secrets:[vendorToken]
  const day=new Date().toISOString().slice(0,10),userRef=db.doc('rentalQuota/'+createHash('sha256').update(uid+day).digest('hex')),globalRef=db.doc('rentalQuota/global-'+day);
  try{
   await db.runTransaction(async tx=>{
-   const [u,g]=await Promise.all([tx.get(userRef),tx.get(globalRef)]),user=u.data()||{},global=g.data()||{},now=Date.now();
+   const [u,g,deleting]=await Promise.all([tx.get(userRef),tx.get(globalRef),tx.get(db.doc('accountDeletions/'+uid))]);if(deleting.exists)throw Object.assign(Error(),{code:'DELETING'});const user=u.data()||{},global=g.data()||{},now=Date.now();
    const limit=Math.max(0,Math.min(1000,Number(cfg.dailyProviderCalls)||0)),perUser=Math.max(0,Math.min(20,Number(cfg.dailyCollectionsPerUser)||0));
    if(user.lockUntil>now)throw Object.assign(Error(),{code:'BUSY'});
    if((user.collections||0)>=perUser||(global.calls||0)+core.MAX_CALLS>limit)throw Object.assign(Error(),{code:'QUOTA'});
@@ -38,3 +38,6 @@ exports.rentalComparables=onRequest({region:'europe-west1',secrets:[vendorToken]
 
 // Disabled by billingService/config until Play Console and server access are configured.
 Object.assign(exports,require('./play-billing.cjs'));
+
+// Account deletion endpoints remain disabled until deployment and publisher review.
+Object.assign(exports,require('./account-deletion.cjs'));

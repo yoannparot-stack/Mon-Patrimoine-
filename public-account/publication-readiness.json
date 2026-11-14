@@ -1,0 +1,21 @@
+{
+  "version": "2026-11-14-v2",
+  "ready": false,
+  "missing": [
+    "Identité de l’éditeur",
+    "Statut de l’éditeur",
+    "Identification professionnelle",
+    "Adresse professionnelle",
+    "Contact d’assistance et de confidentialité",
+    "Téléphone professionnel",
+    "Responsable de publication",
+    "Hébergement et localisation",
+    "Durées de conservation",
+    "Transferts et garanties",
+    "Médiateur de la consommation",
+    "Page publique de confidentialité",
+    "Page publique de suppression du compte",
+    "Suppression du compte et des données vérifiée",
+    "Textes relus et approuvés pour publication"
+  ]
+}

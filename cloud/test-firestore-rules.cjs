@@ -27,7 +27,7 @@ require('firebase/compat/firestore');
   await assertFails(doc.delete());
   await assertFails(owner.doc('users/owner/portfolios/other').set(create));
   // Paid collection must never be enabled or its quotas reset by an APK client.
-  for(const adminPath of ['rentalService/config','rentalAccess/owner','rentalQuota/global-2026-11-01','billingService/config','playPurchases/token-hash']){
+  for(const adminPath of ['rentalService/config','rentalAccess/owner','rentalQuota/global-2026-11-01','billingService/config','playPurchases/token-hash','deletionService/config','accountDeletions/other']){
    await env.withSecurityRulesDisabled(async context=>context.firestore().doc(adminPath).set({enabled:true,calls:4}));
    for(const client of [owner,intruder,anon]){
     await assertFails(client.doc(adminPath).get());
@@ -70,6 +70,11 @@ require('firebase/compat/firestore');
   await provision({status:'active',expiresAt:'2099-01-01'});await assertFails(doc.set({...multi,revision:4}));
   await provision({owner:true});await assertSucceeds(doc.set({...multi,revision:4}));
   await assertFails(owner.doc(accessPath).update({owner:false}));await assertFails(owner.doc(accessPath).delete());
+  await env.withSecurityRulesDisabled(async c=>c.firestore().doc('accountDeletions/owner').set({status:'pending'}));
+  for(const path of ['users/owner','users/owner/portfolios/current','accountAccess/owner','rentalTrials/owner','rentalTrials/owner/access/current'])await assertFails(env.authenticatedContext('owner').firestore().doc(path).get({source:'server'}));
+  await assertFails(env.authenticatedContext('owner').firestore().doc('users/owner/portfolios/current').set({...multi,revision:5}));
+  await assertFails(owner.doc('accountDeletions/owner').get());await assertFails(owner.doc('accountDeletions/owner').delete());
+  console.log('PASS deletion lock: even existing owner tokens cannot read, write, activate or recreate deleted account data');
   console.log('PASS server access: free multi denied; active future entitlement and owner allowed; expired, cancelled, malformed and client forgery denied');
   console.log('PASS Firestore emulator: owner isolation, sequential revision, deletion guard');
   console.log('PASS Firestore emulator: rental service activation, entitlements and quota counters are admin-only');

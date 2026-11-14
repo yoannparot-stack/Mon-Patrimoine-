@@ -1,11 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function accountAvailable(uid) {
+      return !exists(/databases/$(database)/documents/accountDeletions/$(uid));
+    }
     // Deny everything by default. Only authenticated owners can read/write
     // their own account-scoped documents. Never use public test-mode rules.
     match /users/{userId} {
-      allow read, delete: if request.auth != null && request.auth.uid == userId;
-      allow create, update: if request.auth != null && request.auth.uid == userId
+      allow read: if request.auth != null && request.auth.uid == userId && accountAvailable(userId);
+      allow create, update: if request.auth != null && request.auth.uid == userId && accountAvailable(userId)
         && request.resource.data.keys().hasOnly(['createdAt','updatedAt','displayName'])
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() <= 120;
@@ -13,19 +16,19 @@ service cloud.firestore {
     // Access is provisioned by Admin SDK / verified billing only. An APK, backup,
     // profile field or email cannot grant owner or subscription status.
     match /accountAccess/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId && multiAccess(userId);
+      allow read: if request.auth != null && request.auth.uid == userId && accountAvailable(userId) && multiAccess(userId);
       allow write: if false;
     }
     // One explicit server-timestamp activation per account; no reset, extension
     // or imported client date. This never grants multi-property access.
     match /rentalTrials/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId
+      allow read: if request.auth != null && request.auth.uid == userId && accountAvailable(userId);
+      allow create: if request.auth != null && request.auth.uid == userId && accountAvailable(userId)
         && request.resource.data.keys().hasOnly(['startedAt'])
         && request.resource.data.startedAt == request.time;
       allow update, delete: if false;
       match /access/{probeId} {
-        allow read: if request.auth != null && request.auth.uid == userId
+        allow read: if request.auth != null && request.auth.uid == userId && accountAvailable(userId)
           && probeId == 'current' && trialActive(userId);
         allow write: if false;
       }
@@ -44,9 +47,9 @@ service cloud.firestore {
          get(path).data.get('expiresAt', request.time) > request.time));
     }
     match /users/{userId}/portfolios/{portfolioId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId && accountAvailable(userId);
       function validWrite() {
-        return request.auth != null && request.auth.uid == userId
+        return request.auth != null && request.auth.uid == userId && accountAvailable(userId)
         && portfolioId == 'current'
         && request.resource.data.keys().hasOnly(['schemaVersion','revision','updatedAt','payload'])
         && request.resource.data.schemaVersion is int

@@ -7,3 +7,5 @@ assert.throws(()=>A.html('other'));assert.equal(A.ready({...A.config,approvedFor
 assert(A.missing({...A.config,supportEmail:'wrong'}).includes('Contact d’assistance et de confidentialité'));
 assert(A.missing({...A.config,privacyUrl:'javascript:alert(1)'}).includes('Page publique de confidentialité'));
 console.log('PASS legal drafts: missing identity, deletion and publication blockers; no invented contact, safe HTML and canonical export');
+assert(A.html('subscription').includes('39,99 €'));assert(A.html('subscription').includes('7,89 €'));assert(!A.html('subscription').includes('formule annuelle reste à confirmer'));
+assert(A.documents().privacy.sections.some(s=>s.paragraphs.some(p=>p.includes('24 heures'))));
