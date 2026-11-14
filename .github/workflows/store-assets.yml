@@ -1,0 +1,27 @@
+name: Prepare ImmOptima store screenshots
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/store-assets.yml'
+      - 'scripts/store-assets.cjs'
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare beta sources and actual mobile captures
+        run: |
+          python3 scripts/prepare-beta.py store-prepared
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node scripts/store-assets.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ImmOptima-Store-Screenshots
+          path: store-assets/
+          if-no-files-found: error
