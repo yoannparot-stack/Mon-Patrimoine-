@@ -9,9 +9,8 @@ function env(channel='commercial',allowed=false){
  ctx.window=ctx;ctx.AndroidBridge={immoptimaAccessCheck(requestId){queueMicrotask(()=>ctx.immoptimaNativeAccessResult({requestId,uid:'a',allowed,expiresAt:Date.now()+3600000}))}};
  ctx.FileReader=class{readAsText(f){this.result=f.text;ctx.pendingRead=this.onload()}};
  vm.createContext(ctx);vm.runInContext(slice('function ioValidatePortfolio(', 'function normalizeHolder('),ctx);vm.runInContext("const IMMOPTIMA_BUILD_CHANNEL='"+channel+"';"+slice('const ioAccessPending=new Map();','const DEFAULT_HOLDERS='),ctx);
- for(const [a,b] of [['async function immoptimaRecoverBeforeRestore(){','async function immoptimaRestoreFromDriveBase64'],['async function immoptimaRestoreFromDriveBase64','function listPrivateDriveBackups'],['function importData(e){','function installDemoData']]){
-  let source=slice(a,b);if(a.startsWith('function importData'))source=source.split('\n')[0];vm.runInContext(source,ctx);
- }
+ vm.runInContext(slice('const IO_RECOVERY_KEYS=', 'function listPrivateDriveBackups'),ctx);
+ vm.runInContext(slice('function importData(e){', 'const DEMO_MARK='),ctx);
  vm.runInContext(slice('window.immoptimaNativeCloudResult=async function(event){',"window.addEventListener('online'"),ctx);
  return {ctx,store,data,alerts};
 }
