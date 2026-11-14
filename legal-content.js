@@ -1,8 +1,8 @@
 /* Shared, versioned legal drafts. No invented publisher or privacy promises. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ImmOptimaLegal=api})(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
- const VERSION='2026-11-14-v2';
- const config=Object.freeze({publisherName:'',legalStatus:'',registration:'',postalAddress:'',supportEmail:'',phone:'',publicationDirector:'',hostingDetails:'',retentionPolicy:'',transferSafeguards:'',mediatorDetails:'',privacyUrl:'',deletionUrl:'',deletionVerified:false,approvedForPublication:false});
+ const VERSION='2026-11-14-v3';
+ const config=Object.freeze({publisherName:'',legalStatus:'',registration:'',postalAddress:'',supportEmail:'immoptima12@gmail.com',phone:'',publicationDirector:'',hostingDetails:'',retentionPolicy:'',transferSafeguards:'',mediatorDetails:'',privacyUrl:'',deletionUrl:'',deletionVerified:false,approvedForPublication:false});
  const required={publisherName:'Identité de l’éditeur',legalStatus:'Statut de l’éditeur',registration:'Identification professionnelle',postalAddress:'Adresse professionnelle',supportEmail:'Contact d’assistance et de confidentialité',phone:'Téléphone professionnel',publicationDirector:'Responsable de publication',hostingDetails:'Hébergement et localisation',retentionPolicy:'Durées de conservation',transferSafeguards:'Transferts et garanties',mediatorDetails:'Médiateur de la consommation',privacyUrl:'Page publique de confidentialité',deletionUrl:'Page publique de suppression du compte'};
  const email=s=>typeof s==='string'&&/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(s);
  const https=s=>{try{const u=new URL(s);return u.protocol==='https:'&&!u.username&&!u.password&&!!u.hostname}catch{return false}};

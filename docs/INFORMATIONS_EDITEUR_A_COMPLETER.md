@@ -7,7 +7,7 @@ Préparation du 14 novembre 2026. Aucune identité ni adresse personnelle n’a 
 - Statut retenu pour commercialiser : personne physique/entreprise, forme juridique le cas échéant.
 - Identité ou dénomination publique de l’éditeur ; identification professionnelle applicable (SIREN/SIRET, registre et TVA selon la situation).
 - Adresse professionnelle à publier, téléphone professionnel et responsable de publication.
-- Adresse d’assistance et de confidentialité opérationnelle ; ne pas fournir de mot de passe.
+- Adresse d’assistance et de confidentialité confirmée par l’éditeur : **immoptima12@gmail.com**. L’envoi et la réception n’ont pas été testés ici ; ne pas fournir de mot de passe.
 - Pays de commercialisation ; tarifs validés : 3,99 €/mois et 39,99 €/an.
 - Médiateur compétent et coordonnées après mise en place effective du dispositif, selon le statut et l’offre.
 

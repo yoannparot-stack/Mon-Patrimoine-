@@ -50,3 +50,7 @@ Connexion et inscription du propriétaire à Play Console ; type de compte à co
 - https://support.google.com/googleplay/android-developer/answer/14151465?hl=fr
 - https://support.google.com/googleplay/android-developer/answer/13849271?hl=fr
 - https://support.google.com/googleplay/android-developer/answer/9842756?hl=fr
+
+## Contact dédié confirmé
+
+Assistance, confidentialité et retours des testeurs : **immoptima12@gmail.com**. Adresse communiquée par l’éditeur après création. Aucun e-mail de test n’a été envoyé et la livraison n’est pas certifiée. Ne pas considérer cette adresse comme un changement du propriétaire du compte Play Console.
