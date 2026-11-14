@@ -140,7 +140,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 41/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 43/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -305,6 +305,7 @@ jobs:
         run: |
           node tests/beta-preparation.cjs beta-prepared
           node tests/beta-ui.cjs beta-prepared
+          node tests/customer-backup-ui.cjs beta-prepared
 
       - name: Build release bundle for future Google Play beta
         env:
@@ -317,16 +318,16 @@ jobs:
           umask 077
           ROOT="$(dirname "$(find android-project -name settings.gradle -print -quit)")"
           cp beta-prepared/* "$ROOT/app/src/main/assets/"
-          sed -i "s/versionCode 41/versionCode 42/; s/1.3.2-preview/1.3.2-beta42/" "$ROOT/app/build.gradle"
+          sed -i "s/versionCode 43/versionCode 44/; s/1.3.2-preview/1.3.2-beta44/" "$ROOT/app/build.gradle"
           gradle -p "$ROOT" :app:bundleRelease --stacktrace
           mkdir -p beta-out
-          cp "$ROOT/app/build/outputs/bundle/release/app-release.aab" beta-out/ImmOptima-Beta-Google-Play-v42.aab
+          cp "$ROOT/app/build/outputs/bundle/release/app-release.aab" beta-out/ImmOptima-Beta-Google-Play-v44.aab
           KEYSTORE="$RUNNER_TEMP/immoptima-beta-upload.jks"
           trap 'rm -f "$KEYSTORE"' EXIT
           printf '%s' "$IMMOPTIMA_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
-          jarsigner -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -keypass:env IMMOPTIMA_KEY_PASSWORD beta-out/ImmOptima-Beta-Google-Play-v42.aab "$IMMOPTIMA_KEY_ALIAS"
-          jarsigner -verify beta-out/ImmOptima-Beta-Google-Play-v42.aab
-          keytool -printcert -jarfile beta-out/ImmOptima-Beta-Google-Play-v42.aab > beta-out/upload-certificate.txt
+          jarsigner -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -keypass:env IMMOPTIMA_KEY_PASSWORD beta-out/ImmOptima-Beta-Google-Play-v44.aab "$IMMOPTIMA_KEY_ALIAS"
+          jarsigner -verify beta-out/ImmOptima-Beta-Google-Play-v44.aab
+          keytool -printcert -jarfile beta-out/ImmOptima-Beta-Google-Play-v44.aab > beta-out/upload-certificate.txt
           cp beta-prepared/beta-build.json beta-out/
           python3 scripts/check-beta-bundle.py "$ROOT" beta-out
           sha256sum beta-out/*.aab > beta-out/SHA256SUMS.txt

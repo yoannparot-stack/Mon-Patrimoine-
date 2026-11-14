@@ -703,11 +703,11 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
   </section>
   <div class="card io-account-plan" id="ioAccountPlan"><div class="io-account-plan-heading"><h3>Mon abonnement</h3><span data-account-badge>ACCÈS À VÉRIFIER</span></div><h4 data-account-title>Retrouvez votre offre</h4><p data-account-detail role="status" aria-live="polite">Vérifiez votre accès pour afficher son état.</p><button class="secondary" type="button" data-account-action>Découvrir le suivi Premium</button><button class="secondary" type="button" id="ioAccountCheck">Vérifier mon accès</button></div>
   <details class="card io-account-offer" id="ioAccountOffer"><summary><span id="ioAccountOfferNote">Offre Premium</span><b>Comprendre le Premium et l’essai</b><small id="ioAccountPreviewPrice" hidden>3,99 € / mois ou 39,99 € / an · tarifs de présentation</small></summary><p>Retrouvez les encaissements, les quittances, les échéances et le récapitulatif annuel de vos saisies.</p><p><b>90 jours d’essai pour un bien</b>, sur activation volontaire. Sans prélèvement automatique. Le multi-biens nécessite un abonnement actif pour les clients.</p><div class="actions"><button class="secondary" type="button" onclick="ioSoloShowPremium()">Voir les avantages et l’essai</button><button class="secondary" type="button" data-account-billing>Offres et gestion Google Play</button></div></details>
-  <div class="card io-account-backups" id="ioAccountBackups"><h3>Mes sauvegardes</h3><p id="immoptimaCloudStatus" role="status" aria-live="polite">Sauvegarde Firebase : en attente</p><p id="immoptimaCloudLastSaved" class="muted">Dernière sauvegarde confirmée : aucune</p><div class="io-account-backup-actions"><button type="button" class="secondary" onclick="immoptimaCloudCheckNow()">Vérifier</button><button type="button" class="primary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Restaurer</button></div><p class="hint" id="backupStatus" role="status" aria-live="polite">Vérifiez la confirmation de sauvegarde avant de changer de téléphone.</p><input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importData(event)"><details class="io-account-save-help"><summary>Comprendre mes sauvegardes</summary><p>Votre patrimoine est enregistré sur cet appareil. Les sauvegardes et, lorsqu’elle est activée, la synchronisation du compte créent des copies distinctes. Une sauvegarde cloud n’est confirmée qu’après réponse de Firebase. Les sauvegardes locales et Google Drive restent disponibles. Conservez un fichier JSON avant de changer de téléphone ou de désinstaller l’application.</p></details></div>
+  <div class="card io-account-backups" id="ioAccountBackups"><h3>Mes sauvegardes</h3><p id="immoptimaCloudStatus" role="status" aria-live="polite">Sauvegarde Firebase : en attente</p><p id="immoptimaCloudLastSaved" class="muted">Dernière sauvegarde confirmée : aucune</p><div class="io-account-backup-actions"><button type="button" class="secondary" onclick="immoptimaCloudCheckNow()">Vérifier</button><button type="button" class="primary" onclick="openBackupOptions()">Sauvegarder</button><button type="button" class="secondary" onclick="document.getElementById('importFile').click()">Restaurer</button></div><p class="hint" id="backupStatus" role="status" aria-live="polite">Vérifiez la confirmation de sauvegarde avant de changer de téléphone.</p><input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importData(event)"><details class="io-account-save-help" ontoggle="if(this.open)ioBackupRecoveryRefresh()"><summary>Récupérer une copie de secours</summary><p class="hint">Pour retrouver les données présentes avant un import ou une restauration. Ces copies restent uniquement sur cet appareil et ne remplacent pas un fichier JSON exporté.</p><div id="ioRecoveryCopies" class="backup-choice-actions"></div></details><details class="io-account-save-help"><summary>Comprendre mes sauvegardes</summary><p>Votre patrimoine est enregistré sur cet appareil. Les sauvegardes et, lorsqu’elle est activée, la synchronisation du compte créent des copies distinctes. Une sauvegarde cloud n’est confirmée qu’après réponse de Firebase. Les sauvegardes locales et Google Drive restent disponibles. Conservez un fichier JSON avant de changer de téléphone ou de désinstaller l’application.</p></details></div>
   <details class="card io-account-settings" id="ioAccountPersonalize"><summary>Personnaliser mon espace</summary><h3>Nom du tableau</h3><div class="field"><label for="appName">Nom de votre espace</label><input id="appName"></div><button class="primary" onclick="saveSettings()">Enregistrer</button><h3>Détenteurs des biens</h3><p>Personnes ou sociétés qui détiennent vos biens. Un détenteur par ligne.</p><div class="field"><label for="holderList">Liste des détenteurs</label><textarea id="holderList" rows="5" placeholder="Ex. : Personne, société, SCI…"></textarea></div><button class="primary" onclick="saveHolders()">Enregistrer les détenteurs</button><p class="hint">Les détenteurs déjà affectés à un bien restent visibles pour conserver leur identification.</p></details>
   <details class="card io-account-settings" id="ioAccountData"><summary>Données et confidentialité</summary><p>Effacer les données de cet appareil ne supprime pas votre compte ni les copies sauvegardées. Exportez une sauvegarde avant toute suppression.</p><button type="button" class="secondary" data-account-delete>Supprimer mon compte ImmOptima</button><p class="hint">Une procédure distincte vérifie votre identité avant toute suppression en ligne. Elle ne résilie pas un abonnement Google Play.</p><button type="button" class="danger" onclick="resetAll()">Effacer les données de cet appareil</button></details>
   <details class="card io-account-settings" id="ioAccountDemo"><summary>Essayer avec des données fictives</summary><p>Données 100 % fictives, ajoutées uniquement sur demande. Un seul bien est créé. Sauvegardez vos vraies données avant tout test.</p><div class="actions"><button class="secondary" onclick="installDemoData()">Charger le patrimoine fictif</button><button class="danger" onclick="removeDemoData()">Supprimer les données fictives</button></div></details>
-  <p class="io-account-version">ImmOptima · version de test V41</p>
+  <p class="io-account-version">ImmOptima · version de test V43</p>
 </section>
 </main>
 <footer>Prototype commercial — les données patrimoniales restent locales sur cet appareil. Le moteur marché n'envoie que les informations immobilières strictement nécessaires aux sources publiques.</footer>
@@ -1886,48 +1886,57 @@ function showImmoptimaWelcome(){
   }else alert('La sauvegarde Google est disponible dans la version Android ImmOptima. Vous pouvez utiliser l’application sans sauvegarde Google.');
  };
 }
-async function immoptimaRecoverBeforeRestore(){
- const raw=localStorage.getItem('immoptima_pre_restore_v1');
- if(!raw){alert('Aucune copie de secours antérieure à une restauration n’est disponible.');return;}
+const IO_RECOVERY_KEYS={file:'immoptima_pre_import_v1',drive:'immoptima_pre_restore_v1',cloud:'immoptima_pre_cloud_restore_v1'};
+function ioBackupRecoveryRefresh(){
+ const box=document.getElementById('ioRecoveryCopies');if(!box)return;box.replaceChildren();
+ for(const [kind,key]of Object.entries(IO_RECOVERY_KEYS)){try{const raw=localStorage.getItem(key);if(!raw)continue;const data=ioValidatePortfolio(JSON.parse(raw));const button=document.createElement('button');button.type='button';button.className='secondary';button.dataset.recoveryKind=kind;button.textContent=({file:'Avant le dernier import de fichier',drive:'Avant la dernière restauration Drive',cloud:'Avant la dernière restauration du compte'})[kind]+' · '+data.properties.length+' bien(s)';button.onclick=()=>immoptimaRecoverBeforeRestore(kind);box.appendChild(button)}catch{}}
+ if(!box.children.length)box.textContent='Aucune copie de secours locale disponible.';
+}
+let ioRestoreBusy=false;
+async function ioReplacePortfolio(candidate,copyKey,question){
+ if(ioRestoreBusy){alert('Une restauration est déjà en cours. Patientez avant de recommencer.');return false;}
+ ioRestoreBusy=true;const previous=db,serialized=JSON.stringify(db),identity=immoptimaAuthState.status+':'+(immoptimaAuthState.uid||'');
  try{
-  const data=JSON.parse(raw);
-  if(!data||!['properties','loans','assets'].every(k=>Array.isArray(data[k])))throw Error('format');
-  if(!confirm('Rétablir le patrimoine enregistré juste avant la dernière restauration Google ? Le patrimoine actuel sera remplacé.'))return;
-  const current=JSON.stringify(db);
-  const candidate={...structuredClone(empty),...data};
-  candidate.settings={...structuredClone(empty.settings),...(data.settings&&typeof data.settings==='object'?data.settings:{})};
-  candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders:[...DEFAULT_HOLDERS];
-  candidate.properties=candidate.properties.map(normalizeHolder);
-  ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;
+  ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return false;
+  if(identity!==immoptimaAuthState.status+':'+(immoptimaAuthState.uid||'')||JSON.stringify(db)!==serialized){alert('Votre compte ou vos données ont changé pendant la vérification. Relancez la restauration.');return false;}
+  const counts=candidate.properties.length+' bien(s), '+candidate.loans.length+' crédit(s), '+candidate.assets.length+' actif(s).';
+  if(!confirm(question+'\n'+counts+'\nLes données actuelles seront remplacées. Une copie de secours sera conservée sur cet appareil.'))return false;
+  const keys=[copyKey,KEY,IMMOPTIMA_SYNC_META_KEY],old=new Map(keys.map(k=>[k,localStorage.getItem(k)])),cloud=structuredClone(immoptimaCloudState);
   try{
-   localStorage.setItem('immoptima_pre_restore_v1',current);
-   db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();
-   ioAccessUpdateGate();if(window.ioSimpImportDone)window.ioSimpImportDone();else alert('Patrimoine restauré. Une copie de secours locale a été conservée.');
-  }catch(err){
-   localStorage.setItem('immoptima_pre_restore_v1',raw);
-   localStorage.setItem(KEY,current);db=JSON.parse(current);renderAll();throw err;
+   localStorage.setItem(copyKey,serialized);localStorage.setItem(KEY,JSON.stringify(candidate));db=candidate;
+   immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();
+  }catch(error){
+   clearTimeout(immoptimaSyncTimer);db=previous;immoptimaCloudState=cloud;
+   for(const [k,v]of old)try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch{}
+   try{renderAll();immoptimaCloudUpdateStatus()}catch{}
+   alert('Restauration impossible : stockage indisponible ou erreur de traitement. Votre patrimoine précédent est conservé.');return false;
   }
- }catch(e){alert('Impossible de restaurer la copie de secours. Vos données actuelles sont conservées.');}
+  window.ioSoloClearDrafts?.();ioBackupRecoveryRefresh();
+  if(window.ioSimpImportDone)window.ioSimpImportDone();else alert('Patrimoine restauré. Retrouvez la copie précédente dans Compte → Mes sauvegardes → Récupérer une copie de secours.');
+  return true;
+ }finally{ioRestoreBusy=false;}
+}
+function ioNormalizeBackup(data){
+ ioValidatePortfolio(data);const candidate={...structuredClone(empty),...data};
+ candidate.settings={...structuredClone(empty.settings),...(data.settings||{})};
+ candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];
+ if(JSON.stringify(candidate.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))candidate.settings.holders=[];
+ candidate.properties=candidate.properties.map(normalizeHolder);candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];candidate.otherDebt=Number(candidate.otherDebt)||0;
+ return ioValidatePortfolio(candidate);
+}
+async function immoptimaRecoverBeforeRestore(kind='drive'){
+ const key=IO_RECOVERY_KEYS[kind];if(!key)return;
+ try{const raw=localStorage.getItem(key);if(!raw){alert('Aucune copie de secours disponible pour cette opération.');return;}
+ await ioReplacePortfolio(ioNormalizeBackup(JSON.parse(raw)),key,'Récupérer cette copie de secours locale ?');
+ }catch{alert('Copie de secours invalide ou incompatible. Votre patrimoine actuel est conservé.');}
 }
 async function immoptimaRestoreFromDriveBase64(encoded){
  try{
-  const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+  if(typeof encoded!=='string'||encoded.length>14*1024*1024)throw Error('size');
+  const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));if(bytes.length>10*1024*1024)throw Error('size');
   const json=new TextDecoder('utf-8',{fatal:true}).decode(bytes);
-  if(json.length>10*1024*1024)throw Error('size');
-  const x=JSON.parse(json);
-  if(!x||typeof x!=='object'||Array.isArray(x)||!['properties','loans','assets'].every(k=>Array.isArray(x[k])&&x[k].every(v=>v&&typeof v==='object'&&!Array.isArray(v))))throw Error('format');
-  if(!confirm('Dernière confirmation : remplacer votre patrimoine actuel par cette sauvegarde Google ? Cette opération est irréversible sans copie préalable.'))return;
-  const candidate={...structuredClone(empty),...x};
-  candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};
-  candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];
-  candidate.properties=candidate.properties.map(normalizeHolder);
-  candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];
-  candidate.otherDebt=Number(candidate.otherDebt)||0;
-  ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;
-  const previous=db;
-  try{localStorage.setItem('immoptima_pre_restore_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();if(window.ioSimpImportDone)window.ioSimpImportDone();else alert('Patrimoine restauré. Une copie de secours locale a été conservée.');}
-  catch(e){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw e;}
- }catch(e){alert('Sauvegarde Google invalide ou incompatible : patrimoine conservé.');}
+  await ioReplacePortfolio(ioNormalizeBackup(JSON.parse(json)),IO_RECOVERY_KEYS.drive,'Restaurer cette sauvegarde Google Drive ?');
+ }catch{alert('Sauvegarde Google invalide ou incompatible : patrimoine conservé.');}
 }
 function listPrivateDriveBackups(){
  if(!window.AndroidBridge||typeof window.AndroidBridge.listPrivateDriveBackups!=='function'){alert('La restauration privée nécessite une version Android plus récente.');return;}
@@ -1995,7 +2004,13 @@ function exportData(destination='local'){
   closeBackupOptions();
  }catch(error){alert('Sauvegarde impossible : '+(error.message||'erreur inconnue'))}
 }
-function importData(e){const input=e?.target,file=input?.files?.[0];if(!file)return;const resetInput=()=>{if(input)input.value=''};if(file.size>10*1024*1024){alert('Fichier trop volumineux : la sauvegarde doit faire moins de 10 Mo.');resetInput();return}const r=new FileReader();r.onerror=()=>{alert('Lecture impossible. Votre patrimoine actuel est conservé.');resetInput()};r.onload=async()=>{try{const x=JSON.parse(String(r.result||''));if(!x||typeof x!=='object'||Array.isArray(x)||!Array.isArray(x.properties)||!Array.isArray(x.loans)||!Array.isArray(x.assets))throw Error('structure');if(!x.properties.every(p=>p&&typeof p==='object'&&!Array.isArray(p))||!x.loans.every(l=>l&&typeof l==='object'&&!Array.isArray(l))||!x.assets.every(a=>a&&typeof a==='object'&&!Array.isArray(a)))throw Error('records');const candidate={...structuredClone(empty),...x};candidate.settings={...structuredClone(empty.settings),...(x.settings&&typeof x.settings==='object'&&!Array.isArray(x.settings)?x.settings:{})};candidate.settings.holders=Array.isArray(candidate.settings.holders)?candidate.settings.holders.filter(h=>typeof h==='string').map(h=>h.trim()).filter(Boolean):[...DEFAULT_HOLDERS];if(JSON.stringify(candidate.settings.holders)===JSON.stringify(['Yoann','Chloé','SARL de famille']))candidate.settings.holders=[];candidate.properties=candidate.properties.map(normalizeHolder);candidate.loans=candidate.loans;candidate.assets=candidate.assets;candidate.snapshots=Array.isArray(candidate.snapshots)?candidate.snapshots:[];candidate.otherDebt=Number(candidate.otherDebt)||0;ioValidatePortfolio(candidate);if(!await ioAccessAuthorize(candidate))return;if(!confirm('Importer cette sauvegarde et remplacer le patrimoine actuel ? Une copie de secours locale sera conservée avant le remplacement.'))return;const previous=db;try{localStorage.setItem('immoptima_pre_import_v1',JSON.stringify(previous));db=candidate;localStorage.setItem(KEY,JSON.stringify(db));immoptimaSyncMarkDirty();renderAll();ioAccessUpdateGate();if(window.ioSimpImportDone)window.ioSimpImportDone();else alert('Sauvegarde importée avec succès. Une copie locale du patrimoine précédent a été conservée.')}catch(renderError){db=previous;localStorage.setItem(KEY,JSON.stringify(previous));renderAll();throw renderError}}catch(err){alert('Fichier de sauvegarde invalide ou incompatible. Votre patrimoine actuel est conservé.')}};r.readAsText(file);resetInput()}
+function importData(e){
+ const input=e?.target,file=input?.files?.[0];if(!file)return;const resetInput=()=>{if(input)input.value=''};
+ if(file.size>10*1024*1024){alert('Fichier trop volumineux : la sauvegarde doit faire moins de 10 Mo.');resetInput();return;}
+ const r=new FileReader();r.onerror=()=>{alert('Lecture impossible. Votre patrimoine actuel est conservé.');resetInput()};
+ r.onload=async()=>{try{await ioReplacePortfolio(ioNormalizeBackup(JSON.parse(String(r.result||''))),IO_RECOVERY_KEYS.file,'Importer cette sauvegarde ?')}catch{alert('Fichier de sauvegarde invalide ou incompatible. Votre patrimoine actuel est conservé.')}};
+ r.readAsText(file);resetInput();
+}
 const DEMO_MARK='immoptima_demo_v1';
 function installDemoData(){
  if(db.properties.length||db.loans.length||db.assets.length){alert('Pour protéger vos données, le jeu fictif ne peut être chargé que dans un patrimoine vide. Exportez d’abord vos données et utilisez une installation de test vierge.');return;}

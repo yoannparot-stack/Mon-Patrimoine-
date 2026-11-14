@@ -12,7 +12,8 @@ check('existing local/email/cloud backup options retained', () => {
 check('existing file import retained', () => {
   assert.match(html,/function importData\(e\)/);
   assert.match(html,/file\.size>10\*1024\*1024/);
-  assert.match(html,/Sauvegarde importée avec succès/);
+  assert.match(html,/ioReplacePortfolio\(ioNormalizeBackup/);
+  assert.match(html,/IO_RECOVERY_KEYS\.file/);
 });
 check('Android native share and PDF paths retained', () => {
   assert.match(native,/public void shareFile\(/);
@@ -51,8 +52,8 @@ check('optional onboarding matches approved Google design', () => {
 });
 check('private restore is explicit and validates all primary collections', () => {
  assert.match(html,/function immoptimaRestoreFromDriveBase64\(/);
- assert.match(html,/Dernière confirmation : remplacer votre patrimoine actuel/);
- assert.match(html,/\['properties','loans','assets'\]/);
+ assert.match(html,/Les données actuelles seront remplacées/);
+ assert.match(html,/function ioNormalizeBackup\(data\)\{\s*ioValidatePortfolio\(data\)/);
  assert.match(drivePatch,/private void downloadDriveBackup\(/);
  assert.match(drivePatch,/private void listDriveBackups\(/);
  assert.match(drivePatch,/readDrive\(in,10\*1024\*1024\)/);
@@ -71,7 +72,7 @@ check('local pre-restore recovery is accessible and guarded', () => {
  assert.match(html,/function immoptimaRecoverBeforeRestore\(/);
  assert.doesNotMatch(html,/>↩️ Annuler la dernière restauration<\/button>/);
  assert.match(html,/immoptima_pre_restore_v1/);
- assert.match(html,/Rétablir le patrimoine enregistré juste avant la dernière restauration Google/);
+ assert.match(html,/Récupérer cette copie de secours locale/);
 });
 
 check('simplified customer-facing backup menu', () => {
@@ -99,11 +100,12 @@ check('visible and private Google backups are clearly distinguished', () => {
 
 check('JSON import preserves previous portfolio and does not trigger private auto-backup', () => {
  assert.match(html,/immoptima_pre_import_v1/);
- assert.match(html,/localStorage\.setItem\(KEY,JSON\.stringify\(db\)\);immoptimaSyncMarkDirty\(\);renderAll\(\);ioAccessUpdateGate\(\);if\(window\.ioSimpImportDone\)window\.ioSimpImportDone\(\);else alert\('Sauvegarde importée avec succès/);
+ assert.match(html,/localStorage\.setItem\(copyKey,serialized\);localStorage\.setItem\(KEY,JSON\.stringify\(candidate\)\)/);
 });
 
 check('JSON import requires explicit user approval before replacing portfolio', () => {
- assert.match(html,/confirm\('Importer cette sauvegarde et remplacer le patrimoine actuel/);
+ assert.match(html,/if\(!confirm\(question/);
+ assert.match(html,/IO_RECOVERY_KEYS\.file,'Importer cette sauvegarde/);
  assert.match(html,/immoptima_pre_import_v1/);
 });
 
