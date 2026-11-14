@@ -36,6 +36,8 @@ on:
       - 'android-access-patch.py'
       - 'access-policy.js'
       - 'scripts/prepare-commercial.py'
+      - 'scripts/prepare-beta.py'
+      - 'beta-info.js'
       - 'functions/**'
       - 'android-rental-patch.py'
       - 'firebase.json'
@@ -298,6 +300,51 @@ jobs:
           name: ImmOptima-Firebase-Preview-TEST-APK
           path: apk-out/Mon-Patrimoine-V1.3.2-debug.apk
           if-no-files-found: error
+
+      - name: Prepare and check isolated no-purchase beta
+        run: |
+          node tests/beta-preparation.cjs beta-prepared
+          node tests/beta-ui.cjs beta-prepared
+
+      - name: Build release bundle for future Google Play beta
+        env:
+          IMMOPTIMA_KEYSTORE_BASE64: ${{ secrets.IMMOPTIMA_KEYSTORE_BASE64 }}
+          IMMOPTIMA_STORE_PASSWORD: ${{ secrets.IMMOPTIMA_STORE_PASSWORD }}
+          IMMOPTIMA_KEY_ALIAS: ${{ secrets.IMMOPTIMA_KEY_ALIAS }}
+          IMMOPTIMA_KEY_PASSWORD: ${{ secrets.IMMOPTIMA_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          ROOT="$(dirname "$(find android-project -name settings.gradle -print -quit)")"
+          cp beta-prepared/* "$ROOT/app/src/main/assets/"
+          sed -i "s/versionCode 41/versionCode 42/; s/1.3.2-preview/1.3.2-beta42/" "$ROOT/app/build.gradle"
+          gradle -p "$ROOT" :app:bundleRelease --stacktrace
+          mkdir -p beta-out
+          cp "$ROOT/app/build/outputs/bundle/release/app-release.aab" beta-out/ImmOptima-Beta-Google-Play-v42.aab
+          KEYSTORE="$RUNNER_TEMP/immoptima-beta-upload.jks"
+          trap 'rm -f "$KEYSTORE"' EXIT
+          printf '%s' "$IMMOPTIMA_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
+          jarsigner -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -keypass:env IMMOPTIMA_KEY_PASSWORD beta-out/ImmOptima-Beta-Google-Play-v42.aab "$IMMOPTIMA_KEY_ALIAS"
+          jarsigner -verify beta-out/ImmOptima-Beta-Google-Play-v42.aab
+          keytool -printcert -jarfile beta-out/ImmOptima-Beta-Google-Play-v42.aab > beta-out/upload-certificate.txt
+          cp beta-prepared/beta-build.json beta-out/
+          python3 scripts/check-beta-bundle.py "$ROOT" beta-out
+          sha256sum beta-out/*.aab > beta-out/SHA256SUMS.txt
+
+      - name: Upload beta preparation bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmOptima-Beta-Google-Play-Preparation
+          path: beta-out/
+          if-no-files-found: error
+
+      - name: Upload beta browser verification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmOptima-Beta-UI-checks
+          path: qa-out/beta/
+          if-no-files-found: warn
 
   android-ui:
     strategy:

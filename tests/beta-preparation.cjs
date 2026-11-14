@@ -1,0 +1,6 @@
+'use strict';const fs=require('node:fs'),assert=require('node:assert/strict'),cp=require('node:child_process'),path=require('node:path');
+const out=path.resolve(process.argv[2]||'beta-prepared');cp.execFileSync('python3',['scripts/prepare-beta.py',out],{stdio:'inherit'});
+const html=fs.readFileSync(out+'/index.html','utf8');assert(html.includes("const IMMOPTIMA_BUILD_CHANNEL='beta';"));assert(!html.includes('personal-test'));assert(html.includes('beta-info.js'));assert(html.includes("if(false||!options.premium&&portfolio.properties.length<=1)"));assert(fs.readFileSync('index.html','utf8').includes("const IMMOPTIMA_BUILD_CHANNEL='personal-test';"));
+for(const name of ['index.html',...fs.readdirSync(out).filter(n=>n.endsWith('.js'))])assert(!fs.readFileSync(out+'/'+name,'utf8').includes('personal-test'),name);
+for(const name of ['play-billing.json','account-deletion.json'])assert.equal(JSON.parse(fs.readFileSync(out+'/'+name)).enabled,false);
+const m=JSON.parse(fs.readFileSync(out+'/beta-build.json'));assert.equal(m.personalBypass,false);assert.equal(m.playUploaded,false);assert.equal(m.trialDays,90);console.log('PASS isolated beta, personal sources preserved, no local bypass or purchase activation');
