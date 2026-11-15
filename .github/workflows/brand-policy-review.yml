@@ -19,6 +19,7 @@ jobs:
         run: |
           node scripts/export-legal.cjs public-account
           git diff --exit-code -- public-account/privacy.html public-account/terms.html public-account/subscription.html public-account/publication-readiness.json
+          node scripts/prepare-beta-account.cjs beta-account-static-review
           node tests/legal.cjs
           node tests/account-ui.cjs
           node tests/beta-preparation.cjs
@@ -49,5 +50,6 @@ jobs:
             review-output/
             qa-out/
             public-account/
+            beta-account-static-review/
             brand-resources.zip
           if-no-files-found: warn
