@@ -1866,7 +1866,7 @@ function immoptimaAccountInformation(){
 }
 function showImmoptimaWelcome(){
  // The guided discovery replaces the legacy delayed connection overlay.
- if(typeof window.ioDiscoveryMaybe==='function')return;
+ if(typeof window.ioDiscoveryMaybe==='function'){try{localStorage.setItem('immoptima_welcome_v1','seen')}catch{}return;}
  if(!db.properties.length&&!db.assets.length){try{localStorage.setItem('immoptima_welcome_v1','seen')}catch{}window.ioClientDashboard?.();return;}
  if(immoptimaAuthState.status==='signed_in')return;
  if(localStorage.getItem('immoptima_welcome_v1')==='seen')return;
