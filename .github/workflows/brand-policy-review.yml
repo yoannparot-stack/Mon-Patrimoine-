@@ -17,6 +17,7 @@ jobs:
           node-version: '22'
       - name: Check legal and beta gates
         run: |
+          python3 -m py_compile android-account-deletion-patch.py
           node scripts/export-legal.cjs public-account
           git diff --exit-code -- public-account/privacy.html public-account/terms.html public-account/subscription.html public-account/publication-readiness.json
           node scripts/prepare-beta-account.cjs beta-account-static-review
@@ -37,7 +38,7 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Verify mail-only support, policy exports and client pages
+      - name: Verify in-app mail support, manual deletion and public pages
         run: |
           node tests/account-deletion-ui.cjs
           node tests/offer-ui.cjs

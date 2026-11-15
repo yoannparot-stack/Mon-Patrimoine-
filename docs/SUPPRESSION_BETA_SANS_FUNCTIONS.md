@@ -28,10 +28,16 @@ Si une automatisation est utilisée pour ce traitement, reprendre le moteur `fun
 
 Les politiques copiées gardent leur statut préparatoire et décrivent la variante manuelle : pas de confirmation automatique du serveur ni de tâche de purge annoncée. Les durées, le délai et la procédure effective doivent encore être validés avant publication : ne pas utiliser ce paquet comme dossier définitif à déposer chez Google.
 
-L’application et la configuration Android conservent le lien de suppression désactivé. Après publication et test réel de la variante choisie, renseigner la bonne URL et adapter le texte de la fenêtre Android au traitement manuel. Ne pas présenter une confirmation Google automatisée alors que l’utilisateur passe par e-mail.
+L’application et la configuration Android conservent le lien de suppression désactivé. Après publication et test réel de la variante choisie, renseigner la bonne URL. Le texte de la fenêtre Android décrit maintenant le traitement manuel ; son accès reste désactivé jusqu’à ces vérifications. Ne pas présenter une confirmation Google automatisée alors que l’utilisateur passe par e-mail.
 
 ## Vérification de bout en bout restant nécessaire
 
 Sur un compte client jetable : demande depuis la bonne adresse, contrôle d’identité, verrou et refus des anciennes sessions, suppression de toutes les données liées, autre compte préservé, confirmation exacte, puis purge du marqueur après délai. Aucun résultat positif ne doit être déclaré sur la seule base d’un lien `mailto:` ou de tests de navigateur.
 
 Les opérations Firestore restent soumises aux quotas et conditions du projet. Conserver Spark évite d’activer la facturation des fonctions ; cela ne constitue pas une promesse de capacité illimitée.
+
+## Coordonnées et assistance
+
+Le titulaire a communiqué séparément des coordonnées personnelles avec une restriction d’usage aux obligations vérifiées. Elles ne sont pas recopiées dans le dépôt public, les captures ou les exports préparatoires. Le support reste exclusivement par e-mail. Cela ne vaut pas exemption des mentions légalement requises pour l’édition professionnelle, ni des informations vérifiées et affichées par Google. Références vérifiées le 15 novembre 2026 : article 1-1 de la LCEN ; aide Google Play 13628312. Les coordonnées doivent être intégrées uniquement au périmètre légal nécessaire, après examen de la version réellement publiée.
+
+Dans Mon compte, l’action d’assistance ouvre le composeur Android vers l’adresse dédiée avec un objet générique. Elle ne remplit aucun patrimoine, identifiant ou diagnostic et n’envoie pas le message. Si aucune messagerie n’est installée, l’application affiche l’adresse à utiliser ailleurs. Cette action ne crée ni demande de suppression ni abonnement.

@@ -6,7 +6,19 @@ root=Path(sys.argv[1]);base=Path(__file__).resolve().parent
 p=root/'app/src/main/java/com/monpatrimoine/app/MainActivity.java';s=p.read_text()
 anchor='            @JavascriptInterface public void immoptimaSignIn() {'
 assert anchor in s
-s=s.replace(anchor,'''            @JavascriptInterface public void immoptimaOpenAccountDeletion() {
+s=s.replace(anchor,'''            @JavascriptInterface public void immoptimaOpenSupportEmail() {
+                runOnUiThread(() -> {
+                    if (!immoptimaRentalOrigin()) return;
+                    try {
+                        android.net.Uri email = android.net.Uri.parse("mailto:immoptima12@gmail.com?subject=Assistance%20ImmOptima");
+                        startActivity(new Intent(Intent.ACTION_SENDTO, email));
+                    } catch (android.content.ActivityNotFoundException error) {
+                        new android.app.AlertDialog.Builder(MainActivity.this).setTitle("Assistance par e-mail")
+                            .setMessage("Écrivez à immoptima12@gmail.com depuis votre messagerie habituelle. Aucune demande n’a été envoyée.").setPositiveButton("Compris", null).show();
+                    }
+                });
+            }
+            @JavascriptInterface public void immoptimaOpenAccountDeletion() {
                 runOnUiThread(() -> {
                     if (!immoptimaRentalOrigin()) return;
                     try {
