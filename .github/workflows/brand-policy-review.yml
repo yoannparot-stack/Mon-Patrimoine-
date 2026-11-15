@@ -37,7 +37,7 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Verify actual pages and client paths
+      - name: Verify mail-only support and actual client pages
         run: |
           node tests/account-deletion-ui.cjs
           node tests/offer-ui.cjs
