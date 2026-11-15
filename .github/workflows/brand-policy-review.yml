@@ -1,0 +1,53 @@
+name: Review ImmOptima brand and policy preparation
+on:
+  push:
+    branches: ['personal/immoptima-access-v25']
+    paths:
+      - '.github/workflows/brand-policy-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check legal and beta gates
+        run: |
+          node scripts/export-legal.cjs public-account
+          git diff --exit-code -- public-account/privacy.html public-account/terms.html public-account/subscription.html public-account/publication-readiness.json
+          node tests/legal.cjs
+          node tests/account-ui.cjs
+          node tests/beta-preparation.cjs
+          node --test functions/test/*.test.cjs
+      - name: Compile native brand resources
+        run: |
+          unzip -q Mon_Patrimoine_V1.3.2_ANDROID_PREVIEW_GITHUB.zip -d android-brand-check
+          ROOT="$(dirname "$(find android-brand-check -name settings.gradle -print -quit)")"
+          python3 scripts/apply-brand-icons.py "$ROOT"
+          python3 scripts/apply-brand-icons.py "$ROOT"
+          AAPT2="$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -1)"
+          test -n "$AAPT2"
+          "$AAPT2" compile --dir "$ROOT/app/src/main/res" -o brand-resources.zip
+      - name: Prepare browser checks
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify actual pages and client paths
+        run: |
+          node tests/account-deletion-ui.cjs
+          node tests/offer-ui.cjs
+          node scripts/review-brand-policy.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ImmOptima-Visuels-et-Informations-Validation
+          path: |
+            review-output/
+            qa-out/
+            public-account/
+            brand-resources.zip
+          if-no-files-found: warn
