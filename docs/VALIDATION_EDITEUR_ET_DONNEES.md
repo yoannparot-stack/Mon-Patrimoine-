@@ -5,6 +5,7 @@
 ## Déjà confirmé
 
 - Nom de marque : **ImmOptima**. Désignation publique souhaitée : **ImmOptima (patrimoine)**.
+- Responsable confirmé par le titulaire le 15 novembre : **Yoann Parot**, personne physique pour la préparation de la bêta gratuite.
 - Contact dédié : **immoptima12@gmail.com**.
 - Identité visuelle : logo maison/barres/courbe, bleu nuit, cyan/vert, immeuble au crépuscule, « Un seul outil pour tout votre patrimoine ».
 - Futurs tarifs : **3,99 €/mois** ou **39,99 €/an**. Ils n’activent aucun achat.
@@ -14,8 +15,8 @@
 
 | Information | Réponse à compléter |
 |---|---|
-| Nom et prénom exacts du responsable / dénomination de la structure si existante | … |
-| Statut actuel pour la bêta gratuite ; identité de la partie responsable des données | … |
+| Nom et prénom exacts du responsable / dénomination de la structure si existante | Yoann Parot — confirmé |
+| Statut actuel pour la bêta gratuite ; identité de la partie responsable des données | Personne physique, bêta gratuite sans vente activée ; situation commerciale à finaliser avant les ventes |
 | Adresse de contact à publier selon les obligations applicables et la configuration du compte | … |
 | Téléphone de contact requis pour la configuration éditeur | … |
 | Responsable de publication | … |
@@ -47,3 +48,9 @@ Identité et formalités de l’activité commerciale, obligations applicables d
 2. Compléter l’identité et les coordonnées utiles ; le choix du type de compte attend toujours la réponse Google.
 3. Vérifier les paramètres techniques et les durées, puis valider les textes correspondants.
 4. Après mise en ligne et tests réels, contrôler les URL et finaliser les déclarations Play. Aucun formulaire n’a été soumis et aucune conformité complète n’est annoncée à ce stade.
+
+## Configuration Web avancée le 15 novembre
+
+L’application Web **ImmOptima — Compte et confidentialité** est enregistrée dans le projet existant et associée au site Hosting `immoptima-6af3b`. Aucun Analytics n’est ajouté aux pages préparées et aucun extrait Analytics proposé par la console n’est repris. L’association ne publie aucune page et ne rend pas la suppression automatique opérationnelle.
+
+Pour conserver Spark pendant la bêta, une variante de page de demande par e-mail est préparée ; son utilisation suppose une procédure de traitement réellement disponible et validée. Les fonctions automatiques restent préparées séparément et désactivées.

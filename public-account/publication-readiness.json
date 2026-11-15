@@ -1,13 +1,10 @@
 {
-  "version": "2026-11-15-v4",
+  "version": "2026-11-15-v5",
   "ready": false,
   "missing": [
-    "Identité de l’éditeur",
-    "Statut de l’éditeur",
     "Identification professionnelle",
     "Adresse professionnelle",
     "Téléphone professionnel",
-    "Responsable de publication",
     "Hébergement et localisation",
     "Durées de conservation",
     "Transferts et garanties",
@@ -19,11 +16,8 @@
   ],
   "betaReady": false,
   "betaMissing": [
-    "Identité de l’éditeur",
-    "Statut de l’éditeur",
     "Adresse professionnelle",
     "Téléphone professionnel",
-    "Responsable de publication",
     "Hébergement et localisation",
     "Durées de conservation",
     "Transferts et garanties",

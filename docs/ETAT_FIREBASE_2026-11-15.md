@@ -42,3 +42,11 @@ Le forfait Spark est conservé. Aucun paiement, abonnement, mise à niveau, dép
 Un aller-retour réel depuis l’application reste nécessaire pour certifier la sauvegarde personnelle multi-biens après cette publication ; les simulations de lecture ne le remplacent pas. Le parcours client mono-bien et l’activation volontaire réelle de l’essai restent aussi à contrôler.
 
 Les autres points restent ouverts : identité et coordonnées d’éditeur, choix du type de compte Play après réponse du support, données contractuelles et durées de conservation, pages publiques, mise en service de la suppression et test réel sur compte jetable. La publication des règles ne rend pas à elle seule la suppression automatique opérationnelle.
+
+## Suite — application Web et identité de l’éditeur
+
+Le titulaire confirme explicitement **Yoann Parot** comme responsable. Ce nom est renseigné dans les textes préparatoires, avec le statut descriptif de personne physique pour une bêta gratuite sans vente activée. Aucune adresse ni aucun téléphone personnels ne sont repris automatiquement. Les informations commerciales restent distinctes.
+
+L’application Web **ImmOptima — Compte et confidentialité** est enregistrée, ID `1:1056446883177:web:ca1947b17570eed196c9f8`, puis associée au site Hosting `immoptima-6af3b`. L’association est vérifiée dans la console. Aucune version de site n’est déployée. L’extrait Analytics proposé par défaut par la console n’est pas intégré aux pages.
+
+Une variante statique de demande de suppression par e-mail et sa procédure de traitement sont préparées pour conserver Spark pendant la bêta. Elle ne déclenche ni effacement ni envoi automatique. Google Play mentionne cette possibilité, mais le suivi de la boîte, la vérification d’identité, le délai, l’effacement effectif et les durées doivent être validés avant de la déclarer disponible. Les configurations Android et serveur de suppression restent désactivées. Voir `SUPPRESSION_BETA_SANS_FUNCTIONS.md`.
