@@ -31,6 +31,8 @@ on:
       - 'legal-ui.js'
       - 'offer-design.js'
       - 'scripts/export-legal.cjs'
+      - 'scripts/apply-brand-icons.py'
+      - 'brand/**'
       - 'android-billing-patch.py'
       - 'billing/**'
       - 'android-access-patch.py'
@@ -165,6 +167,7 @@ jobs:
           python3 android-ux-patch.py "$ROOT"
           python3 android-billing-patch.py "$ROOT"
           python3 android-account-deletion-patch.py "$ROOT"
+          python3 scripts/apply-brand-icons.py "$ROOT"
 
       - name: Set up Java
         uses: actions/setup-java@v4

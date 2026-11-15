@@ -1,12 +1,11 @@
 {
-  "version": "2026-11-14-v2",
+  "version": "2026-11-15-v4",
   "ready": false,
   "missing": [
     "Identité de l’éditeur",
     "Statut de l’éditeur",
     "Identification professionnelle",
     "Adresse professionnelle",
-    "Contact d’assistance et de confidentialité",
     "Téléphone professionnel",
     "Responsable de publication",
     "Hébergement et localisation",
@@ -17,5 +16,22 @@
     "Page publique de suppression du compte",
     "Suppression du compte et des données vérifiée",
     "Textes relus et approuvés pour publication"
-  ]
+  ],
+  "betaReady": false,
+  "betaMissing": [
+    "Identité de l’éditeur",
+    "Statut de l’éditeur",
+    "Adresse professionnelle",
+    "Téléphone professionnel",
+    "Responsable de publication",
+    "Hébergement et localisation",
+    "Durées de conservation",
+    "Transferts et garanties",
+    "Page publique de confidentialité",
+    "Page publique de suppression du compte",
+    "Suppression du compte et des données vérifiée",
+    "Textes relus et approuvés pour publication"
+  ],
+  "publicBrand": "ImmOptima (patrimoine)",
+  "published": false
 }

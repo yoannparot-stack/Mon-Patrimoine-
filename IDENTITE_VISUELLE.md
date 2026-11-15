@@ -39,3 +39,12 @@ Les trois étapes sont visibles dès l’arrivée : ajouter son patrimoine, comp
 Page de découverte validée avant les onglets : logo complet toit/barres/courbe, mot-symbole en dégradé cyan/vert et photo d’immeuble de la plaquette. Choix entre découverte et Premium ; tarifs 3,99 € / mois et 39,99 € / an. Le choix est une préférence de navigation, jamais une attribution de droits. Consulter une offre ou choisir la découverte ne lance ni achat ni essai automatique. L’activation de l’essai reste volontaire après connexion ; les achats restent désactivés tant que la préparation commerciale n’est pas finalisée.
 
 Menu « Mon espace » : bandeau bleu nuit/bleu avec logo, trois accès illustrés en lignes, analyses avancées repliables et groupe Mes données avec sauvegarde/import. Mon compte : sauvegardes mises en avant, informations d’état et dates réelles, trois réglages illustrés et textes juridiques accessibles. Les statuts ne sont pas ceux d’une maquette : l’état confirmé dépend du compte connecté et de la réponse cloud effective.
+
+
+## Icône et fiche Google Play — 15 novembre 2026
+
+Le dossier `brand/` conserve les éléments finalisés à partir de la plaquette commerciale : maison, barres ascendantes et mouvement cyan/vert sur fond bleu nuit. L’icône Google Play est carrée, sans coins arrondis préappliqués ; la variante blanche reste disponible. La chaîne Android applique le même symbole aux icônes classique, adaptative et monochrome. Le logo commercial et les accueils déjà approuvés ne sont pas remplacés.
+
+La bannière 1024 × 500 reprend l’immeuble au crépuscule et « Un seul outil pour tout votre patrimoine ». Elle sert d’image de présentation selon les placements Google Play, notamment de couverture si une vidéo est ajoutée. Aucun emplacement permanent dans la recherche n’est promis ; aucune vidéo n’a été créée. L’aperçu Google Play validé est une illustration, pas une fiche publiée. Les captures à soumettre doivent montrer l’interface réelle avec des données fictives.
+
+Nom de marque confirmé : ImmOptima ; « ImmOptima (patrimoine) » est une désignation publique souhaitée, pas une identité juridique vérifiée. Le nom de l’application reste ImmOptima pour assurer sa cohérence avec les fichiers déjà préparés.

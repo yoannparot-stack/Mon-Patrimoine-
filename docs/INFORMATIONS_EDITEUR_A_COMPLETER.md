@@ -29,3 +29,7 @@ Préparation du 14 novembre 2026. Aucune identité ni adresse personnelle n’a 
 - Suppression du compte distincte des fichiers exportés et de la résiliation Google Play ; aucune suppression annoncée comme terminée avant confirmation serveur.
 
 Les valeurs définitives se renseignent dans `legal-content.js` après validation. `node scripts/export-legal.cjs public-account` régénère les trois pages depuis la même source que l’application. `publication-readiness.json` conserve le blocage tant que les informations et vérifications manquent. Ne pas passer `approvedForPublication` ou `deletionVerified` à vrai sur la seule base des tests simulés.
+
+## Réponse reçue le 15 novembre 2026
+
+Le titulaire souhaite le nom public « ImmOptima (patrimoine) ». Le nom de l’application reste ImmOptima. Cette réponse ne fournit pas l’identité juridique du responsable, son statut ni ses coordonnées ; ils restent à renseigner. Pour une bêta gratuite, ne pas présenter automatiquement un numéro d’entreprise ou la médiation commerciale comme prérequis sans vérifier leur applicabilité. Le contrôle commercial reste plus complet que celui de la bêta, et aucun des deux n’est annoncé prêt tant que le responsable, les flux et la suppression ne sont pas finalisés. Voir `VALIDATION_EDITEUR_ET_DONNEES.md`.

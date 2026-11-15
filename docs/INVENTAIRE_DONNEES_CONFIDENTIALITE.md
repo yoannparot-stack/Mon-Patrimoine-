@@ -1,10 +1,10 @@
 # ImmOptima — inventaire préparatoire des données et des responsabilités
 
-Version du 14 novembre 2026. Cet inventaire décrit les sources préparées ; il ne prouve ni un déploiement ni la configuration contractuelle d’un prestataire. Les informations manquantes empêchent de déclarer les documents définitifs.
+Version du 15 novembre 2026. Cet inventaire décrit les sources préparées ; il ne prouve ni un déploiement ni la configuration contractuelle d’un prestataire. Les informations manquantes empêchent de déclarer les documents définitifs.
 
 | Traitement | Données utiles | Destination | Finalité / base à documenter | Conservation |
 |---|---|---|---|---|
-| Fonctions locales | Biens, adresses, montants, épargne, crédits, détenteurs, historique ; données de locataires et documents si saisis | Appareil et stockage WebView | Service demandé ; responsabilité du bailleur pour les données de tiers à préciser | Jusqu’à effacement/remplacement ; brouillons et copies de récupération distincts |
+| Fonctions locales | Biens, adresses, montants, épargne, crédits, détenteurs, historique ; données de locataires, notes, photos de biens et documents si saisis | Appareil et stockage WebView | Service demandé ; responsabilité du bailleur pour les données de tiers à préciser | Jusqu’à effacement/remplacement ; brouillons et copies de récupération distincts |
 | Connexion | UID Firebase, e-mail et données de connexion Google | Google/Firebase Authentication | Compte et sécurité ; modalités contractuelles à confirmer | Durée du compte et inactivité à arrêter ; suppression préparée du compte Auth |
 | Sauvegarde du compte | Copie du patrimoine, révision et métadonnées | Firestore du projet configuré | Sauvegarde facultative avec autorisation distincte | Durée active/inactive et copies fournisseur à définir ; effacement récursif préparé |
 | Exports et Drive | Patrimoine JSON, PDF, documents choisis | Fournisseur de fichiers/Drive/messagerie sélectionné par l’utilisateur | Export/partage demandé ; expliquer les destinataires choisis | Fichiers externes gérés séparément par l’utilisateur |
@@ -24,3 +24,7 @@ Version du 14 novembre 2026. Cet inventaire décrit les sources préparées ; il
 - Compléter la déclaration Google Play Sécurité des données depuis la configuration finale, sans copier automatiquement cette table comme une déclaration déjà validée.
 
 Sources de contrôle : code local de l’application, ponts Android Auth/Cloud/Drive/Billing, règles Firestore, fonctions serveur et https://www.cnil.fr/fr/recommandations-applications-mobiles.
+
+## Complément du 15 novembre
+
+La photo facultative d’un bien est embarquée dans le patrimoine JSON et peut donc quitter l’appareil lors d’une sauvegarde autorisée. Elle doit être examinée comme catégorie Photos dans la déclaration Play. Les SDK Firebase Auth 23.2.1 et Firestore 25.1.4, Google Play Services Auth 21.5.0 et Billing 8.3.0 sont demandés par les scripts Android ; les dépendances transitives et le manifeste fusionné restent à relever sur le binaire final. Le formulaire préparé et ses conditions sont dans `DECLARATIONS_GOOGLE_PLAY.md`. Aucun audit de trafic réel ou audit indépendant de sécurité n’est revendiqué.
