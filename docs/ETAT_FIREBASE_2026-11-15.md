@@ -7,7 +7,7 @@
 - Nom public du projet : `ImmOptima`, auparavant `project-ImmOptima`.
 - Pseudo de l’application Android actuelle : `ImmOptima Android`, package `com.immoptima.app`. Son identifiant Firebase correspond à la configuration embarquée des sources.
 
-## Constatations
+## Constatations lors de la première inspection
 
 - Forfait Spark, présenté sans frais par la console ; aucune mise à niveau ou facturation activée.
 - Google est un fournisseur Authentication activé.
@@ -19,16 +19,26 @@
 - L’adresse dédiée d’assistance n’est pas proposée par le sélecteur actuel. Aucune autorisation IAM ni délégation ajoutée pour rendre cette adresse sélectionnable.
 - Hosting présente la procédure initiale avec déploiement par CLI. Son assistant a été consulté ; aucune page ni version de site déployée et aucune mise en service annoncée.
 
-## Préparé, non appliqué
+## Brouillon avant confirmation
 
 Les règles `cloud/firestore.rules` sont placées dans l’éditeur de la console au statut **modifications non publiées**. Le bouton Publier n’a pas été actionné. Le formulaire préparatoire du droit personnel utilise un document `accountAccess/<compte-du-titulaire>` avec `owner: true` ; le bouton Enregistrer n’a pas été actionné.
 
-Ordre nécessaire après confirmation des changements d’accès :
+## Modifications appliquées après confirmation explicite
 
-1. Enregistrer et vérifier le droit du compte personnel actuellement identifié dans Authentication. Il porte uniquement sur les droits fonctionnels ImmOptima et n’est pas une délégation IAM.
-2. Publier les règles préparées, qui empêchent l’auto-attribution de droits multi-biens, encadrent l’activation de l’essai et bloquent les accès pendant une suppression.
-3. Contrôler la sauvegarde personnelle multi-biens et un compte client mono-bien, puis l’activation volontaire de son essai. Les tests sur émulateur déjà passés ne remplacent pas cette validation réelle.
+Le titulaire a confirmé l’enregistrement du droit personnel multi-biens et la publication des règles. Le document `accountAccess/<compte-du-titulaire>` contient maintenant `owner: true` (booléen), vérifié dans la console avant publication des règles. Ce droit conserve l’accès fonctionnel personnel ; aucun rôle IAM, accès à un autre patrimoine ni abonnement Google Play n’est attribué.
 
-Cette paire de changements modifie les droits d’accès du service et nécessite une confirmation au moment de l’application. Ne pas publier la restriction multi-biens avant d’avoir préservé l’accès personnel du titulaire.
+Les règles préparées ont ensuite été publiées. La console affiche une nouvelle version active datée du 15 novembre 2026, avec étoile de publication, et ne présente plus le brouillon comme non publié. Les règles encadrent l’essai mono-bien de 90 jours, empêchent l’auto-attribution des droits multi-biens, isolent les sauvegardes et préparent le verrou de suppression.
 
-Les autres points restent ouverts : identité et coordonnées d’éditeur, choix du type de compte Play après réponse du support, données contractuelles et durées de conservation, pages publiques, déploiement et suppression réelle sur compte jetable. Aucun achat, paiement, déploiement de fonctions ni suppression réelle réalisé.
+## Contrôles effectués dans le simulateur Firebase
+
+- Lecture du document d’accès personnel en simulant l’identité du titulaire : **autorisée**.
+- Lecture du même document en simulant un autre identifiant de compte : **refusée**, résultat attendu.
+- Ces simulations utilisent les règles publiées et le droit enregistré. Elles n’activent pas un nouvel essai et ne créent pas de compte client.
+
+Le forfait Spark est conservé. Aucun paiement, abonnement, mise à niveau, déploiement de fonctions ou suppression réelle n’a été déclenché. Aucun contenu patrimonial existant n’a été modifié.
+
+## Restant à vérifier et finaliser
+
+Un aller-retour réel depuis l’application reste nécessaire pour certifier la sauvegarde personnelle multi-biens après cette publication ; les simulations de lecture ne le remplacent pas. Le parcours client mono-bien et l’activation volontaire réelle de l’essai restent aussi à contrôler.
+
+Les autres points restent ouverts : identité et coordonnées d’éditeur, choix du type de compte Play après réponse du support, données contractuelles et durées de conservation, pages publiques, mise en service de la suppression et test réel sur compte jetable. La publication des règles ne rend pas à elle seule la suppression automatique opérationnelle.
