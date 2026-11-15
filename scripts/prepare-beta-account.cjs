@@ -5,7 +5,7 @@ const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||path.j
 if(out===root||root.startsWith(out+path.sep)||out===path.join(root,'public-account'))throw Error('Output must be a separate review directory');
 fs.mkdirSync(out,{recursive:true});
 for(const id of ['terms','privacy','subscription'])fs.writeFileSync(path.join(out,id+'.html'),A.html(id));
-for(const name of ['index.html','account.css','brand-icon.svg','suppression-beta.html'])fs.copyFileSync(path.join(root,'public-account',name),path.join(out,name));
+for(const name of ['index.html','account.css','brand-icon.svg','suppression-beta.html','assistance.html'])fs.copyFileSync(path.join(root,'public-account',name),path.join(out,name));
 fs.writeFileSync(path.join(out,'index.html'),fs.readFileSync(path.join(out,'index.html'),'utf8').replace('supprimer-mon-compte.html','suppression-beta.html'));
 const readiness={version:A.VERSION,publisher:A.config.publisherName,mode:'manual-request-preview',deployed:false,operationalDeletion:false,automaticServicesEnabled:false,requiresFinalManualPolicy:true,missing:A.betaMissing()};
 fs.writeFileSync(path.join(out,'review-readiness.json'),JSON.stringify(readiness,null,2)+'\n');

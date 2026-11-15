@@ -26,7 +26,7 @@ Si une automatisation est utilisée pour ce traitement, reprendre le moteur `fun
 
 `node scripts/prepare-beta-account.cjs <répertoire distinct>` prépare les pages pour revue et une configuration Hosting **sans réécriture vers une fonction**. Ce script ne déploie rien. Le site Firebase associé à l’application Web est `immoptima-6af3b` ; l’association est vérifiée en console et n’équivaut pas à une publication.
 
-Les politiques copiées gardent leur statut préparatoire et la description du service automatique préparé. Elles devront être harmonisées avec le mode manuel, les durées et le délai validés avant publication : ne pas utiliser ce paquet comme dossier définitif à déposer chez Google.
+Les politiques copiées gardent leur statut préparatoire et décrivent la variante manuelle : pas de confirmation automatique du serveur ni de tâche de purge annoncée. Les durées, le délai et la procédure effective doivent encore être validés avant publication : ne pas utiliser ce paquet comme dossier définitif à déposer chez Google.
 
 L’application et la configuration Android conservent le lien de suppression désactivé. Après publication et test réel de la variante choisie, renseigner la bonne URL et adapter le texte de la fenêtre Android au traitement manuel. Ne pas présenter une confirmation Google automatisée alors que l’utilisateur passe par e-mail.
 

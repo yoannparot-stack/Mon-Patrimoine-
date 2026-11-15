@@ -19,7 +19,7 @@
 | Statut actuel pour la bêta gratuite ; identité de la partie responsable des données | Personne physique, bêta gratuite sans vente activée ; situation commerciale à finaliser avant les ventes |
 | Adresse de contact à publier selon les obligations applicables et la configuration du compte | … |
 | Téléphone de contact requis pour la configuration éditeur | … |
-| Responsable de publication | … |
+| Responsable de publication | Yoann Parot — confirmé |
 | Pays ouverts au test | Proposition : France uniquement, à confirmer |
 
 « ImmOptima (patrimoine) » est un nom public, pas à lui seul l’identité du responsable. Aucune pièce d’identité, clé privée, coordonnées bancaires ni mot de passe ne doit être envoyé dans ce formulaire. L’identité se vérifie directement auprès de Google. Aucune obligation de création d’entreprise pour une bêta gratuite n’est déduite ici ; le statut commercial sera traité avant les ventes.
@@ -54,3 +54,9 @@ Identité et formalités de l’activité commerciale, obligations applicables d
 L’application Web **ImmOptima — Compte et confidentialité** est enregistrée dans le projet existant et associée au site Hosting `immoptima-6af3b`. Aucun Analytics n’est ajouté aux pages préparées et aucun extrait Analytics proposé par la console n’est repris. L’association ne publie aucune page et ne rend pas la suppression automatique opérationnelle.
 
 Pour conserver Spark pendant la bêta, une variante de page de demande par e-mail est préparée ; son utilisation suppose une procédure de traitement réellement disponible et validée. Les fonctions automatiques restent préparées séparément et désactivées.
+
+## Choix du canal d’assistance confirmé
+
+Le titulaire demande une assistance **uniquement par e-mail à immoptima12@gmail.com**. Les coordonnées postales et téléphoniques personnelles ne sont pas fournies et restent absentes des sources. Ce choix concerne le support, pas une exemption des obligations légales d’identification ou des coordonnées vérifiées demandées par Google. La publication reste bloquée tant que les obligations applicables ne sont pas résolues. Aucune promesse de confidentialité absolue de futures coordonnées légalement requises n’est faite.
+
+Les textes et la variante statique de la bêta décrivent désormais le traitement manuel préparé, sans promettre de fonction déployée, de confirmation serveur ou de purge planifiée. La page Assistance aide à rédiger une demande sans données inutiles et sans envoi automatique. Aucun délai de réponse, de traitement ou de conservation non validé n’est présenté comme acquis.
