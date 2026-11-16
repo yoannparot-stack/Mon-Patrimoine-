@@ -7,6 +7,7 @@ on:
       - 'scripts/prepare-beta-account.cjs'
       - 'scripts/check-static-beta.cjs'
       - 'rental-management.js'
+      - 'client-guidance.js'
       - 'tests/receipts-ui.cjs'
       - 'tests/rental-management.cjs'
   workflow_dispatch:

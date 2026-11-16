@@ -21,3 +21,5 @@ Les erreurs de coordonnées listent uniquement les champs absents et proposent d
 - Vérifier les boutons de correction, le focus, les formats mobiles et les ponts Android texte/PDF.
 
 La préparation technique n'est pas une confirmation de tests réussis : consulter les résultats de l'exécution associée au commit. APK personnelle prévue V47 ; bundle de préparation bêta V48. Aucun déploiement Firebase, compte réel, paiement ou envoi n'est nécessaire pour ces vérifications.
+
+Les validations de l’aide générale proposent également des boutons rouges dans le résumé des erreurs et sous les champs concernés. Les boutons ouvrent les sections repliées avant de cibler le champ, sans modifier la saisie.

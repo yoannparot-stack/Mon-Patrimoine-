@@ -61,11 +61,12 @@ const {chromium}=require('playwright');
  // Payment errors navigate to their exact field without dropping unsaved entries.
  await page.locator('#rmPaymentForm [name=paid]').fill('540');
  await page.locator('#rmPaymentForm button[type=submit]').click();
- await page.locator('#rmStatus [data-rm-go=paymentDate]').click();
+ await page.locator('#rmPaymentForm .io-form-summary [data-guidance-field=paymentDate]').click();
  assert.equal(await page.evaluate(()=>document.activeElement.name),'paymentDate');
  assert.equal(await page.locator('#rmPaymentForm [name=paid]').inputValue(),'540');
- await page.locator('#rmStatus [data-rm-go=confirmed]').click();
+ await page.locator('#rmPaymentForm .io-form-summary [data-guidance-field=confirmed]').click();
  assert.equal(await page.evaluate(()=>document.activeElement.name),'confirmed');
+ await page.locator('#rmPaymentForm .io-field-error [data-guidance-field=paymentDate]').click();assert.equal(await page.evaluate(()=>document.activeElement.name),'paymentDate');
  for(const width of [320,393,430]){await page.setViewportSize({width,height:851});assert(await page.locator('#ioRentalManagement').evaluate(e=>e.scrollWidth<=e.clientWidth+1))}
  // Error text identifies only missing dossier fields, and survives repeated navigation.
  await page.evaluate(()=>{document.querySelector('#rmPaymentForm').dispatchEvent(new Event('reset'));});
