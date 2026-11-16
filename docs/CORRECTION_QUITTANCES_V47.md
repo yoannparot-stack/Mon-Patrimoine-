@@ -23,3 +23,16 @@ Les erreurs de coordonnées listent uniquement les champs absents et proposent d
 La préparation technique n'est pas une confirmation de tests réussis : consulter les résultats de l'exécution associée au commit. APK personnelle prévue V47 ; bundle de préparation bêta V48. Aucun déploiement Firebase, compte réel, paiement ou envoi n'est nécessaire pour ces vérifications.
 
 Les validations de l’aide générale proposent également des boutons rouges dans le résumé des erreurs et sous les champs concernés. Les boutons ouvrent les sections repliées avant de cibler le champ, sans modifier la saisie.
+
+## Résultats obtenus
+
+La revue ciblée est réussie : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/43958448225
+La compilation et toutes ses vérifications sont réussies : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/43959456919
+
+Le scénario du paiement antérieur à la complétion des coordonnées, les refus d'actualisation, le retour aux données précédentes après échec de stockage, les identités historiques, les liens rouges et les ponts texte/PDF passent dans Chromium avec des données fictives. Les suites de non-régression, les règles Firestore sur émulateur, les 30 tests serveur simulés et les contrôles du bundle bêta V48 passent.
+
+L'APK personnelle V47 compilée et signée passe les parcours natifs sur Android 14/API34 et Android 16/API36 : navigation, Retour, saisies et conservation des données. La réparation d'identité est spécifiquement couverte dans Chromium ; aucun compte réel, envoi de quittance, paiement ou suppression réelle n'a été utilisé. Le certificat personnel reste identique à V45.
+
+Source de la compilation : 06efe9f8409ecc2dce50ab7bea9f75eec25c8384.
+APK V47, dans une archive ZIP de téléchargement : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/43959456919/artifacts/14273213481
+Après sauvegarde, installer l'APK extraite par-dessus la version personnelle existante, sans désinstaller.
