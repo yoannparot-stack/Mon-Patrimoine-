@@ -4,7 +4,7 @@ import sys,json,zipfile,xml.etree.ElementTree as E
 root,out=map(Path,sys.argv[1:]);ns='{http://schemas.android.com/apk/res/android}'
 paths=list((root/'app/build/intermediates/merged_manifests/release').rglob('AndroidManifest.xml'))
 assert paths,'Missing merged release manifest'
-m=E.parse(paths[0]).getroot();assert m.attrib[ns+'versionCode']=='46'
+m=E.parse(paths[0]).getroot();assert m.attrib[ns+'versionCode']=='48'
 assert m.attrib['package']=='com.immoptima.app'
 assert m.find('application').attrib.get(ns+'debuggable','false')=='false'
 with zipfile.ZipFile(out/'ImmOptima-Beta-Google-Play-v46.aab') as z:
@@ -13,5 +13,5 @@ with zipfile.ZipFile(out/'ImmOptima-Beta-Google-Play-v46.aab') as z:
  assert not json.loads(z.read('base/assets/account-deletion.json'))['enabled']
  for n in z.namelist():
   if n.startswith('base/assets/') and n.endswith('.js'):assert b'personal-test' not in z.read(n),n
-(out/'release-checks.json').write_text(json.dumps({'versionCode':46,'packageName':'com.immoptima.app','debuggable':False,'bundleAssetsChecked':True,'purchasesEnabled':False,'playUploaded':False,'realPlayInstallTested':False},indent=2)+'\n')
+(out/'release-checks.json').write_text(json.dumps({'versionCode':48,'packageName':'com.immoptima.app','debuggable':False,'bundleAssetsChecked':True,'purchasesEnabled':False,'playUploaded':False,'realPlayInstallTested':False},indent=2)+'\n')
 print('PASS release manifest, beta assets and disabled purchases in actual AAB')

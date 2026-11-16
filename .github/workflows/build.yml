@@ -63,7 +63,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -142,7 +142,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 45/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 47/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -239,7 +239,9 @@ jobs:
           offer_status=$?
           node tests/account-deletion-ui.cjs
           deletion_status=$?
-          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status || offer_status || deletion_status))
+          node tests/receipts-ui.cjs
+          receipts_status=$?
+          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status || offer_status || deletion_status || receipts_status))
       - name: Upload browser verification
         if: always()
         uses: actions/upload-artifact@v4
@@ -321,16 +323,16 @@ jobs:
           umask 077
           ROOT="$(dirname "$(find android-project -name settings.gradle -print -quit)")"
           cp beta-prepared/* "$ROOT/app/src/main/assets/"
-          sed -i "s/versionCode 45/versionCode 46/; s/1.3.2-preview/1.3.2-beta46/" "$ROOT/app/build.gradle"
+          sed -i "s/versionCode 47/versionCode 48/; s/1.3.2-preview/1.3.2-beta48/" "$ROOT/app/build.gradle"
           gradle -p "$ROOT" :app:bundleRelease --stacktrace
           mkdir -p beta-out
-          cp "$ROOT/app/build/outputs/bundle/release/app-release.aab" beta-out/ImmOptima-Beta-Google-Play-v46.aab
+          cp "$ROOT/app/build/outputs/bundle/release/app-release.aab" beta-out/ImmOptima-Beta-Google-Play-v48.aab
           KEYSTORE="$RUNNER_TEMP/immoptima-beta-upload.jks"
           trap 'rm -f "$KEYSTORE"' EXIT
           printf '%s' "$IMMOPTIMA_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
-          jarsigner -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -keypass:env IMMOPTIMA_KEY_PASSWORD beta-out/ImmOptima-Beta-Google-Play-v46.aab "$IMMOPTIMA_KEY_ALIAS"
-          jarsigner -verify beta-out/ImmOptima-Beta-Google-Play-v46.aab
-          keytool -printcert -jarfile beta-out/ImmOptima-Beta-Google-Play-v46.aab > beta-out/upload-certificate.txt
+          jarsigner -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -keypass:env IMMOPTIMA_KEY_PASSWORD beta-out/ImmOptima-Beta-Google-Play-v48.aab "$IMMOPTIMA_KEY_ALIAS"
+          jarsigner -verify beta-out/ImmOptima-Beta-Google-Play-v48.aab
+          keytool -printcert -jarfile beta-out/ImmOptima-Beta-Google-Play-v48.aab > beta-out/upload-certificate.txt
           cp beta-prepared/beta-build.json beta-out/
           python3 scripts/check-beta-bundle.py "$ROOT" beta-out
           sha256sum beta-out/*.aab > beta-out/SHA256SUMS.txt
@@ -356,7 +358,7 @@ jobs:
       matrix:
         api: [34, 36]
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -398,7 +400,7 @@ jobs:
           if-no-files-found: warn
 
   cloud-rules-audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

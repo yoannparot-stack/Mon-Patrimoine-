@@ -6,6 +6,9 @@ on:
       - '.github/workflows/brand-policy-review.yml'
       - 'scripts/prepare-beta-account.cjs'
       - 'scripts/check-static-beta.cjs'
+      - 'rental-management.js'
+      - 'tests/receipts-ui.cjs'
+      - 'tests/rental-management.cjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,6 +29,7 @@ jobs:
           node scripts/prepare-beta-account.cjs beta-account-static-review
           node tests/legal.cjs
           node tests/account-ui.cjs
+          node tests/rental-management.cjs
           node tests/beta-preparation.cjs
           node --test functions/test/*.test.cjs
       - name: Compile native brand resources
@@ -44,6 +48,7 @@ jobs:
       - name: Verify in-app mail support, manual deletion and public pages
         run: |
           node tests/account-deletion-ui.cjs
+          node tests/receipts-ui.cjs
           node tests/offer-ui.cjs
           node scripts/review-brand-policy.cjs
       - uses: actions/upload-artifact@v4
