@@ -4,6 +4,8 @@ on:
     branches: ['personal/immoptima-access-v25']
     paths:
       - '.github/workflows/brand-policy-review.yml'
+      - 'scripts/prepare-beta-account.cjs'
+      - 'scripts/check-static-beta.cjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +22,7 @@ jobs:
           python3 -m py_compile android-account-deletion-patch.py
           node scripts/export-legal.cjs public-account
           git diff --exit-code -- public-account/privacy.html public-account/terms.html public-account/subscription.html public-account/publication-readiness.json
+          node scripts/check-static-beta.cjs
           node scripts/prepare-beta-account.cjs beta-account-static-review
           node tests/legal.cjs
           node tests/account-ui.cjs

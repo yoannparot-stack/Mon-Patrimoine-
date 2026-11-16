@@ -41,3 +41,11 @@ Les opérations Firestore restent soumises aux quotas et conditions du projet. C
 Le titulaire a communiqué séparément des coordonnées personnelles avec une restriction d’usage aux obligations vérifiées. Elles ne sont pas recopiées dans le dépôt public, les captures ou les exports préparatoires. Le support reste exclusivement par e-mail. Cela ne vaut pas exemption des mentions légalement requises pour l’édition professionnelle, ni des informations vérifiées et affichées par Google. Références vérifiées le 15 novembre 2026 : article 1-1 de la LCEN ; aide Google Play 13628312. Les coordonnées doivent être intégrées uniquement au périmètre légal nécessaire, après examen de la version réellement publiée.
 
 Dans Mon compte, l’action d’assistance ouvre le composeur Android vers l’adresse dédiée avec un objet générique. Elle ne remplit aucun patrimoine, identifiant ou diagnostic et n’envoie pas le message. Si aucune messagerie n’est installée, l’application affiche l’adresse à utiliser ailleurs. Cette action ne crée ni demande de suppression ni abonnement.
+
+## Préparation isolée et transportable — 16 novembre 2026
+
+Le générateur refuse désormais un dossier de sortie non vide : un ancien fichier de suppression automatique ne doit pas rester dans une variante manuelle. Il refuse également une destination située dans les pages sources, y compris via un lien symbolique. Le refus conserve les fichiers existants.
+
+La configuration statique utilise un chemin relatif au dossier préparé ; le paquet peut ainsi être déplacé avant revue. Les métadonnées de préparation et les configurations Firebase sont exclues des fichiers à servir. Aucun déploiement n'est effectué.
+
+Le contrôle `node scripts/check-static-beta.cjs` vérifie le contenu du paquet, les cibles locales des liens, l'absence de scripts/formulaires actifs, le lien de suppression par e-mail, le déplacement du paquet et les refus sans modification des sources. Ces contrôles ne valident ni les mentions légales manquantes, ni une demande ou une suppression réelle.
