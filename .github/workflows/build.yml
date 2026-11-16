@@ -39,6 +39,7 @@ on:
       - 'access-policy.js'
       - 'scripts/prepare-commercial.py'
       - 'scripts/prepare-beta.py'
+      - 'scripts/check-beta-bundle.py'
       - 'beta-info.js'
       - 'functions/**'
       - 'android-rental-patch.py'

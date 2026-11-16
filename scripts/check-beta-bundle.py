@@ -7,7 +7,7 @@ assert paths,'Missing merged release manifest'
 m=E.parse(paths[0]).getroot();assert m.attrib[ns+'versionCode']=='48'
 assert m.attrib['package']=='com.immoptima.app'
 assert m.find('application').attrib.get(ns+'debuggable','false')=='false'
-with zipfile.ZipFile(out/'ImmOptima-Beta-Google-Play-v46.aab') as z:
+with zipfile.ZipFile(out/'ImmOptima-Beta-Google-Play-v48.aab') as z:
  h=z.read('base/assets/index.html').decode();assert "IMMOPTIMA_BUILD_CHANNEL='beta'" in h;assert 'personal-test' not in h
  assert not json.loads(z.read('base/assets/play-billing.json'))['enabled']
  assert not json.loads(z.read('base/assets/account-deletion.json'))['enabled']
