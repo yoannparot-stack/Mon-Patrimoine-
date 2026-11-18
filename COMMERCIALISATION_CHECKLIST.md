@@ -17,7 +17,7 @@ Mise à jour du 18 novembre 2026. Cette liste remplace les états techniques anc
 | Vérification | État réel à établir | Intervention |
 |---|---|---|
 | Compte Google Play adapté | Type et vérification à confirmer, notamment au regard des fonctions financières | Titulaire et réponse Google |
-| Éditeur et textes | Responsable connu ; statut commercial, mentions complémentaires, durées et contrats à finaliser | Titulaire avec préparation technique |
+| Éditeur et textes | Responsable connu ; voie en nom propre sans société choisie ; formalisation EI/régime et mentions, durées et contrats à finaliser | Titulaire avec préparation technique |
 | Pages publiques | Préparées ; URL HTTPS réellement publiée et vérifiée nécessaire | Déploiement après finalisation et accès |
 | Connexion et essai | Un vrai compte client distinct du propriétaire ; activation unique confirmée | Compte jetable et téléphone |
 | Sauvegarde du compte | Consentement, écriture réellement confirmée, restauration sur un deuxième appareil | Deux appareils de test |
@@ -42,4 +42,4 @@ Assistance uniquement par e-mail : immoptima12@gmail.com. Les coordonnées léga
 
 Préserver la référence `Mon_Patrimoine_V24_Optimisation_CONTROLEE-3.html`. Ne jamais ajouter de clé privée, token, fichier réel de patrimoine, liste de testeurs ou capture de compte dans ce dépôt. Les preuves d'essais réels contenant des identifiants restent privées.
 
-La console Firebase rencontrée le 18 novembre demande une connexion Google : les paramètres distants et le traitement d'un vrai compte ne sont pas certifiés par l'audit local. Les règles publiées le 15 novembre sont consignées dans `docs/ETAT_FIREBASE_2026-11-15.md`, sans être présentées comme une nouvelle inspection.
+Après reconnexion du titulaire le 18 novembre, accès Firebase confirmé : Google activé, droit propriétaire présent, Firestore eur3 et règles actives du 15 novembre. Play ouvre l'inscription développeur ; aucun type de compte choisi. Ces contrôles de console ne certifient pas une sauvegarde, une activation d'essai ou une suppression depuis une vraie application cliente. Voir `docs/MISE_EN_SERVICE_ET_DECISIONS.md` pour la décision d'exercer en nom propre, sans société.

@@ -63,3 +63,9 @@ Assistance, confidentialité et retours des testeurs : **immoptima12@gmail.com**
 - Binaire client préparé : AAB V50 ; APK personnelle V49 réservée au titulaire, exclue du kit testeurs.
 - Preuves techniques : compilation, tests navigateur et règles Firestore réussis, APK installé/testé sur émulateurs Android 14 et 16. Source `be483fcc7ea55fde44063f38e048dce6ab1ff4b7`, exécution https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/44259606825.
 - Aucun essai de connexion, de restauration ou de suppression sur un vrai compte client n’est certifié par ces tests.
+
+## Orientation du titulaire — nom propre
+
+Commercialisation envisagée en nom propre, sans création de société. Le titulaire refuse explicitement l'ajout d'ImmOptima au SIREN de son activité locative : aucun rattachement ni modification de cette activité à engager. La voie administrative compatible avec l'exercice en nom propre et cette séparation reste à vérifier ; ne pas promettre un deuxième SIREN. Le régime micro reste à confirmer. Ce choix ne vaut ni formalité déposée ni choix automatique d'un compte personnel Play.
+
+La connexion aux consoles est désormais vérifiée. Play affiche l'inscription développeur, laissée en attente du type adapté ; aucun contrat accepté, paiement ou dépôt réalisé. Les préparatifs techniques et essais APK peuvent continuer.
