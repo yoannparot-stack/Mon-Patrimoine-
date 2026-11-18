@@ -7,3 +7,13 @@ functions/.env*
 firebase-debug.log
 functions/firebase-debug.log
 __pycache__/
+# Generated review/build outputs
+beta-prepared*/
+store-prepared/
+store-assets/
+qa-out/
+review-output/
+beta-account-*/
+android-project/
+apk-out/
+beta-out/

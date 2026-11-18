@@ -707,7 +707,7 @@ header #nav button{min-width:0}header #nav button span{font-size:9px;max-width:1
   <details class="card io-account-settings" id="ioAccountPersonalize"><summary>Personnaliser mon espace</summary><h3>Nom du tableau</h3><div class="field"><label for="appName">Nom de votre espace</label><input id="appName"></div><button class="primary" onclick="saveSettings()">Enregistrer</button><h3>Détenteurs des biens</h3><p>Personnes ou sociétés qui détiennent vos biens. Un détenteur par ligne.</p><div class="field"><label for="holderList">Liste des détenteurs</label><textarea id="holderList" rows="5" placeholder="Ex. : Personne, société, SCI…"></textarea></div><button class="primary" onclick="saveHolders()">Enregistrer les détenteurs</button><p class="hint">Les détenteurs déjà affectés à un bien restent visibles pour conserver leur identification.</p></details>
   <details class="card io-account-settings" id="ioAccountData"><summary>Données et confidentialité</summary><p>Effacer les données de cet appareil ne supprime pas votre compte ni les copies sauvegardées. Exportez une sauvegarde avant toute suppression.</p><button type="button" class="secondary" data-account-delete>Supprimer mon compte ImmOptima</button><p class="hint">Une procédure distincte vérifie votre identité avant toute suppression en ligne. Elle ne résilie pas un abonnement Google Play.</p><button type="button" class="danger" onclick="resetAll()">Effacer les données de cet appareil</button></details>
   <details class="card io-account-settings" id="ioAccountDemo"><summary>Essayer avec des données fictives</summary><p>Données 100 % fictives, ajoutées uniquement sur demande. Un seul bien est créé. Sauvegardez vos vraies données avant tout test.</p><div class="actions"><button class="secondary" onclick="installDemoData()">Charger le patrimoine fictif</button><button class="danger" onclick="removeDemoData()">Supprimer les données fictives</button></div></details>
-  <p class="io-account-version">ImmOptima · version de test V47</p>
+  <p class="io-account-version">ImmOptima · version de test V49</p>
 </section>
 </main>
 <footer>Prototype commercial — les données patrimoniales restent locales sur cet appareil. Le moteur marché n'envoie que les informations immobilières strictement nécessaires aux sources publiques.</footer>
@@ -765,8 +765,10 @@ function ioAccessAuthorize(portfolio,options={}){
 }
 window.immoptimaNativeAccessResult=function(event){
  const p=ioAccessPending.get(event?.requestId);if(!p)return;clearTimeout(p.timeout);ioAccessPending.delete(event.requestId);
- const allowed=event.allowed===true&&event.uid===p.uid&&immoptimaAuthState.status==='signed_in'&&immoptimaAuthState.uid===p.uid;
- ioAccessVerified=allowed?{uid:p.uid,owner:event.owner===true,expiresAt:Number(event.expiresAt)||0,checkedUntil:Date.now()+60000}:null;
+ const expiresAt=typeof event.expiresAt==='number'&&Number.isFinite(event.expiresAt)?event.expiresAt:0;
+ const owner=event.owner===true;
+ const allowed=event.allowed===true&&event.uid===p.uid&&immoptimaAuthState.status==='signed_in'&&immoptimaAuthState.uid===p.uid&&(owner||expiresAt>Date.now());
+ ioAccessVerified=allowed?{uid:p.uid,owner,expiresAt,checkedUntil:Date.now()+60000}:null;
  if(!allowed&&!p.silent){if(p.premium&&window.ioSoloShowPremium)window.ioSoloShowPremium();else if(window.ioJourneyShowMulti)window.ioJourneyShowMulti();else alert('Multi-biens réservé à un abonnement actif ou au compte propriétaire. Aucune donnée remplacée. Vos exports restent disponibles.')}p.resolve(allowed);
  ioAccessUpdateGate();window.ioAccountRefresh?.();
 };

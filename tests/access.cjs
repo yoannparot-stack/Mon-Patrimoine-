@@ -3,10 +3,10 @@ const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('nod
 const policy=require('../access-policy');const now=100000;
 for(const [access,expected] of [[{},false],[{owner:true},true],[{owner:'true'},false],[{status:'active',expiresAt:now+1},true],[{status:'active',expiresAt:now},false],[{status:'expired',expiresAt:now+1},false],[{status:'active',expiresAt:'2099'},false]]){assert.equal(policy.decide(11,access,now),expected);assert(policy.decide(1,access,now))}
 const html=fs.readFileSync('index.html','utf8'),slice=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
-function env(channel='commercial',allowed=false){
+function env(channel='commercial',allowed=false,nativeResponse={}){
  const data={settings:{holders:[]},properties:[{id:'existing'}],loans:[],assets:[]},store=new Map(),alerts=[];
  const ctx={console,crypto,structuredClone,TextEncoder,TextDecoder,Uint8Array,atob,setTimeout,clearTimeout,alert:m=>alerts.push(m),confirm:()=>true,db:structuredClone(data),empty:structuredClone(data),KEY:'test',IMMOPTIMA_SYNC_META_KEY:'meta',DEFAULT_HOLDERS:[],immoptimaAuthState:{status:'signed_in',uid:'a'},localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},normalizeHolder:p=>p,immoptimaSyncMarkDirty(){},renderAll(){},document:{getElementById(){return null},createElement(){return {style:{},setAttribute(){}}},body:{appendChild(){}}},immoptimaCloudState:{},immoptimaCloudUpdateStatus(){},immoptimaSyncMeta:()=>({dirty:false}),navigator:{onLine:true}};
- ctx.window=ctx;ctx.AndroidBridge={immoptimaAccessCheck(requestId){queueMicrotask(()=>ctx.immoptimaNativeAccessResult({requestId,uid:'a',allowed,expiresAt:Date.now()+3600000}))}};
+ ctx.window=ctx;ctx.AndroidBridge={immoptimaAccessCheck(requestId){queueMicrotask(()=>ctx.immoptimaNativeAccessResult({requestId,uid:'a',allowed,expiresAt:Date.now()+3600000,...nativeResponse}))}};
  ctx.FileReader=class{readAsText(f){this.result=f.text;ctx.pendingRead=this.onload()}};
  vm.createContext(ctx);vm.runInContext(slice('function ioValidatePortfolio(', 'function normalizeHolder('),ctx);vm.runInContext("const IMMOPTIMA_BUILD_CHANNEL='"+channel+"';"+slice('const ioAccessPending=new Map();','const DEFAULT_HOLDERS='),ctx);
  vm.runInContext(slice('const IO_RECOVERY_KEYS=', 'function listPrivateDriveBackups'),ctx);
@@ -25,6 +25,16 @@ function env(channel='commercial',allowed=false){
   assert.equal(ctx.db.properties.length,expected?11:1,channel+' '+route);
   if(!expected)assert.equal(store.get('test'),JSON.stringify(data),'denied operation leaves persisted portfolio unchanged');
  }
+ for(const response of [
+  {allowed:true,expiresAt:Date.now()-1},
+  {allowed:true,expiresAt:0},
+  {allowed:true,expiresAt:String(Date.now()+3600000)},
+  {allowed:true,expiresAt:Infinity},
+  {allowed:true,expiresAt:null,owner:'true'},
+  {allowed:'true',expiresAt:Date.now()+3600000},
+  {allowed:true,expiresAt:Date.now()+3600000,uid:'other'}
+ ]){const {ctx}=env('commercial',true,response);assert.equal(await ctx.ioAccessAuthorize(backup(2),{silent:true}),false,'inconsistent native access must be refused '+JSON.stringify(response))}
+ const verifiedOwner=env('commercial',true,{owner:true,expiresAt:0});assert.equal(await verifiedOwner.ctx.ioAccessAuthorize(backup(11),{silent:true}),true);
  const e=env();e.ctx.AndroidBridge=null;assert(await e.ctx.ioAccessAuthorize(backup(1)));assert.equal(await e.ctx.ioAccessAuthorize(backup(2)),false);
  const race=env();let request;race.ctx.AndroidBridge.immoptimaAccessCheck=id=>request=id;const result=race.ctx.ioAccessAuthorize(backup(3));race.ctx.immoptimaAuthState.uid='b';race.ctx.immoptimaNativeAccessResult({requestId:request,uid:'a',allowed:true});assert.equal(await result,false);
  const throwing=env();throwing.ctx.AndroidBridge.immoptimaAccessCheck=()=>{throw Error('offline')};assert.equal(await throwing.ctx.ioAccessAuthorize(backup(3)),false);
