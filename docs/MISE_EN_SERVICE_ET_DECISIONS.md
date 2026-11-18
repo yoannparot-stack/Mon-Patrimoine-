@@ -51,3 +51,15 @@ Sources vérifiées : https://entreprendre.service-public.gouv.fr/vosdroits/F373
 ## Consoles vérifiées après reconnexion le 18 novembre
 
 Firebase : projet ImmOptima, package com.immoptima.app, empreintes personnelles SHA-1/SHA-256 présentes ; Google est le fournisseur de connexion activé. Droit propriétaire enregistré ; base Firestore en eur3 et règles actives datées du 15 novembre. Aucun identifiant individuel copié ici. Hosting présente encore son démarrage : aucune publication effectuée pendant la vérification. L'adresse d'assistance configurable dans les paramètres du projet propose uniquement le compte propriétaire ; le contact public dédié n'a pas été ajouté en lui accordant des droits administrateur. Play affiche la sélection du type de compte développeur ; aucun type choisi, contrat accepté, frais payés ou AAB déposé.
+
+## Dossier administratif et suite technique — 18 novembre, fin de journée
+
+Le titulaire indique avoir validé son dossier sur le Guichet unique et être en attente. Aucune synthèse signée, preuve de transmission ou décision administrative n'a été inspectée : ne pas confondre validation des champs, dépôt et acceptation administrative. Aucun SIREN personnel ni régime micro-social accepté n'est confirmé par cette déclaration.
+
+La fonction de gérant/cogérant de la SARL avec répartition 50/50 entre époux a été confirmée. La piste micro-entrepreneur précédemment envisagée nécessite une correction de l'analyse et une clarification écrite de l'Urssaf : la majorité s'apprécie notamment avec les parts du conjoint, et le cumul gérant majoritaire/micro-entrepreneur est exclu dans les sources officielles consultées. Ne pas indiquer un régime accepté dans les pages publiques ; ne pas modifier la SARL pour ce projet. Le régime fiscal/social applicable à une activité distincte en nom propre doit être confirmé avant encaissement.
+
+Références consultées : https://www.economie.gouv.fr/entreprises/gerer-sa-micro-entreprise/quelles-activites-peut-exercer-en-micro-entreprise ; https://www.urssaf.fr/accueil/choisir-forme-juridique/creer-societe.html.
+
+L'activité ImmOptima sera exercée par le titulaire seul ; aucun statut de conjoint participant à cette activité n'est demandé. La pièce administrative « déclaration d'option du conjoint » reste à clarifier contre les réponses réelles du formulaire. Une déclaration d'exercice seul n'est pas présentée comme un substitut certifié à cette pièce.
+
+Côté technique, ajout d'un audit de suppression en lecture seule, isolé de l'application et du traitement destructif. Six tests locaux réussis, ainsi que les trente simulations serveur existantes. Aucune connexion administrateur externe ni suppression n'a été exécutée par cet ajout. Les tests réels, pages, signature Play et achats restent à finaliser. La V49 personnelle et l'AAB V50 restent les binaires de référence ; aucun nouvel APK n'est nécessaire pour un outil opérateur qui n'y est pas embarqué.

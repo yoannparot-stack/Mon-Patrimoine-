@@ -1,0 +1,25 @@
+name: Verify read-only account deletion audit
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/audit-account-deletion.cjs'
+      - 'scripts/check-account-deletion-audit.cjs'
+      - '.github/workflows/account-deletion-audit.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify read-only audit with fictitious accounts
+        run: node --test scripts/check-account-deletion-audit.cjs
+      - name: Verify existing server simulations
+        run: node --test functions/test/*.test.cjs
+      - name: Verify honest publication gates
+        run: node scripts/check-publication-preflight.cjs

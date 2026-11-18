@@ -49,3 +49,27 @@ Le générateur refuse désormais un dossier de sortie non vide : un ancien fich
 La configuration statique utilise un chemin relatif au dossier préparé ; le paquet peut ainsi être déplacé avant revue. Les métadonnées de préparation et les configurations Firebase sont exclues des fichiers à servir. Aucun déploiement n'est effectué.
 
 Le contrôle `node scripts/check-static-beta.cjs` vérifie le contenu du paquet, les cibles locales des liens, l'absence de scripts/formulaires actifs, le lien de suppression par e-mail, le déplacement du paquet et les refus sans modification des sources. Ces contrôles ne valident ni les mentions légales manquantes, ni une demande ou une suppression réelle.
+
+## Contrôle opérateur en lecture seule — 18 novembre 2026
+
+Un contrôle séparé, `scripts/audit-account-deletion.cjs`, inventorie les données résiduelles d'un UID exact. Il ne supprime rien, n'écrit aucun document, ne modifie aucune règle et ne crée aucun droit. Il n'est pas embarqué dans l'APK. Son rapport ne contient ni contenu du patrimoine, ni adresse e-mail, ni jeton d'achat.
+
+Dans un environnement administrateur déjà autorisé, avec les dépendances `functions` installées et une identité Application Default Credentials appropriée :
+
+```sh
+node scripts/audit-account-deletion.cjs --project immoptima-6af3b --uid IDENTIFIANT_EXACT_VERIFIE
+```
+
+La connexion au navigateur Firebase ne connecte pas ce programme. Ne pas récupérer de cookie ni transmettre de clé privée dans le chat ou le dépôt pour l'exécuter. Les autorisations nécessaires doivent être organisées séparément ; aucune nouvelle identité administrateur n'est créée par cet outil. Les lectures consomment les quotas du projet.
+
+Le contrôle vérifie Authentication, les documents et sous-collections de `users`, `accountAccess`, `rentalAccess` et `rentalTrials`, une éventuelle référence d'achat liée au même UID, quatre jours de compteurs hachés et le marqueur de traitement. La recherche de descendants utilise `listDocuments`, qui inclut les parents absents ayant des sous-collections. Un budget de documents interrompt le contrôle si la cible est trop volumineuse ; une erreur ou une interruption n'est jamais traduite en résultat positif.
+
+- `RESIDUAL_DATA_FOUND` : au moins un élément contrôlé reste présent. Ce résultat est attendu avant suppression.
+- `INCONCLUSIVE_NO_COMPLETION_MARKER` : absence de données dans le périmètre, mais pas de preuve locale d'une demande terminée ; ne pas confirmer une suppression au demandeur sur cette seule base.
+- `NO_RESIDUAL_IN_CHECKED_SCOPE` : absence dans le seul périmètre contrôlé et marqueur terminé présent. Ce n'est pas une certification de suppression de toutes copies externes ou d'anciens journaux.
+
+Même dans le dernier cas, `oldSessionsVerified` et `readyForPublication` restent faux. Tester séparément les anciennes sessions, l'identité du demandeur, le processus d'assistance, la conservation des traces et les copies gérées par les prestataires. Les anciens compteurs hors de la fenêtre ne sont pas certifiés absents. Le marqueur minimal de sécurité ne doit pas être purgé prématurément.
+
+Les six tests avec transports et comptes fictifs couvrent les descendants orphelins, les références indirectes, les erreurs, le budget, le mauvais projet et la préservation des autres comptes. Ils ne constituent pas une exécution sur Firebase réel.
+
+Référence SDK : https://docs.cloud.google.com/nodejs/docs/reference/firestore/latest/firestore/collectionreference ; erreurs Authentication : https://firebase.google.com/docs/auth/admin/errors.
