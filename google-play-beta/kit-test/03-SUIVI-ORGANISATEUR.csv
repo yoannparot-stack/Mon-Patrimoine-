@@ -1,0 +1,12 @@
+scenario;type_preuve;statut;date_verification;reference_sans_identifiant_personnel
+premier_bilan_125;telephone_client;a_faire;;
+quittance_integrale_et_recu_partiel;telephone_client;a_faire;;
+coordonnees_completees_apres_paiement;telephone_client;a_faire;;
+liens_rouges_et_retour_android;telephone_client;a_faire;;
+export_import_annulation_fichier_invalide;telephone_client;a_faire;;
+connexion_google_reelle;compte_client_jetable;a_faire;;
+activation_unique_essai_90_jours;compte_client_jetable;a_faire;;
+sauvegarde_compte_et_restauration_second_appareil;deux_appareils;a_faire;;
+suppression_et_refus_anciennes_sessions;compte_client_jetable;a_faire;;
+canal_test_play_et_signature;console_play;a_faire;;
+conditions_test_production_applicables;console_play;a_faire;;

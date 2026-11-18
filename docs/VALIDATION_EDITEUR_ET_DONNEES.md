@@ -30,7 +30,7 @@
 |---|---|---|
 | Projet Firebase | `immoptima-6af3b` référencé dans les sources | Confirmer projet réel et accès du titulaire |
 | Région des fonctions | `europe-west1` demandée dans les sources | Confirmer région réellement déployée ; elle ne prouve pas celle d’Authentication ou Firestore |
-| Firestore / Authentication / stockage / hébergement | Configurations distantes non inspectées dans cette préparation | Vérifier région, entité contractante, contrats, sauvegardes et transferts |
+| Firestore / Authentication / stockage / hébergement | Inspection du 15 novembre consignée dans ETAT_FIREBASE_2026-11-15.md ; pas de nouvelle inspection le 18, session déconnectée | Vérifier région, entité contractante, contrats, sauvegardes et transferts |
 | Confidentialité | `public-account/privacy.html` prêt pour revue | Publier après complétude puis vérifier une URL HTTPS sans connexion |
 | Suppression | Interface, page et service préparés ; trois activations toujours désactivées | Déployer après revue du coût, tester un compte jetable, confirmer la suppression et le refus des anciennes sessions |
 | Journaux et copies fournisseur | Durées effectives inconnues | Vérifier les réglages et contrats avant de les écrire dans la politique |
@@ -57,6 +57,6 @@ Pour conserver Spark pendant la bêta, une variante de page de demande par e-mai
 
 ## Choix du canal d’assistance confirmé
 
-Le titulaire demande une assistance **uniquement par e-mail à immoptima12@gmail.com**. Les coordonnées postales et téléphoniques personnelles ne sont pas fournies et restent absentes des sources. Ce choix concerne le support, pas une exemption des obligations légales d’identification ou des coordonnées vérifiées demandées par Google. La publication reste bloquée tant que les obligations applicables ne sont pas résolues. Aucune promesse de confidentialité absolue de futures coordonnées légalement requises n’est faite.
+Le titulaire demande une assistance **uniquement par e-mail à immoptima12@gmail.com**. Les coordonnées postales et téléphoniques personnelles ont été communiquées pour les seuls cas de nécessité vérifiée ; elles ne sont pas recopiées dans les sources publiques. Ce choix concerne le support, pas une exemption des obligations légales d’identification ou des coordonnées vérifiées demandées par Google. La publication reste bloquée tant que les obligations applicables ne sont pas résolues. Aucune promesse de confidentialité absolue de futures coordonnées légalement requises n’est faite.
 
 Les textes et la variante statique de la bêta décrivent désormais le traitement manuel préparé, sans promettre de fonction déployée, de confirmation serveur ou de purge planifiée. La page Assistance aide à rédiger une demande sans données inutiles et sans envoi automatique. Aucun délai de réponse, de traitement ou de conservation non validé n’est présenté comme acquis.

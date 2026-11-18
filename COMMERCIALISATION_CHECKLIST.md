@@ -1,41 +1,45 @@
-# ImmOptima — Contrôles avant commercialisation
+# ImmOptima — préparation de la commercialisation
 
-Statut : préparation technique, **pas encore prêt pour publication publique**.
+Mise à jour du 18 novembre 2026. Cette liste remplace les états techniques anciens du 25 octobre ; elle sépare les tests simulés et les preuves opérationnelles. Elle ne vaut pas autorisation de mise en vente.
 
-## Déjà validé
-- Compilation, tests JavaScript, signature et dépôt d'APK de test par GitHub Actions.
-- Installation Android et affichage du menu de sauvegarde à trois choix confirmés sur téléphone.
-- Export visible dans Google Drive confirmé sur téléphone, avec choix explicite du dossier.
-- Sauvegarde locale et import JSON disponibles.
+## Préparation technique disponible
 
-## Contrôles bloquants avant publication
-- [ ] Vérifier sur appareil l'import d'un fichier de test et la conservation des données existantes en cas de fichier invalide.
-- [ ] Vérifier les sauvegardes sur un deuxième appareil et un nouveau téléphone.
-- [ ] Vérifier les échecs et annulations du sélecteur Android ; ne jamais afficher un faux succès.
-- [ ] Définir et tester une politique de sauvegarde/restauration des données avant mise à jour.
-- [ ] Confirmer la conservation du certificat de signature et établir la signature Play Store définitive.
-- [ ] Définir la fiche Google Play, les captures d'écran, la catégorie et le support utilisateur.
-- [ ] Publier une politique de confidentialité exacte : données immobilières/financières, stockage local, partage volontaire par sélecteur Android, copies privées Google si activées, droits des utilisateurs.
-- [ ] Compléter la déclaration « Sécurité des données » et vérifier toutes les autorisations Google utilisées.
-- [ ] Définir et tester les limitations gratuites et l'abonnement Premium (Google Play Billing, droit de rétractation/conditions applicables).
-- [ ] Effectuer un test fermé avec plusieurs appareils et profils, puis une revue des crashes et de l'accessibilité.
+- Dernière livraison validée avant cet audit : APK personnelle V47 et bundle bêta V48, Android 14/API34 et Android 16/API36. Voir `docs/CORRECTION_QUITTANCES_V47.md`.
+- Audit du 18 novembre : APK personnelle V49 et bundle bêta V50 compilés ; tests navigateur, règles Firestore et APK installé sur émulateurs Android 14/API34 et Android 16/API36 réussis. Exécution : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/44259606825. Ces tests ne remplacent pas les essais des services réels.
+- Un bilan gratuit pour un bien, essai mono-bien de 90 jours activé volontairement, absence de conversion automatique ; multi-biens client soumis à droits vérifiés.
+- Version personnelle débloquée distincte : ne jamais la déposer pour les clients.
+- Préparation des clients isolée, refus des anciens dossiers non vides, retrait des branches personnelles et empreintes des fichiers. Achats et suppression opérationnelle désactivés.
+- Tests ajoutés pour refuser les réponses incohérentes d'abonnement et d'essai ; confirmation native et compte doivent correspondre.
+- Kit testeurs, fiche française, inventaire des données et pages d'information préparés. Aucun testeur contacté et aucune déclaration Console soumise.
 
-## Important : Google Drive
-Le bouton « Sur Google » utilise le sélecteur Android et crée un fichier visible uniquement **après** choix d'un dossier et validation par l'utilisateur. Il ne garantit pas à lui seul que le fichier a été créé : l'utilisateur doit contrôler la présence du fichier dans Drive.
+## Avant ouverture d'une bêta client
 
-L'option avancée « sauvegarde automatique privée » est distincte : elle utilise l'espace Google Drive `appDataFolder`, non visible dans l'interface Drive. Les données JSON ne sont pas chiffrées de bout en bout par ImmOptima. Ne pas prétendre le contraire.
+| Vérification | État réel à établir | Intervention |
+|---|---|---|
+| Compte Google Play adapté | Type et vérification à confirmer, notamment au regard des fonctions financières | Titulaire et réponse Google |
+| Éditeur et textes | Responsable connu ; statut commercial, mentions complémentaires, durées et contrats à finaliser | Titulaire avec préparation technique |
+| Pages publiques | Préparées ; URL HTTPS réellement publiée et vérifiée nécessaire | Déploiement après finalisation et accès |
+| Connexion et essai | Un vrai compte client distinct du propriétaire ; activation unique confirmée | Compte jetable et téléphone |
+| Sauvegarde du compte | Consentement, écriture réellement confirmée, restauration sur un deuxième appareil | Deux appareils de test |
+| Suppression | Traitement effectif, verrou des anciennes sessions, autres comptes préservés, confirmation exacte | Compte jetable, accès administrateur et confirmation au moment de la suppression |
+| Signature Play | Empreintes de la signature distribuée enregistrées et connexion Google vérifiée | Console Play/Firebase |
+| Déclarations | Données, SDK, fonctions financières, public cible, contenu et accès examinateur conformes au binaire et aux services actifs | Dossier préparé, envoi à effectuer |
+| Test Google Play | Piste interne puis fermée selon les exigences applicables au compte | Vrais volontaires et suivi |
 
-## Sécurité
-- Ne jamais écraser `Mon_Patrimoine_V24_Optimisation_CONTROLEE-3.html`.
-- Ne jamais publier de clés, tokens OAuth, certificats privés ou fichiers réels de patrimoine dans GitHub.
-- Les données de test doivent être fictives.
-- Ne pas considérer une compilation réussie comme une validation fonctionnelle sur Android.
+Pour les nouveaux comptes personnels concernés par la règle Google : au moins 12 testeurs inscrits au test fermé pendant 14 jours consécutifs, puis demande d'accès à la production ; l'accès n'est pas automatique. Ce délai est distinct de l'essai produit de 90 jours. Vérification documentaire du 18 novembre 2026 : https://support.google.com/googleplay/android-developer/answer/14151465
 
-## Audit du parcours utilisateur — 25 octobre 2026
-- Le bouton de bienvenue Google était trompeur : il déclenchait un export de fichier, et non une authentification persistante. Le texte a été corrigé pour décrire l'action réelle.
-- Le stockage principal repose sur `localStorage` dans la WebView : pas de synchronisation automatique multi-appareils. Tester la perte de données après effacement du stockage ou désinstallation avant toute promesse de récupération.
-- La sauvegarde visible repose sur le sélecteur Android : aucune vérification automatique de la présence du fichier sur Drive n'est implémentée.
-- L'import JSON vérifie les collections principales et demande une confirmation avant remplacement, mais un audit approfondi du schéma, des limites et de la compatibilité entre versions reste nécessaire.
-- La sauvegarde privée automatique, si activée, fonctionne séparément de l'export visible et note l'heure de tentative plutôt que la confirmation de succès. Ne pas la présenter comme garantie de récupération.
-- La logique Premium et la facturation Google Play ne sont pas prouvées par les tests de compilation actuels.
-- L'APK de test utilise un identifiant d'application de test : ne pas la confondre avec un artefact Google Play de production.
+## Avant encaissement d'abonnements
+
+- Activité et conditions de vente adaptées au statut retenu, garanties et rétractation ; informations de paiement saisies dans Google par le titulaire.
+- Produits Google Play correspondant aux tarifs de présentation validés : 3,99 €/mois et 39,99 €/an. Les prix réellement renvoyés par Play font foi au moment de l'achat.
+- Vérification serveur et événements d'abonnement effectivement déployés et surveillés ; choix de l'hébergement et du budget approuvé. Le projet Firebase a été constaté sur Spark le 15 novembre ; aucun passage à Blaze n'est réalisé par les préparatifs.
+- Essais Google avec comptes de licence : achat approuvé/annulé/en attente, restauration, relance, renouvellement, résiliation, expiration, suspension, remboursement et notifications tardives ou rejouées.
+- Dépôt de la version client, validation Google et décision de lancement du titulaire.
+
+## Protection des données et limites
+
+Assistance uniquement par e-mail : immoptima12@gmail.com. Les coordonnées légales de l'éditeur et celles exigées publiquement par Google sont un sujet distinct du canal d'assistance. Ne jamais recopier des coordonnées personnelles dans le dépôt public sans nécessité vérifiée.
+
+Préserver la référence `Mon_Patrimoine_V24_Optimisation_CONTROLEE-3.html`. Ne jamais ajouter de clé privée, token, fichier réel de patrimoine, liste de testeurs ou capture de compte dans ce dépôt. Les preuves d'essais réels contenant des identifiants restent privées.
+
+La console Firebase rencontrée le 18 novembre demande une connexion Google : les paramètres distants et le traitement d'un vrai compte ne sont pas certifiés par l'audit local. Les règles publiées le 15 novembre sont consignées dans `docs/ETAT_FIREBASE_2026-11-15.md`, sans être présentées comme une nouvelle inspection.

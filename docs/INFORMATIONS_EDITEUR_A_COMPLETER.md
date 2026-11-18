@@ -1,6 +1,6 @@
 # ImmOptima — informations nécessaires avant publication
 
-Préparation du 14 novembre 2026. Aucune identité ni adresse personnelle n’a été réutilisée automatiquement. Les textes intégrés et les pages exportées restent préparatoires.
+Mise à jour du 18 novembre 2026. Responsable confirmé : Yoann Parot. Les coordonnées personnelles communiquées pour les seuls cas de nécessité vérifiée ne sont pas recopiées dans ce dépôt public. Les textes intégrés et les pages exportées restent préparatoires.
 
 ## À fournir par l’éditeur
 
@@ -32,4 +32,4 @@ Les valeurs définitives se renseignent dans `legal-content.js` après validatio
 
 ## Réponse reçue le 15 novembre 2026
 
-Le titulaire souhaite le nom public « ImmOptima (patrimoine) ». Le nom de l’application reste ImmOptima. Cette réponse ne fournit pas l’identité juridique du responsable, son statut ni ses coordonnées ; ils restent à renseigner. Pour une bêta gratuite, ne pas présenter automatiquement un numéro d’entreprise ou la médiation commerciale comme prérequis sans vérifier leur applicabilité. Le contrôle commercial reste plus complet que celui de la bêta, et aucun des deux n’est annoncé prêt tant que le responsable, les flux et la suppression ne sont pas finalisés. Voir `VALIDATION_EDITEUR_ET_DONNEES.md`.
+Le titulaire souhaite le nom public « ImmOptima (patrimoine) ». Le nom de l’application reste ImmOptima. L’identité du responsable a ensuite été confirmée : Yoann Parot. Le statut commercial et les coordonnées légalement nécessaires à publier restent à finaliser ; les coordonnées personnelles déjà communiquées demeurent réservées à une nécessité vérifiée. Pour une bêta gratuite, ne pas présenter automatiquement un numéro d’entreprise ou la médiation commerciale comme prérequis sans vérifier leur applicabilité. Le contrôle commercial reste plus complet que celui de la bêta, et aucun des deux n’est annoncé prêt tant que le responsable, les flux et la suppression ne sont pas finalisés. Voir `VALIDATION_EDITEUR_ET_DONNEES.md`.

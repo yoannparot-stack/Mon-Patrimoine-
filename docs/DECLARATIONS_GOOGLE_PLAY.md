@@ -1,6 +1,6 @@
 # ImmOptima — réponses préparées pour Google Play
 
-15 novembre 2026. Brouillon à vérifier contre le binaire et les services effectivement activés. Aucune déclaration n’a été envoyée. Le compte Play Console n’est pas encore créé. Les paramètres distants ne sont pas déduits des seuls fichiers sources.
+15 novembre 2026. Brouillon à vérifier contre le binaire et les services effectivement activés. Aucune déclaration n’a été envoyée. La création et la vérification du compte Play Console ne sont pas confirmées dans cette session. Les paramètres distants ne sont pas déduits des seuls fichiers sources.
 
 ## Fiche et contenu
 
@@ -62,3 +62,13 @@ Ne pas cocher « aucune fonctionnalité financière » par défaut. Choisir les 
 - https://firebase.google.com/docs/android/play-data-disclosure?hl=fr
 - https://support.google.com/googleplay/android-developer/answer/9866151?hl=fr
 - https://www.cnil.fr/fr/passer-laction/rgpd-exemples-de-mentions-dinformation
+
+## Contrôle du binaire V50 — 18 novembre 2026
+
+Bundle vérifié : com.immoptima.app, versionCode 50. Source be483fcc7ea55fde44063f38e048dce6ab1ff4b7. Manifeste fusionné de la release et dépendances résolues produits par la compilation CI 44259606825.
+
+Permissions : ACCESS_NETWORK_STATE, INTERNET, com.android.vending.BILLING et com.google.android.providers.gsf.permission.READ_GSERVICES. Aucune permission caméra, microphone, localisation, contacts ou SMS listée. `allowBackup=false`, `debuggable=false`. Le trafic en clair conserve la valeur de plateforme par défaut ; cela ne constitue pas une preuve d’audit réseau.
+
+SDK directement résolus : Google Play Billing 8.3.0, Firebase Authentication 23.2.1, Firestore 25.1.4, Google Play Services Auth 21.5.0. La présence du SDK Billing ne signifie pas que les achats sont activés : la configuration bêta les désactive. Aucune dépendance firebase-analytics relevée dans cette liste résolue ; ne pas en déduire l’absence de toutes données techniques.
+
+Reprendre les déclarations selon les fiches officielles de ces SDK et les paramètres distants réellement utilisés. Les permissions et dépendances seules ne certifient ni tous les flux réseau, ni les contrats, ni les durées, ni une suppression réelle. Les pièces techniques sont incluses dans le dossier de préparation ; aucun formulaire n’a été soumis.

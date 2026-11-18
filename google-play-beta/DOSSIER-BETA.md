@@ -1,12 +1,12 @@
 # ImmOptima — préparation du test Google Play
 
-État : préparation technique. Aucun compte Play créé, aucun fichier envoyé à Google, aucun testeur invité, aucun achat activé.
+Mise à jour du 18 novembre 2026 : préparation technique V50 compilée et contrôlée. État de création du compte Play non confirmé dans cette session ; aucun dépôt en Console, invitation ou achat effectué pendant cet audit.
 
 ## Fiche de présentation proposée
 
 Nom : ImmOptima
 
-Description courte : Centralisez votre patrimoine, vos loyers et vos documents. Pilotez votre bilan.
+Description courte : Vos biens, vos loyers et votre épargne réunis pour piloter votre patrimoine.
 
 Description :
 ImmOptima réunit vos biens immobiliers, votre épargne, vos loyers, vos crédits et vos documents dans un même espace. Retrouvez un bilan clair pour mieux piloter votre patrimoine et identifier des pistes d’optimisation à partir de vos données.
@@ -54,3 +54,12 @@ Connexion et inscription du propriétaire à Play Console ; type de compte à co
 ## Contact dédié confirmé
 
 Assistance, confidentialité et retours des testeurs : **immoptima12@gmail.com**. Adresse communiquée par l’éditeur après création. Aucun e-mail de test n’a été envoyé et la livraison n’est pas certifiée. Ne pas considérer cette adresse comme un changement du propriétaire du compte Play Console.
+
+## Livrables du 18 novembre
+
+- Fiche à reprendre : `FICHE-PLAY-FR.txt` et `FICHE-PLAY-FR.json` (brouillon non soumis).
+- Kit de test : `kit-test/01-CONSIGNES-TESTEURS.md`, formulaires CSV vides et modèles de messages non envoyés.
+- Pages : paquet statique de revue, non déployé ; contrôler les manques avec `node scripts/publication-preflight.cjs beta`.
+- Binaire client préparé : AAB V50 ; APK personnelle V49 réservée au titulaire, exclue du kit testeurs.
+- Preuves techniques : compilation, tests navigateur et règles Firestore réussis, APK installé/testé sur émulateurs Android 14 et 16. Source `be483fcc7ea55fde44063f38e048dce6ab1ff4b7`, exécution https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/44259606825.
+- Aucun essai de connexion, de restauration ou de suppression sur un vrai compte client n’est certifié par ces tests.
