@@ -28,3 +28,21 @@ Sources de contrôle : code local de l’application, ponts Android Auth/Cloud/D
 ## Complément du 15 novembre
 
 La photo facultative d’un bien est embarquée dans le patrimoine JSON et peut donc quitter l’appareil lors d’une sauvegarde autorisée. Elle doit être examinée comme catégorie Photos dans la déclaration Play. Les SDK Firebase Auth 23.2.1 et Firestore 25.1.4, Google Play Services Auth 21.5.0 et Billing 8.3.0 sont demandés par les scripts Android ; les dépendances transitives et le manifeste fusionné restent à relever sur le binaire final. Le formulaire préparé et ses conditions sont dans `DECLARATIONS_GOOGLE_PLAY.md`. Aucun audit de trafic réel ou audit indépendant de sécurité n’est revendiqué.
+
+
+## Relevé du binaire client V52 — 22 novembre 2026
+
+Le manifeste release fusionné et l’arbre des dépendances ont été relevés dans la compilation 45054419836 (source applicative 2278d4c625d9d4ef3b5e273c5b471e1d57f2d6ec). Le JSON du manifeste et les dépendances complètes sont joints aux preuves de compilation du kit.
+
+| Permission déclarée | Utilisation à rapprocher des fonctions réelles |
+|---|---|
+| android.permission.INTERNET | Services réseau de connexion, sauvegarde et fonctions distantes |
+| android.permission.ACCESS_NETWORK_STATE | État de connexion réseau des SDK |
+| com.android.vending.BILLING | SDK de la future souscription ; la configuration d’achat est désactivée |
+| com.google.android.providers.gsf.permission.READ_GSERVICES | Dépendances Google ; ne signifie pas une permission de lecture des comptes bancaires |
+
+La liste ne contient pas de permission caméra, microphone, localisation, contacts, SMS ou lecture étendue des médias. La sélection d’un fichier ou d’une photo par le sélecteur système reste un parcours distinct ; une photo intégrée au patrimoine peut ensuite être transmise dans la sauvegarde autorisée. L’absence de permission générale sur les photos ne permet pas de déclarer qu’aucune photo n’est collectée.
+
+`allowBackup` est explicitement faux dans le manifeste relevé. `usesCleartextTraffic` n’y est pas explicitement défini : ne pas présenter ce relevé seul comme une mesure de trafic ou comme une preuve exhaustive des échanges réseau.
+
+Versions résolues : Firebase Auth 23.2.1, Firestore 25.1.4, Google Play Services Auth 21.5.0 et Billing 8.3.0. Les dépendances transitives figurent dans le fichier complet ; leurs traitements techniques doivent être rapprochés des informations fournisseur. Aucun audit de trafic réel, accord fournisseur ou déclaration Play soumise n’est revendiqué par ce relevé.

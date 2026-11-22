@@ -1,6 +1,6 @@
 # ImmOptima — préparation du test Google Play
 
-État vérifié le 22 novembre 2026 : la console Google Play affiche encore le choix du type de compte développeur. Aucun compte Play n’a été créé, contrat accepté, frais réglé ou AAB déposé. Les nouvelles candidates V51 personnelle et V52 client sont en cours de vérification ; ne pas les déclarer validées avant le résultat de leur compilation et de leurs tests.
+État vérifié le 22 novembre 2026 : la console Google Play affiche encore le choix du type de compte développeur. Aucun compte Play n’a été créé, contrat accepté, frais réglé ou AAB déposé. Les nouvelles candidates sont la V51 personnelle et la V52 client. Leur état technique se lit dans les preuves de compilation et de test jointes au kit ; il ne vaut pas autorisation de publier ou de vendre.
 
 ## Fiche de présentation proposée
 

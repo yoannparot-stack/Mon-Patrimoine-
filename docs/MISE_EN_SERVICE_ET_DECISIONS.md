@@ -1,5 +1,11 @@
 # ImmOptima — ce qui peut être finalisé et ce qui nécessite le titulaire
 
+## Mise à jour technique du 22 novembre 2026
+
+Les nouvelles candidates sont V51 personnelle et V52 client. Consulter les preuves rattachées au binaire avant toute distribution. La vérification technique ne vaut pas acceptation administrative du statut de l’éditeur, du type de compte Play ou de la procédure de suppression. Les états et justificatifs personnels du titulaire sont suivis séparément des sources publiques.
+
+
+
 18 novembre 2026. Aucune facturation, mise en ligne, invitation, création de compte Play ou suppression réelle n'a été effectuée par ce dossier.
 
 ## Préparation réalisée
@@ -11,7 +17,7 @@ Audit des droits côté client ; refus des réponses expirées ou incohérentes 
 | Sujet | Information ou action exacte attendue | Pourquoi la préparation ne suffit pas |
 |---|---|---|
 | Connexion Google | Accès Firebase confirmé après connexion du titulaire ; Play ouvre l'inscription développeur sur le compte connecté | Connexion console acquise ; elle ne certifie pas les parcours de l'application cliente |
-| Statut de commercialisation | Voie choisie : activité en nom propre, sans société ; préparer l'entreprise individuelle, régime micro à vérifier selon la situation existante | Choix confirmé, aucune formalité d'immatriculation ou d'ajout d'activité déposée |
+| Statut de commercialisation | Voie choisie : activité en nom propre, sans société ; préparer l'entreprise individuelle, régime micro à vérifier selon la situation existante | État administratif à confirmer par les justificatifs privés du titulaire ; les tests ne valident pas son régime |
 | Coordonnées publiques | Résoudre les obligations applicables et la protection souhaitée de l'adresse/téléphone personnels | L'assistance par e-mail ne dispense pas des mentions légales ou Google |
 | Conservation et contrats | Valider les durées réellement tenables, le suivi de la boîte mail, les contrats et garanties fournisseur | Les délais préparés dans le code ne décrivent pas les journaux et copies du fournisseur |
 | Compte Play | Confirmer le type adapté et le retour du support ; procéder aux vérifications, accords et frais Google | La fiche et un AAB ne créent pas le compte ni l'autorisation de vendre |
