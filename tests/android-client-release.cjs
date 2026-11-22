@@ -18,9 +18,12 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
   fs.writeFileSync(out+'/launch.png',cp.execFileSync('adb',['exec-out','screencap','-p']));
   const ocr=cp.execFileSync('tesseract',[out+'/launch.png','stdout'],{encoding:'utf8',stdio:['ignore','pipe','ignore']});
   fs.writeFileSync(out+'/launch-ocr.txt',ocr);
-  if(ocr.toLowerCase().replace(/[^a-z]/g,'').includes('immoptima')){rendered=true;break;}
+  // The multicolour brand image is not reliably recognized by OCR. Require
+  // three independent client-entry texts from the actual framebuffer instead.
+  const text=ocr.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z]/g,'');
+  if(['betafermeegratuite','essayergratuitement','votrebilan'].every(t=>text.includes(t))){rendered=true;break;}
  }
- assert(rendered,'Actual release framebuffer must show ImmOptima');
+ assert(rendered,'Actual release framebuffer must show the beta label, discovery action and property summary');
  const pid=adb('shell','pidof','com.immoptima.app');assert(/^\d+$/.test(pid));
  assert(!adb('shell','cat','/proc/net/unix').includes('webview_devtools_remote_'+pid),'No release WebView debugging socket');
  const focus=adb('shell','dumpsys','window','windows');
