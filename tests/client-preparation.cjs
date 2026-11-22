@@ -12,7 +12,7 @@ try{
   for(const [name,hash]of Object.entries(manifest.assets)){assert.equal(crypto.createHash('sha256').update(built[name]).digest('hex'),hash,name);if(/\.js$|\.html$/.test(name))assert(!built[name].includes('personal-test'),name)}
   for(const config of ['play-billing.json','account-deletion.json'])assert.equal(JSON.parse(built[config]).enabled,false);
   assert(built['index.html'].includes("const IMMOPTIMA_BUILD_CHANNEL='"+channel+"';"));
-  if(channel==='beta')assert.equal(JSON.parse(built['beta-build.json']).versionCode,52);
+  if(channel==='beta')assert.equal(JSON.parse(built['beta-build.json']).versionCode,54);
   fs.writeFileSync(path.join(out,'stale-personal.js'),'personal bypass must never survive');const before=snapshot(out);
   assert.notEqual(run(script,out).status,0);assert.deepEqual(snapshot(out),before,'refused output must be preserved');
   assert.notEqual(run(script,root).status,0);assert.notEqual(run(script,path.join(root,'public-account','must-not-create')).status,0);
