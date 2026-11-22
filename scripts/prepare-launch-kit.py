@@ -22,7 +22,11 @@ FILES = [
 ]
 EVIDENCE = ['manifest-permissions.json', 'release-checks.json', 'resolved-dependencies.txt', 'beta-build.json']
 
-def build(output, evidence=None):
+def build(output, evidence=None, source_sha=None, verification_run=None):
+    if not source_sha or len(source_sha) != 40 or any(c not in '0123456789abcdef' for c in source_sha):
+        raise ValueError('Supply the exact source commit')
+    if not verification_run or not str(verification_run).isdigit():
+        raise ValueError('Supply the exact verification run')
     output = Path(output).resolve()
     if output.exists():
         raise ValueError('Refusing to overwrite an existing deliverable')
@@ -48,7 +52,7 @@ def build(output, evidence=None):
     if evidence:
         for name in EVIDENCE:
             items['preuves-compilation-v52/' + name] = (Path(evidence) / name).read_bytes()
-    items['LIRE-EN-PREMIER.md'] = '''# ImmOptima — préparation du lancement, 18 novembre 2026
+    items['LIRE-EN-PREMIER.md'] = '''# ImmOptima — préparation du lancement, 22 novembre 2026
 
 Ce dossier est destiné au titulaire pour revue. Il ne constitue pas une mise en vente.
 
@@ -61,10 +65,22 @@ Les CSV sont des trames, pas des résultats d'essais réels. Aucun message n'a �
 
 APK personnelle V51 : réservée au titulaire, exclue de ce kit. AAB client V52 : fourni séparément, préparation Play non installable directement. Aucun fichier de patrimoine ni liste de contacts réelle inclus.
 
-Preuves : source applicative be483fcc7ea55fde44063f38e048dce6ab1ff4b7 ; compilation/tests : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/44259606825. Les tests automatisés et émulateurs ne certifient pas les services distants ni une procédure réelle de suppression.
+Preuves : source SOURCE_COMMIT ; compilation/tests : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/VERIFICATION_RUN. Les tests automatisés et émulateurs ne certifient pas les services distants ni une procédure réelle de suppression.
 
 Assistance prévue uniquement par e-mail : immoptima12@gmail.com.
-'''.encode()
+'''.replace('SOURCE_COMMIT', source_sha).replace('VERIFICATION_RUN', str(verification_run)).encode()
+    items['TEST-APK-CLIENT.md'] = """# Essai privé de la bêta client V52
+
+Utiliser l’APK ImmOptima-Client-Beta-v52.apk fournie séparément sur un second appareil de test, avec un compte Google distinct et des données fictives. Garder l’APK personnelle V51 sur le téléphone principal. Les deux variantes partagent l’identifiant Android : ne pas installer la bêta client par-dessus le patrimoine personnel pour un simple essai.
+
+À vérifier : première ouverture ; ajout d’un bien ; dossier bailleur et locataire ; redirection des alertes vers les champs manquants ; encaissement intégral confirmé et quittance ; paiement partiel et reçu ; sauvegarde/restauration locale ; connexion et restauration cloud sur second appareil ; refus propre d’un ajout ou import multi-biens sans droits ; absence de paiement automatique.
+
+L’essai de 90 jours exige connexion et activation volontaire vérifiée par le serveur. L’APK ne certifie pas à elle seule ce parcours. Noter les étapes bloquées et le message exact ; ne pas modifier les droits ou dates pour contourner le refus.
+
+La suppression réelle doit être vérifiée séparément sur un compte jetable identifié et autorisé, avec un contrôle des anciennes sessions. Aucun résultat n’est coché d’avance dans ce kit.
+
+Retour minimal : modèle du téléphone, version Android, étape et texte du problème. Masquer les données personnelles des captures. Assistance : immoptima12@gmail.com.
+""".encode()
     assert all(not name.endswith(('.apk', '.aab', '.png', '.jpg')) for name in items)
     manifest = {name: hashlib.sha256(data).hexdigest() for name, data in sorted(items.items())}
     items['SHA256.json'] = (json.dumps(manifest, indent=2, ensure_ascii=False) + '\n').encode()
@@ -81,5 +97,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output')
     parser.add_argument('--evidence')
+    parser.add_argument('--source-sha', required=True)
+    parser.add_argument('--verification-run', required=True)
     args = parser.parse_args()
-    print(json.dumps(build(args.output, args.evidence), ensure_ascii=False))
+    print(json.dumps(build(args.output, args.evidence, args.source_sha, args.verification_run), ensure_ascii=False))

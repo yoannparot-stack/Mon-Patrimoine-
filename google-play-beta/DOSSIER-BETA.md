@@ -1,6 +1,6 @@
 # ImmOptima — préparation du test Google Play
 
-Mise à jour du 18 novembre 2026 : préparation technique V50 compilée et contrôlée. État de création du compte Play non confirmé dans cette session ; aucun dépôt en Console, invitation ou achat effectué pendant cet audit.
+État vérifié le 22 novembre 2026 : la console Google Play affiche encore le choix du type de compte développeur. Aucun compte Play n’a été créé, contrat accepté, frais réglé ou AAB déposé. Les nouvelles candidates V51 personnelle et V52 client sont en cours de vérification ; ne pas les déclarer validées avant le résultat de leur compilation et de leurs tests.
 
 ## Fiche de présentation proposée
 
