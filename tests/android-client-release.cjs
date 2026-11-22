@@ -5,6 +5,10 @@ const adb=(...args)=>cp.execFileSync('adb',args,{encoding:'utf8'}).trim();
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
  assert.equal(adb('shell','getprop','ro.kernel.qemu'),'1','Disposable emulator required');
+ // AOSP/google_apis userdebug images force WebView debugging at OS level.
+ // Use production-style Google Play images so the socket assertion is meaningful.
+ assert.equal(adb('shell','getprop','ro.build.type'),'user','Production-style Android image required');
+ assert.equal(adb('shell','getprop','ro.debuggable'),'0','OS debug override must be disabled');
  const apk=fs.readdirSync('installed-client').find(n=>n.endsWith('.apk'));assert(apk);
  adb('install','installed-client/'+apk);
  const info=adb('shell','dumpsys','package','com.immoptima.app');
