@@ -48,6 +48,7 @@ on:
       - 'firebase.json'
       - 'tests/**'
       - 'android-ux-patch.py'
+      - 'android-navigation-patch.py'
       - 'qa_android.js'
       - 'qa_google_drive_migration.js'
       - 'qa_firebase_preflight.js'
@@ -145,7 +146,7 @@ jobs:
           GRADLE_FILE="$(find android-project -path '*/app/build.gradle' -print -quit)"
           test -n "$GRADLE_FILE"
           sed -i "s/applicationId 'com.monpatrimoine.app.test'/applicationId 'com.immoptima.app'/" "$GRADLE_FILE"
-          sed -i "s/versionCode 4/versionCode 49/" "$GRADLE_FILE"
+          sed -i "s/versionCode 4/versionCode 51/" "$GRADLE_FILE"
           grep -nE "applicationId|versionCode" "$GRADLE_FILE"
           grep -F "applicationId 'com.immoptima.app'" "$GRADLE_FILE"
 
@@ -168,6 +169,7 @@ jobs:
           python3 android-access-patch.py "$ROOT"
           python3 android-rental-patch.py "$ROOT"
           python3 android-ux-patch.py "$ROOT"
+          python3 android-navigation-patch.py "$ROOT"
           python3 android-billing-patch.py "$ROOT"
           python3 android-account-deletion-patch.py "$ROOT"
           python3 scripts/apply-brand-icons.py "$ROOT"
@@ -329,23 +331,23 @@ jobs:
           umask 077
           ROOT="$(dirname "$(find android-project -name settings.gradle -print -quit)")"
           cp beta-prepared/* "$ROOT/app/src/main/assets/"
-          sed -i "s/versionCode 49/versionCode 50/; s/1.3.2-preview/1.3.2-beta50/" "$ROOT/app/build.gradle"
+          sed -i "s/versionCode 51/versionCode 52/; s/1.3.2-preview/1.3.2-beta52/" "$ROOT/app/build.gradle"
           gradle -p "$ROOT" :app:bundleRelease :app:assembleRelease --stacktrace
           mkdir -p beta-out
-          cp "$ROOT/app/build/outputs/bundle/release/app-release.aab" beta-out/ImmOptima-Beta-Google-Play-v50.aab
+          cp "$ROOT/app/build/outputs/bundle/release/app-release.aab" beta-out/ImmOptima-Beta-Google-Play-v52.aab
           KEYSTORE="$RUNNER_TEMP/immoptima-beta-upload.jks"
           trap 'rm -f "$KEYSTORE"' EXIT
           printf '%s' "$IMMOPTIMA_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
-          jarsigner -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -keypass:env IMMOPTIMA_KEY_PASSWORD beta-out/ImmOptima-Beta-Google-Play-v50.aab "$IMMOPTIMA_KEY_ALIAS"
-          jarsigner -verify beta-out/ImmOptima-Beta-Google-Play-v50.aab
+          jarsigner -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -keypass:env IMMOPTIMA_KEY_PASSWORD beta-out/ImmOptima-Beta-Google-Play-v52.aab "$IMMOPTIMA_KEY_ALIAS"
+          jarsigner -verify beta-out/ImmOptima-Beta-Google-Play-v52.aab
           mkdir -p beta-apk-out
           BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
-          "$BUILD_TOOLS/zipalign" -f -p 4 "$ROOT/app/build/outputs/apk/release/app-release-unsigned.apk" beta-apk-out/ImmOptima-Client-Beta-v50.apk
-          "$BUILD_TOOLS/apksigner" sign --ks "$KEYSTORE" --ks-key-alias "$IMMOPTIMA_KEY_ALIAS" --ks-pass env:IMMOPTIMA_STORE_PASSWORD --key-pass env:IMMOPTIMA_KEY_PASSWORD beta-apk-out/ImmOptima-Client-Beta-v50.apk
-          "$BUILD_TOOLS/apksigner" verify --print-certs beta-apk-out/ImmOptima-Client-Beta-v50.apk > beta-apk-out/signing-certificate.txt
-          python3 scripts/check-beta-apk.py beta-apk-out/ImmOptima-Client-Beta-v50.apk beta-prepared "$BUILD_TOOLS/aapt"
+          "$BUILD_TOOLS/zipalign" -f -p 4 "$ROOT/app/build/outputs/apk/release/app-release-unsigned.apk" beta-apk-out/ImmOptima-Client-Beta-v52.apk
+          "$BUILD_TOOLS/apksigner" sign --ks "$KEYSTORE" --ks-key-alias "$IMMOPTIMA_KEY_ALIAS" --ks-pass env:IMMOPTIMA_STORE_PASSWORD --key-pass env:IMMOPTIMA_KEY_PASSWORD beta-apk-out/ImmOptima-Client-Beta-v52.apk
+          "$BUILD_TOOLS/apksigner" verify --print-certs beta-apk-out/ImmOptima-Client-Beta-v52.apk > beta-apk-out/signing-certificate.txt
+          python3 scripts/check-beta-apk.py beta-apk-out/ImmOptima-Client-Beta-v52.apk beta-prepared "$BUILD_TOOLS/aapt"
           sha256sum beta-apk-out/*.apk > beta-apk-out/SHA256SUMS.txt
-          keytool -printcert -jarfile beta-out/ImmOptima-Beta-Google-Play-v50.aab > beta-out/upload-certificate.txt
+          keytool -printcert -jarfile beta-out/ImmOptima-Beta-Google-Play-v52.aab > beta-out/upload-certificate.txt
           cp beta-prepared/beta-build.json beta-out/
           python3 scripts/check-beta-bundle.py "$ROOT" beta-out
           gradle -p "$ROOT" :app:dependencies --configuration releaseRuntimeClasspath > beta-out/resolved-dependencies.txt

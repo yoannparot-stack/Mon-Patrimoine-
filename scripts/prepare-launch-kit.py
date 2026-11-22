@@ -47,7 +47,7 @@ def build(output, evidence=None):
         items['controles/preflight-' + scope + '.json'] = r.stdout.encode()
     if evidence:
         for name in EVIDENCE:
-            items['preuves-compilation-v50/' + name] = (Path(evidence) / name).read_bytes()
+            items['preuves-compilation-v52/' + name] = (Path(evidence) / name).read_bytes()
     items['LIRE-EN-PREMIER.md'] = '''# ImmOptima — préparation du lancement, 18 novembre 2026
 
 Ce dossier est destiné au titulaire pour revue. Il ne constitue pas une mise en vente.
@@ -59,7 +59,7 @@ Ce dossier est destiné au titulaire pour revue. Il ne constitue pas une mise en
 
 Les CSV sont des trames, pas des résultats d'essais réels. Aucun message n'a été envoyé. Aucun achat, abonnement, changement de facturation ou compte réel supprimé. Les pages de suppression par e-mail supposent un traitement manuel réellement disponible avant publication.
 
-APK personnelle V49 : réservée au titulaire, exclue de ce kit. AAB client V50 : fourni séparément, préparation Play non installable directement. Aucun fichier de patrimoine ni liste de contacts réelle inclus.
+APK personnelle V51 : réservée au titulaire, exclue de ce kit. AAB client V52 : fourni séparément, préparation Play non installable directement. Aucun fichier de patrimoine ni liste de contacts réelle inclus.
 
 Preuves : source applicative be483fcc7ea55fde44063f38e048dce6ab1ff4b7 ; compilation/tests : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/44259606825. Les tests automatisés et émulateurs ne certifient pas les services distants ni une procédure réelle de suppression.
 

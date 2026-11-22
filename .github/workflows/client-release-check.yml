@@ -1,9 +1,11 @@
 name: Verify existing signed client APK
 on:
-  push:
-    paths:
-      - '.github/workflows/client-release-check.yml'
-      - 'tests/android-client-release.cjs'
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Build run containing the V52 client artifact to verify
+        required: true
+        type: string
 permissions:
   contents: read
   actions: read
@@ -28,7 +30,7 @@ jobs:
         with:
           name: ImmOptima-Client-Beta-APK
           path: installed-client
-          run-id: 45041134144
+          run-id: ${{ inputs.source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Enable KVM
         run: |
