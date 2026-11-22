@@ -41,6 +41,7 @@ on:
       - 'scripts/client_build.py'
       - 'scripts/prepare-beta.py'
       - 'scripts/check-beta-bundle.py'
+      - 'scripts/check-beta-apk.py'
       - 'beta-info.js'
       - 'functions/**'
       - 'android-rental-patch.py'
@@ -329,7 +330,7 @@ jobs:
           ROOT="$(dirname "$(find android-project -name settings.gradle -print -quit)")"
           cp beta-prepared/* "$ROOT/app/src/main/assets/"
           sed -i "s/versionCode 49/versionCode 50/; s/1.3.2-preview/1.3.2-beta50/" "$ROOT/app/build.gradle"
-          gradle -p "$ROOT" :app:bundleRelease --stacktrace
+          gradle -p "$ROOT" :app:bundleRelease :app:assembleRelease --stacktrace
           mkdir -p beta-out
           cp "$ROOT/app/build/outputs/bundle/release/app-release.aab" beta-out/ImmOptima-Beta-Google-Play-v50.aab
           KEYSTORE="$RUNNER_TEMP/immoptima-beta-upload.jks"
@@ -337,6 +338,13 @@ jobs:
           printf '%s' "$IMMOPTIMA_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE"
           jarsigner -keystore "$KEYSTORE" -storepass:env IMMOPTIMA_STORE_PASSWORD -keypass:env IMMOPTIMA_KEY_PASSWORD beta-out/ImmOptima-Beta-Google-Play-v50.aab "$IMMOPTIMA_KEY_ALIAS"
           jarsigner -verify beta-out/ImmOptima-Beta-Google-Play-v50.aab
+          mkdir -p beta-apk-out
+          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "$BUILD_TOOLS/zipalign" -f -p 4 "$ROOT/app/build/outputs/apk/release/app-release-unsigned.apk" beta-apk-out/ImmOptima-Client-Beta-v50.apk
+          "$BUILD_TOOLS/apksigner" sign --ks "$KEYSTORE" --ks-key-alias "$IMMOPTIMA_KEY_ALIAS" --ks-pass env:IMMOPTIMA_STORE_PASSWORD --key-pass env:IMMOPTIMA_KEY_PASSWORD beta-apk-out/ImmOptima-Client-Beta-v50.apk
+          "$BUILD_TOOLS/apksigner" verify --print-certs beta-apk-out/ImmOptima-Client-Beta-v50.apk > beta-apk-out/signing-certificate.txt
+          python3 scripts/check-beta-apk.py beta-apk-out/ImmOptima-Client-Beta-v50.apk beta-prepared "$BUILD_TOOLS/aapt"
+          sha256sum beta-apk-out/*.apk > beta-apk-out/SHA256SUMS.txt
           keytool -printcert -jarfile beta-out/ImmOptima-Beta-Google-Play-v50.aab > beta-out/upload-certificate.txt
           cp beta-prepared/beta-build.json beta-out/
           python3 scripts/check-beta-bundle.py "$ROOT" beta-out
@@ -348,6 +356,13 @@ jobs:
         with:
           name: ImmOptima-Beta-Google-Play-Preparation
           path: beta-out/
+          if-no-files-found: error
+
+      - name: Upload directly installable client beta
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmOptima-Client-Beta-APK
+          path: beta-apk-out/
           if-no-files-found: error
 
       - name: Upload beta browser verification
@@ -403,6 +418,52 @@ jobs:
         with:
           name: ImmOptima-Android-Verification-API-${{ matrix.api }}
           path: qa-out/android/
+          if-no-files-found: warn
+
+  android-client-release:
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [34, 36]
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: ImmOptima-Client-Beta-APK
+          path: installed-client
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install QA transport
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr
+      - name: Verify installed APK and capture real Android screens
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: node tests/android-client-release.cjs
+      - name: Upload Android screenshots and result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmOptima-Client-Release-API-${{ matrix.api }}
+          path: qa-out/android-client/
           if-no-files-found: warn
 
   cloud-rules-audit:
