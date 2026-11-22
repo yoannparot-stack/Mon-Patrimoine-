@@ -318,6 +318,7 @@ jobs:
       - name: Prepare and check isolated no-purchase beta
         run: |
           node tests/beta-preparation.cjs beta-prepared
+          node tests/guided-first-use-ui.cjs beta-prepared
           node tests/beta-ui.cjs beta-prepared
           node tests/client-release-ui.cjs beta-prepared
           node tests/customer-backup-ui.cjs beta-prepared
