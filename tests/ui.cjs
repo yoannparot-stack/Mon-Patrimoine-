@@ -9,7 +9,7 @@ let qaStage='startup',failurePage;const qaWatchdog=setTimeout(()=>{console.error
  const importBackup=async file=>{await page.locator('#importFile').setInputFiles(file);await page.waitForTimeout(200);if(await page.locator('#ioImportSummary').isVisible())await page.locator('#ioImportSummary [data-import-close]').first().click()};
  failurePage=page;page.setDefaultTimeout(12000);page.setDefaultNavigationTimeout(20000);
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept()});await page.route('**/*',r=>r.request().url().startsWith('http://127.0.0.1:')?r.continue():r.abort());
- await page.addInitScript(()=>{localStorage.setItem('immoptima_entry_v1','discovery');localStorage.setItem('immoptima_welcome_v1','seen');localStorage.setItem('immoptima_tutorial_v1','later')});
+ await page.addInitScript(()=>{localStorage.setItem('immoptima_entry_v1','discovery');localStorage.setItem('immoptima_guided_start_v1','later');localStorage.setItem('immoptima_welcome_v1','seen');localStorage.setItem('immoptima_tutorial_v1','later')});
  const url='http://127.0.0.1:'+server.address().port;await page.goto(url);await page.waitForTimeout(500);
  assert.equal(await page.evaluate(()=>db.properties.length),0,'first launch stays empty');
  await page.evaluate(()=>installDemoData());assert.equal(await page.evaluate(()=>db.properties.length),1);await page.evaluate(()=>removeDemoData());assert.equal(await page.evaluate(()=>db.properties.length),0);assert(await page.evaluate(()=>!db.dashboardSnapshots.some(x=>x.demo==='immoptima_demo_v1')));

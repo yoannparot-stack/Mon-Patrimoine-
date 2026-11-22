@@ -7,7 +7,7 @@ const {chromium}=require('playwright');
  browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:393,height:851}});
  const errors=[],prompts=[];let accept=false;page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{prompts.push(d.message());if(accept)await d.accept();else await d.dismiss()});
  await page.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.abort());
- await page.addInitScript(()=>{localStorage.setItem('immoptima_entry_v1','discovery');localStorage.setItem('immoptima_welcome_v1','seen');localStorage.setItem('immoptima_tutorial_v1','later')});
+ await page.addInitScript(()=>{localStorage.setItem('immoptima_entry_v1','discovery');localStorage.setItem('immoptima_guided_start_v1','later');localStorage.setItem('immoptima_welcome_v1','seen');localStorage.setItem('immoptima_tutorial_v1','later')});
  await page.goto(base);
  await page.evaluate(f=>{
   db=f;window.qaOriginalSave=save;ioAccessAuthorize=async()=>true;window.ioSoloAuthorize=async()=>true;
