@@ -32,12 +32,12 @@ def prepare(output, channel):
     html = html.replace('Version de test sans limite commerciale de logements et sans abonnement. Importez votre sauvegarde depuis Plus → Importer pour vérifier votre patrimoine complet, puis ajoutez ou modifiez vos biens.','Gérez un logement gratuitement. L’ajout ou l’import de plusieurs biens nécessite un abonnement actif, vérifié sur votre compte.')
     html = html.replace('// Internal validation build: no purchase or subscription required.','// Client build: no personal bypass; verified access required.')
     if channel == 'beta':
-        html = html.replace('ImmOptima · version de test V53','ImmOptima · bêta fermée V54')
+        html = html.replace('ImmOptima · version de test V55','ImmOptima · bêta fermée V56')
         html = html.replace('</body>', '<script src="beta-info.js" defer></script>\n</body>')
         contents['beta-info.js'] = (ROOT / 'beta-info.js').read_text()
         contents['account-ui.js'] = contents['account-ui.js'].replace('Offre Premium · prix et conditions dans Google Play','Bêta gratuite · futurs tarifs à titre indicatif')
     else:
-        html = html.replace('ImmOptima · version de test V53','ImmOptima · préparation client')
+        html = html.replace('ImmOptima · version de test V55','ImmOptima · préparation client')
     contents['index.html'] = html
     for name, source in [('play-billing.json', 'billing/play-billing.json'), ('account-deletion.json', 'account-deletion/config.json')]:
         config = json.loads((ROOT / source).read_text())
@@ -50,7 +50,7 @@ def prepare(output, channel):
     hashes = {name: hashlib.sha256(text.encode()).hexdigest() for name, text in contents.items()}
     contents['client-build.json'] = json.dumps({'channel':channel,'personalBypass':False,'purchasesEnabled':False,'deletionEnabled':False,'deployed':False,'assets':hashes}, ensure_ascii=False, indent=2) + '\n'
     if channel == 'beta':
-        contents['beta-build.json'] = json.dumps({'channel':'beta','versionCode':54,'packageName':'com.immoptima.app','purchasesEnabled':False,'personalBypass':False,'trialDays':90,'trialScope':'one-property','activation':'explicit authenticated server activation','playUploaded':False,'publicRelease':False,'requiresRealAccountValidation':True,'requiresPublisherAndPolicyCompletion':True}, ensure_ascii=False, indent=2) + '\n'
+        contents['beta-build.json'] = json.dumps({'channel':'beta','versionCode':56,'packageName':'com.immoptima.app','purchasesEnabled':False,'personalBypass':False,'trialDays':90,'trialScope':'one-property','activation':'explicit authenticated server activation','playUploaded':False,'publicRelease':False,'requiresRealAccountValidation':True,'requiresPublisherAndPolicyCompletion':True}, ensure_ascii=False, indent=2) + '\n'
     out.mkdir(parents=True, exist_ok=True)
     for name, text in contents.items():
         (out / name).write_text(text)

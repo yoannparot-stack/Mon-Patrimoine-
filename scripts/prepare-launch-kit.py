@@ -51,7 +51,7 @@ def build(output, evidence=None, source_sha=None, verification_run=None):
         items['controles/preflight-' + scope + '.json'] = r.stdout.encode()
     if evidence:
         for name in EVIDENCE:
-            items['preuves-compilation-v54/' + name] = (Path(evidence) / name).read_bytes()
+            items['preuves-compilation-v56/' + name] = (Path(evidence) / name).read_bytes()
     items['LIRE-EN-PREMIER.md'] = '''# ImmOptima — préparation du lancement, 22 novembre 2026
 
 Ce dossier est destiné au titulaire pour revue. Il ne constitue pas une mise en vente.
@@ -63,15 +63,15 @@ Ce dossier est destiné au titulaire pour revue. Il ne constitue pas une mise en
 
 Les CSV sont des trames, pas des résultats d'essais réels. Aucun message n'a été envoyé. Aucun achat, abonnement, changement de facturation ou compte réel supprimé. Les pages de suppression par e-mail supposent un traitement manuel réellement disponible avant publication.
 
-APK personnelle V53 : réservée au titulaire, exclue de ce kit. AAB client V54 : fourni séparément, préparation Play non installable directement. Aucun fichier de patrimoine ni liste de contacts réelle inclus.
+APK personnelle V55 : réservée au titulaire, exclue de ce kit. AAB client V56 : fourni séparément, préparation Play non installable directement. Aucun fichier de patrimoine ni liste de contacts réelle inclus.
 
 Preuves : source SOURCE_COMMIT ; compilation/tests : https://github.com/yoannparot-stack/Mon-Patrimoine-/actions/runs/VERIFICATION_RUN. Les tests automatisés et émulateurs ne certifient pas les services distants ni une procédure réelle de suppression.
 
 Assistance prévue uniquement par e-mail : immoptima12@gmail.com.
 '''.replace('SOURCE_COMMIT', source_sha).replace('VERIFICATION_RUN', str(verification_run)).encode()
-    items['TEST-APK-CLIENT.md'] = """# Essai privé de la bêta client V54
+    items['TEST-APK-CLIENT.md'] = """# Essai privé de la bêta client V56
 
-Utiliser l’APK ImmOptima-Client-Beta-v54.apk fournie séparément sur un second appareil de test, avec un compte Google distinct et des données fictives. Garder l’APK personnelle V53 sur le téléphone principal. Les deux variantes partagent l’identifiant Android : ne pas installer la bêta client par-dessus le patrimoine personnel pour un simple essai.
+Utiliser l’APK ImmOptima-Client-Beta-v56.apk fournie séparément sur un second appareil de test, avec un compte Google distinct et des données fictives. Garder l’APK personnelle V55 sur le téléphone principal. Les deux variantes partagent l’identifiant Android : ne pas installer la bêta client par-dessus le patrimoine personnel pour un simple essai.
 
 À vérifier : première ouverture ; ajout d’un bien ; dossier bailleur et locataire ; redirection des alertes vers les champs manquants ; encaissement intégral confirmé et quittance ; paiement partiel et reçu ; sauvegarde/restauration locale ; connexion et restauration cloud sur second appareil ; refus propre d’un ajout ou import multi-biens sans droits ; absence de paiement automatique.
 

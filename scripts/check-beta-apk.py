@@ -19,9 +19,9 @@ with zipfile.ZipFile(apk) as z:
     for name in ('play-billing.json', 'account-deletion.json'):
         assert json.loads(z.read('assets/' + name))['enabled'] is False
 badging = subprocess.check_output([str(aapt), 'dump', 'badging', str(apk)], text=True)
-assert "package: name='com.immoptima.app' versionCode='54'" in badging
+assert "package: name='com.immoptima.app' versionCode='56'" in badging
 assert 'application-debuggable' not in badging
-result = {'versionCode': 54, 'packageName': 'com.immoptima.app',
+result = {'versionCode': 56, 'packageName': 'com.immoptima.app',
           'debuggable': False, 'preparedAssetsVerified': len(manifest['assets']),
           'purchasesEnabled': False, 'personalBypass': False,
           'sha256': hashlib.sha256(apk.read_bytes()).hexdigest(),

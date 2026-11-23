@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       source_run:
-        description: Build run containing the V54 client artifact to verify
+        description: Build run containing the V56 client artifact to verify
         required: true
         type: string
 permissions:
