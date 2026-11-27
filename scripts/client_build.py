@@ -5,7 +5,7 @@ import json
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-FILES = ['index.html','rental-local-data.js','rental-optimization.js','bank-simulator.js','landlord-tools.js','rental-management.js','client-guidance.js','property-readiness.js','first-use.js','client-experience.js','client-simplicity.js','client-journey.js','solo-landlord.js','help-search.js','play-billing.js','account-ui.js','account-deletion-ui.js','presentation-ui.js','legal-content.js','legal-ui.js','offer-design.js']
+FILES = ['index.html','rental-local-data.js','rental-optimization.js','bank-simulator.js','document-design.js','landlord-tools.js','rental-management.js','client-guidance.js','property-readiness.js','first-use.js','client-experience.js','client-simplicity.js','client-journey.js','solo-landlord.js','help-search.js','play-billing.js','account-ui.js','account-deletion-ui.js','presentation-ui.js','legal-content.js','legal-ui.js','offer-design.js']
 
 def prepare(output, channel):
     if channel not in ('commercial', 'beta'):

@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict'),D=require('../document-design.js'),R=require('../rental-management.js'),L=require('../landlord-tools.js');
+const identity={ownerName:'Bailleur <img src=x onerror=alert(1)>',ownerAddress:'Adresse fictive',tenantName:'Locataire fictif',address:'Logement fictif'};
+const record=R.receipt({month:'2026-11',rent:500,charges:30,paid:530,paymentDate:'2026-11-05',confirmed:true},identity,'2026-11-27');record.notice=R.notice(record,{month:'2026-12',rent:500,charges:30,dueDate:'2026-12-05',confirmed:true},identity);
+const html=D.receipt(record,[{role:'owner',name:'<script>fictif</script>',image:'https://invalid.example/signature.png'}]);
+assert(html.includes('Total acquitté')&&html.includes('Total à payer')&&html.includes('novembre 2026')&&html.includes('décembre 2026'));assert(html.includes('&lt;img'));assert(!html.includes('<img src=x'));assert(!html.includes('https://invalid.example'));assert(!html.includes('<script>'));
+const partial=D.receipt(R.receipt({month:'2026-11',rent:500,charges:30,paid:200,paymentDate:'2026-11-05',confirmed:true},identity,'2026-11-27'));assert(partial.includes('Reçu de paiement partiel')&&partial.includes('Reste à régler'));assert(!partial.includes('Paiement intégral reçu'));
+const input={...L.leaseDefaults(),mode:'meuble',ownerKind:'physique',ownerName:'Bailleur fictif',tenantName:'Locataire fictif',rent:500,charges:30,deposit:1000};const r=L.draftLease(input),lease=D.lease(r,input);
+for(const s of r.sections)for(const line of s.lines)if(!line.startsWith('Signature de chaque '))assert(lease.includes(D.esc(line)),line);
+assert(lease.includes('12 mois')&&lease.includes('Projet à relire')&&lease.includes('Signature de chaque locataire'));assert(D.pageStyle('Projet de bail').includes('counter(pages)'));console.log('PASS document design: escaped inputs, no external signature images, full versus partial receipts, future notice and every original lease clause retained');

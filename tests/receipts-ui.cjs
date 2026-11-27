@@ -4,7 +4,7 @@ const {chromium}=require('playwright');
 (async()=>{let browser,server;try{
  server=http.createServer((req,res)=>{const name=req.url.split('?')[0].slice(1);if(name.endsWith('.js')&&fs.existsSync(name)){res.setHeader('Content-Type','application/javascript');res.end(fs.readFileSync(name))}else{res.setHeader('Content-Type','text/html');res.end(fs.readFileSync('index.html'))}});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
- browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:393,height:851}});
+ browser=await chromium.launch({headless:true,executablePath:process.env.IMMOPTIMA_CHROMIUM||undefined});const page=await browser.newPage({viewport:{width:393,height:851}});
  const errors=[],prompts=[];let accept=false;page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{prompts.push(d.message());if(accept)await d.accept();else await d.dismiss()});
  await page.route('**/*',r=>r.request().url().startsWith(base)?r.continue():r.abort());
  await page.addInitScript(()=>{localStorage.setItem('immoptima_entry_v1','discovery');localStorage.setItem('immoptima_guided_start_v1','later');localStorage.setItem('immoptima_welcome_v1','seen');localStorage.setItem('immoptima_tutorial_v1','later')});

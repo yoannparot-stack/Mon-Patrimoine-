@@ -10,6 +10,7 @@ on:
       - 'rental-optimization.js'
       - 'rental-local-data.js'
       - 'bank-simulator.js'
+      - 'document-design.js'
       - 'landlord-tools.js'
       - 'rental-management.js'
       - 'client-guidance.js'
@@ -119,6 +120,7 @@ jobs:
           cp index.html "$ASSET_FILE"
           cp rental-local-data.js "$(dirname "$ASSET_FILE")/rental-local-data.js"
           cp rental-optimization.js "$(dirname "$ASSET_FILE")/rental-optimization.js"
+          cp document-design.js "$(dirname "$ASSET_FILE")/document-design.js"
           cp landlord-tools.js "$(dirname "$ASSET_FILE")/landlord-tools.js"
           cp rental-management.js "$(dirname "$ASSET_FILE")/rental-management.js"
           cp property-readiness.js "$(dirname "$ASSET_FILE")/property-readiness.js"
@@ -211,6 +213,7 @@ jobs:
           node tests/rental-search.cjs
           node tests/landlord.cjs
           node tests/rental-management.cjs
+          node tests/document-design.cjs
           node tests/access.cjs
           node tests/trial-callback.cjs
           node tests/client-preparation.cjs
@@ -250,7 +253,9 @@ jobs:
           receipts_status=$?
           node tests/guided-first-use-ui.cjs
           beginner_status=$?
-          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status || offer_status || deletion_status || receipts_status || beginner_status))
+          node tests/document-design-ui.cjs
+          documents_status=$?
+          exit $((legacy_status || simplicity_status || journey_status || solo_status || navigation_status || offer_status || deletion_status || receipts_status || beginner_status || documents_status))
       - name: Upload browser verification
         if: always()
         uses: actions/upload-artifact@v4
@@ -318,6 +323,7 @@ jobs:
       - name: Prepare and check isolated no-purchase beta
         run: |
           node tests/beta-preparation.cjs beta-prepared
+          node tests/document-design-ui.cjs beta-prepared
           node tests/guided-first-use-ui.cjs beta-prepared
           node tests/beta-ui.cjs beta-prepared
           node tests/client-release-ui.cjs beta-prepared
